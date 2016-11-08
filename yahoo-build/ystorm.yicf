@@ -4,7 +4,7 @@ PRODUCT_NAME = ystorm
 VERSION = `cat RELEASE | sed -e 's|-|_|g'`
 BASE_VERSION = `cat BASE_VERSION`
 
-SHORT_DESC = "Nathan Marz's distributed computation system."
+SHORT_DESC = "Apache Storm, Distributed Stream Processing (Near Real Time)"
 LONG_DESC = `cat README.yahoo; cat ../README.markdown`
 
 # Work-around for YINSTDIST-1144
@@ -16,7 +16,7 @@ CUSTODIAN = yahoo-storm-team@yahoo-inc.com http://twiki.corp.yahoo.com/view/Grid
 YINST bug-product jira-ystorm
 
 YINST requires pkg python27              2.7.10.41   2.7.9999.9999
-YINST requires pkg yjava_jdk             1.7.0_11.64 1.8.999999
+YINST requires pkg yjava_jdk             1.8.0       1.8.999999
 YINST requires pkg bouncer_auth_java     0.17.9      *
 YINST requires pkg yjava_servlet_filters 0.22.495    *
 YINST requires pkg yjava_yca             0.23.218    *
@@ -54,16 +54,17 @@ dir 3777 - - lib64/storm/$(BASE_VERSION)/extlib
 dir 3777 - - lib64/storm/$(BASE_VERSION)/extlib-daemon
 dir 3777 - - lib64/storm/$(BASE_VERSION)/logs/metadata
 find 755 - - lib64/storm/$(BASE_VERSION)/bin/ ../bin/ -type f
-file 444 - - lib64/storm/$(BASE_VERSION)/lib/asm-4.0.jar ../storm-core/target/dependency/asm-4.0.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib/clojure-1.6.0.jar ../storm-core/target/dependency/clojure-1.6.0.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/lib/asm-5.0.3.jar ../storm-core/target/dependency/asm-5.0.3.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/lib/clojure-1.7.0.jar ../storm-core/target/dependency/clojure-1.7.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/disruptor-3.3.2.jar ../storm-core/target/dependency/disruptor-3.3.2.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib/kryo-2.21.jar ../storm-core/target/dependency/kryo-2.21.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/lib/kryo-3.0.3.jar ../storm-core/target/dependency/kryo-3.0.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/log4j-api-2.1.jar ../storm-core/target/dependency/log4j-api-2.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/log4j-core-2.1.jar ../storm-core/target/dependency/log4j-core-2.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/log4j-slf4j-impl-2.1.jar ../storm-core/target/dependency/log4j-slf4j-impl-2.1.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib/log4j-1.2-api-2.1.jar ../storm-core/target/dependency/log4j-1.2-api-2.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/servlet-api-2.5.jar ../storm-core/target/dependency/servlet-api-2.5.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/slf4j-api-1.7.7.jar ../storm-core/target/dependency/slf4j-api-1.7.7.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/lib/log4j-over-slf4j-1.6.6.jar ../storm-core/target/dependency/log4j-over-slf4j-1.6.6.jar
+
 
 find 444 - - lib64/storm/$(BASE_VERSION)/ ../ -maxdepth 1 -type f -iname '*.md' -or -iname '*.markdown'
 find 444 - - lib64/storm/$(BASE_VERSION)/public/css/ ../storm-core/src/ui/public/css/ -maxdepth 1 -type f -iname '*.css'
@@ -93,7 +94,7 @@ symlink - - - lib64/storm/$(BASE_VERSION)/lib/data_core.jar             /home/y/
 file 6550 root root lib64/storm/$(BASE_VERSION)/bin/worker-launcher ../storm-core/target/native/target/usr/local/bin/worker-launcher
 
 # cgroup monitoring native library
-file 444 - - lib64/libcgroupOOMMonitor.so ../storm-core/target/native/target/usr/local/lib/libcgroupOOMMonitor.so
+# TODO are we pulling this in? file 444 - - lib64/libcgroupOOMMonitor.so ../storm-core/target/native/target/usr/local/lib/libcgroupOOMMonitor.so
 
 file 444 - - lib64/jars/storm.pom ../pom.xml
 file 444 - - lib64/jars/storm-core.jar ../storm-core/target/storm-core-$(BASE_VERSION).jar
@@ -152,7 +153,6 @@ file 444 - - lib64/jars/storm-metrics.pom ../external/storm-metrics/pom.xml
 
 file 444 - - lib64/storm/$(BASE_VERSION)/RELEASE ./RELEASE
 file 444 - - lib64/storm/$(BASE_VERSION)/LICENSE ../LICENSE
-file 444 - - lib64/storm/$(BASE_VERSION)/DISCLAIMER ../DISCLAIMER
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/storm-core-$(BASE_VERSION).jar ../storm-core/target/storm-core-$(BASE_VERSION).jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/storm_yahoo-$(BASE_VERSION).jar ../storm-yahoo/target/storm_yahoo-$(BASE_VERSION).jar
 file 444 - - lib64/storm/$(BASE_VERSION)/README.yahoo ./README.yahoo
