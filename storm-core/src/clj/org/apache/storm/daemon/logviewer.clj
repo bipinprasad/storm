@@ -1197,7 +1197,7 @@
                                 requests-middleware))  ;; query params as map
           middle (conf-middleware logapp log-root-dir daemonlog-root-dir)
           filters-confs (if (conf UI-FILTER)
-                          [(FilterConfiguration. filter-class (or (conf UI-FILTER-PARAMS) {}))]
+                          [(FilterConfiguration. (or (conf UI-FILTER-PARAMS) {}) filter-class)]
                           [])
           filters-confs (concat filters-confs
                           [(FilterConfiguration. "org.eclipse.jetty.servlets.GzipFilter" "Gzipper" {})])
