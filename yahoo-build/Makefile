@@ -4,13 +4,13 @@ FULL_VERSION=`cat RELEASE`
 BASE_VERSION_UNDERSCORE=`cat BASE_VERSION_UNDERSCORE`
 MVN_FULL_VERSION=`cat yahoo-build/RELEASE`
 MVN_MAKE_OPTS=--batch-mode
-MVN=LD_LIBRARY_PATH=/home/y/lib64 /home/y/bin/mvn
+MVN=LD_LIBRARY_PATH=/home/y/lib64 STORM_TEST_TIMEOUT_MS=20000 /home/y/bin/mvn
 EXEC_CONF_DIR?=/home/y/conf/storm/
 
 all: build
 
 test: RELEASE
-	cd .. && $(MVN) -Pnative -Pyahoo -Pcoverage -Pall-tests -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
+	cd .. && $(MVN) -fae -Pnative -Pyahoo -Pcoverage -Pall-tests -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
 
 check: test
 	@echo "Errors or Failures:"
@@ -32,7 +32,7 @@ BASE_VERSION_UNDERSCORE: BASE_VERSION
 	echo "$(BASE_VERSION)" | sed -e 's/-/_/g' > BASE_VERSION_UNDERSCORE
 
 RELEASE: BASE_VERSION_UNDERSCORE
-	@ if [ "$(YSTORM_BUILD_NUMBER)" != "" ]; then \
+	if [ "$(YSTORM_BUILD_NUMBER)" != "" ]; then \
 		echo "$(BASE_VERSION_UNDERSCORE).$(YSTORM_BUILD_NUMBER)" > RELEASE; \
 	else \
 		/home/y/bin/auto_increment_version.pl ystorm $(BASE_VERSION_UNDERSCORE) > RELEASE; \

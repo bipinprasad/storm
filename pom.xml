@@ -272,7 +272,7 @@
         <maven-surefire.version>2.18.1</maven-surefire.version>
         <!-- Kafka version used by old storm-kafka spout code -->
         <storm.kafka.version>0.9.0.1.20</storm.kafka.version>
-        <storm.kafka.artifact.id>kafka_2_10</storm.kafka.artifact.id>
+        <storm.kafka.artifact.id>kafka_2.10</storm.kafka.artifact.id>
 
         <!-- kafka version used by new storm-kafka-client spout code -->
         <storm.kafka.client.version>0.10.0.0</storm.kafka.client.version>

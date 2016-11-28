@@ -1,7 +1,8 @@
 
 export GIT_REPO = git@git.corp.yahoo.com:storm/storm_tools.git
 export GIT_SCRIPTS_BRANCH = storm_tools
-export STORM_LATEST_RELEASE_TAG = ystorm_master_launcher_latest_sd
+#DIST TAG to allow CI to find the correct versions to test
+export STORM_LATEST_RELEASE_TAG = ystorm_master_launcher_latest_2_x
 export STORM_MASTER_PKGS = ystorm
 export AUTO_CREATE_RELEASE_TAG = 1
 export UPDATE_DIST_TAG_WITH_MASTER_PKG = 1
