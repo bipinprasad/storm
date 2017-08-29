@@ -17,8 +17,10 @@
  */
 package org.apache.storm.redis.topology;
 
+import java.util.Map;
+import java.util.Random;
+
 import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.redis.bolt.RedisFilterBolt;
 import org.apache.storm.redis.common.config.JedisPoolConfig;
@@ -35,9 +37,6 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.Random;
-
 public class WhitelistWordCount {
     private static final String WORD_SPOUT = "WORD_SPOUT";
     private static final String WHITELIST_BOLT = "WHITELIST_BOLT";
@@ -53,7 +52,7 @@ public class WhitelistWordCount {
         private OutputCollector collector;
 
         @Override
-        public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+        public void prepare(Map<String, Object> topoConf, TopologyContext context, OutputCollector collector) {
             this.collector = collector;
         }
 
@@ -105,18 +104,14 @@ public class WhitelistWordCount {
         builder.setBolt(COUNT_BOLT, wordCounterBolt, 1).fieldsGrouping(WHITELIST_BOLT, new Fields("word"));
         builder.setBolt(PRINT_BOLT, printBolt, 1).shuffleGrouping(COUNT_BOLT);
 
-        if (args.length == 2) {
-            LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology("test", config, builder.createTopology());
-            Thread.sleep(30000);
-            cluster.killTopology("test");
-            cluster.shutdown();
-            System.exit(0);
-        } else if (args.length == 3) {
-            StormSubmitter.submitTopology(args[2], config, builder.createTopology());
-        } else{
-            System.out.println("Usage: WhitelistWordCount <redis host> <redis port> (topology name)");
+        String topoName = "test";
+        if (args.length == 3) {
+            topoName = args[2];
+        } else if (args.length > 3) {
+            System.out.println("Usage: WhitelistWordCount <redis host> <redis port> [topology name]");
+            return;
         }
+        StormSubmitter.submitTopology(topoName, config, builder.createTopology());
     }
 
     private static RedisFilterMapper setupWhitelistMapper() {

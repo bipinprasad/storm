@@ -61,11 +61,11 @@ public class KafkaUtils {
         throw new AssertionError();
     }
 
-    public static IBrokerReader makeBrokerReader(Map stormConf, KafkaConfig conf) {
+    public static IBrokerReader makeBrokerReader(Map<String, Object> topoConf, KafkaConfig conf) {
         if (conf.hosts instanceof StaticHosts) {
             return new StaticBrokerReader(conf.topic, ((StaticHosts) conf.hosts).getPartitionInformation());
         } else {
-            return new ZkBrokerReader(stormConf, conf.topic, (ZkHosts) conf.hosts);
+            return new ZkBrokerReader(topoConf, conf.topic, (ZkHosts) conf.hosts);
         }
     }
 
@@ -114,7 +114,7 @@ public class KafkaUtils {
         @Override
         public Object getValueAndReset() {
             try {
-                HashMap ret = new HashMap();
+                HashMap<String, Long> ret = new HashMap<>();
                 if (_partitions != null && _partitions.size() == _partitionToOffset.size()) {
                     Map<String,TopicMetrics> topicMetricsMap = new TreeMap<String, TopicMetrics>();
                     for (Map.Entry<Partition, PartitionManager.OffsetData> e : _partitionToOffset.entrySet()) {
@@ -195,7 +195,7 @@ public class KafkaUtils {
         int partitionId = partition.partition;
         FetchRequestBuilder builder = new FetchRequestBuilder();
         FetchRequest fetchRequest = builder.addFetch(topic, partitionId, offset, config.fetchSizeBytes).
-        		clientId(config.clientId).maxWait(config.fetchMaxWait).minBytes(config.minFetchByte).build();
+                clientId(config.clientId).maxWait(config.fetchMaxWait).minBytes(config.minFetchByte).build();
         FetchResponse fetchResponse;
         try {
             fetchResponse = consumer.fetch(fetchRequest);
@@ -258,7 +258,8 @@ public class KafkaUtils {
     }
 
 
-    public static List<Partition> calculatePartitionsForTask(List<GlobalPartitionInformation> partitons, int totalTasks, int taskIndex) {
+    public static List<Partition> calculatePartitionsForTask(List<GlobalPartitionInformation> partitons,
+            int totalTasks, int taskIndex, int taskId) {
         Preconditions.checkArgument(taskIndex < totalTasks, "task index must be less that total tasks");
         List<Partition> taskPartitions = new ArrayList<Partition>();
         List<Partition> partitions = new ArrayList<Partition>();
@@ -273,20 +274,20 @@ public class KafkaUtils {
             Partition taskPartition = partitions.get(i);
             taskPartitions.add(taskPartition);
         }
-        logPartitionMapping(totalTasks, taskIndex, taskPartitions);
+        logPartitionMapping(totalTasks, taskIndex, taskPartitions, taskId);
         return taskPartitions;
     }
 
-    private static void logPartitionMapping(int totalTasks, int taskIndex, List<Partition> taskPartitions) {
-        String taskPrefix = taskId(taskIndex, totalTasks);
+    private static void logPartitionMapping(int totalTasks, int taskIndex, List<Partition> taskPartitions, int taskId) {
+        String taskPrefix = taskPrefix(taskIndex, totalTasks, taskId);
         if (taskPartitions.isEmpty()) {
-            LOG.warn(taskPrefix + "no partitions assigned");
+            LOG.warn(taskPrefix + " no partitions assigned");
         } else {
-            LOG.info(taskPrefix + "assigned " + taskPartitions);
+            LOG.info(taskPrefix + " assigned " + taskPartitions);
         }
     }
 
-    public static String taskId(int taskIndex, int totalTasks) {
-        return "Task [" + (taskIndex + 1) + "/" + totalTasks + "] ";
+    public static String taskPrefix(int taskIndex, int totalTasks, int taskId) {
+        return "Task [" + (taskIndex + 1) + "/" + totalTasks + "], Task-ID: " + taskId;
     }
 }

@@ -211,7 +211,7 @@ function renderToggleSys(div) {
     }
 }
 
-function topologyActionJson(id, encodedId, name, status, msgTimeout, debug, samplingPct) {
+function topologyActionJson(id, encodedId, name, status, msgTimeout, loggersTotal, debug, samplingPct) {
     var jsonData = {};
     jsonData["id"] = id;
     jsonData["encodedId"] = encodedId;
@@ -221,19 +221,21 @@ function topologyActionJson(id, encodedId, name, status, msgTimeout, debug, samp
     jsonData["deactivateStatus"] = (status === "ACTIVE") ? "enabled" : "disabled";
     jsonData["rebalanceStatus"] = (status === "ACTIVE" || status === "INACTIVE" ) ? "enabled" : "disabled";
     jsonData["killStatus"] = (status !== "KILLED") ? "enabled" : "disabled";
-    jsonData["startDebugStatus"] = (status === "ACTIVE" && !debug) ? "enabled" : "disabled";
+    jsonData["startDebugStatus"] = (status === "ACTIVE" && loggersTotal!=0 && !debug) ? "enabled" : "disabled";
     jsonData["stopDebugStatus"] = (status === "ACTIVE" && debug) ? "enabled" : "disabled";
+    jsonData["loggersDisabled"] = loggersTotal==null || loggersTotal==0;
     jsonData["currentSamplingPct"] = samplingPct;
     return jsonData;
 }
 
-function componentActionJson(encodedTopologyId, encodedId, componentName, status, debug, samplingPct) {
+function componentActionJson(encodedTopologyId, encodedId, componentName, status, loggersTotal, debug, samplingPct) {
     var jsonData = {};
     jsonData["encodedTopologyId"] = encodedTopologyId;
     jsonData["encodedId"] = encodedId;
     jsonData["componentName"] = componentName;
-    jsonData["startDebugStatus"] = (status === "ACTIVE" && !debug) ? "enabled" : "disabled";
+    jsonData["startDebugStatus"] = (status === "ACTIVE" && loggersTotal!=0 && !debug) ? "enabled" : "disabled";
     jsonData["stopDebugStatus"] = (status === "ACTIVE" && debug) ? "enabled" : "disabled";
+    jsonData["loggersDisabled"] = loggersTotal==null || loggersTotal==0;
     jsonData["currentSamplingPct"] = samplingPct;
     return jsonData;
 }
@@ -466,3 +468,119 @@ function toggleComponents(elId) {
         showComponents(dt.api().row(this), show);
     });
 }
+
+function open_visualization() {
+    window.open('/visualize.html?id='+ $.url("?id"), '_blank');
+}
+
+function show_visualization(sys) {
+    getStatic("/templates/topology-page-template.html", function(template) {
+        jsError(function() {
+            var topologyVisualization = $("#visualization-container");
+            if (topologyVisualization.find("canvas").length == 0) {
+                topologyVisualization.append(
+                    Mustache.render($(template)
+                        .filter("#topology-visualization-container-template")
+                        .html(),
+                        {id: $.url("?id")}));
+            }
+        });
+
+        $("#visualization-container").show(500);
+        $("#show-hide-visualization").attr('value', 'Hide Visualization');
+        $("#show-hide-visualization").unbind("click");
+        $("#show-hide-visualization").click(function () { hide_visualization(sys) });
+    });
+}
+
+function hide_visualization(sys) {
+    $("#visualization-container").hide(500);
+    $("#show-hide-visualization").attr('value', 'Show Visualization');
+    $("#show-hide-visualization").unbind("click");
+    $("#show-hide-visualization").click(function () { show_visualization(sys) });
+    $("#visualization-container").empty();
+}
+
+function jsError(other) {
+  try {
+    other();
+  } catch (err) {
+    getStatic("/templates/json-error-template.html", function(template) {
+      $("#json-response-error").append(Mustache.render($(template).filter("#json-error-template").html(),{error: "JS Error", errorMessage: err}));
+    });
+  }
+}
+
+function getResourceGuaranteeRemainingFormat(type, data) {
+    if (type === 'display' && typeof data === "number") {
+        var resourceGuaranteeRemaining = parseFloat(data);
+        if (resourceGuaranteeRemaining > 0.0) {
+            return '<span class="resource-guarantee-remaining-positive">+' + data + '</span>'
+        }
+        if (resourceGuaranteeRemaining < 0.0) {
+            return '<span class="resource-guarantee-remaining-negative">' + data + '</span>'
+        }
+    }
+    return data;
+}
+
+var makeOwnerSummaryTable = function(response, elId, parentId) {
+    var showCpu = response.schedulerDisplayResource;
+
+    var columns = [
+    {
+        data: 'owner',
+        render: function(data, type, row) {
+            return type === 'display' ?
+                ('<a href="/owner.html?id=' + data + '">' + data + '</a>') :
+                data;
+        }
+    }, {
+        data: 'totalTopologies',
+    }, {
+        data: 'totalExecutors',
+    }, {
+        data: 'totalWorkers',
+    }, {
+        data: 'totalMemoryUsage',
+    }];
+
+    if (showCpu) {
+        columns.push({
+            data: 'memoryGuarantee'
+        });
+        columns.push({
+            data: 'memoryGuaranteeRemaining',
+            render: function(data, type, row) {
+                return getResourceGuaranteeRemainingFormat(type, data);
+            }
+        });
+        columns.push({
+            data: 'totalCpuUsage'
+        });
+        columns.push({
+            data: 'cpuGuarantee'
+        });
+        columns.push({
+            data: 'cpuGuaranteeRemaining',
+            render: function(data, type, row) {
+                return getResourceGuaranteeRemainingFormat(type, data);
+            }
+        });
+        columns.push({
+            data: 'isolatedNodes'
+        });
+    }
+
+    var userSummaryTable = dtAutoPage(elId, {
+        data: response.owners,
+        autoWidth: false,
+        columns: columns,
+    });
+
+    $(elId + ' [data-toggle="tooltip"]').tooltip();
+};
+
+function getPageRenderedTimestamp(eId) {
+    document.getElementById(eId).innerHTML = "Page rendered at: " + Date();
+};

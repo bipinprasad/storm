@@ -76,8 +76,8 @@ public class BatchCassandraWriterBolt extends BaseCassandraBolt<List<Tuple>> {
      * {@inheritDoc}
      */
     @Override
-    public void prepare(Map stormConfig, TopologyContext topologyContext, OutputCollector outputCollector) {
-        super.prepare(stormConfig, topologyContext, outputCollector);
+    public void prepare(Map<String, Object> topoConfig, TopologyContext topologyContext, OutputCollector outputCollector) {
+        super.prepare(topoConfig, topologyContext, outputCollector);
         this.componentID = topologyContext.getThisComponentId();
         this.queue = new LinkedBlockingQueue<>(batchMaxSize);
         this.lastModifiedTimesMillis = now();
@@ -106,7 +106,7 @@ public class BatchCassandraWriterBolt extends BaseCassandraBolt<List<Tuple>> {
      * {@inheritDoc}
      */
     @Override
-    protected void onTickTuple() {
+    protected void onTickTuple(Tuple tuple) {
         prepareAndExecuteStatement();
     }
 
@@ -123,11 +123,11 @@ public class BatchCassandraWriterBolt extends BaseCassandraBolt<List<Tuple>> {
 
                 checkTimeElapsedSinceLastExec(sinceLastModified);
 
-                GroupingBatchBuilder batchBuilder = new GroupingBatchBuilder(cassandraConfConfig.getBatchSizeRows(), psl);
+                GroupingBatchBuilder batchBuilder = new GroupingBatchBuilder(cassandraConf.getBatchSizeRows(), psl);
 
                 int batchSize = 0;
                 for (PairBatchStatementTuples batch : batchBuilder) {
-                    LOG.debug(logPrefix() + "Writing data to {} in batches of {} rows.", cassandraConfConfig.getKeyspace(), batch.getInputs().size());
+                    LOG.debug(logPrefix() + "Writing data to {} in batches of {} rows.", cassandraConf.getKeyspace(), batch.getInputs().size());
                     getAsyncExecutor().execAsync(batch.getStatement(), batch.getInputs());
                     batchSize++;
                 }
@@ -148,7 +148,7 @@ public class BatchCassandraWriterBolt extends BaseCassandraBolt<List<Tuple>> {
         List<PairStatementTuple> stmts = new ArrayList<>(inputs.size());
 
         for(Tuple t : inputs) {
-            List<Statement> sl = getMapper().map(stormConfig, session, t);
+            List<Statement> sl = getMapper().map(topoConfig, session, t);
             for(Statement s : sl)
                 stmts.add(new PairStatementTuple(t, s) );
         }

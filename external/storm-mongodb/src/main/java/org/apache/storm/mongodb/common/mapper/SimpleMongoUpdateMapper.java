@@ -15,19 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.storm.mongodb.common.mapper;
 
 import org.apache.storm.tuple.ITuple;
 import org.bson.Document;
 
-public class SimpleMongoUpdateMapper implements MongoMapper {
+public class SimpleMongoUpdateMapper extends SimpleMongoMapper implements MongoUpdateMapper {
 
     private String[] fields;
+
+    public SimpleMongoUpdateMapper(String... fields) {
+        this.fields = fields;
+    }
 
     @Override
     public Document toDocument(ITuple tuple) {
         Document document = new Document();
-        for(String field : fields){
+        for (String field : fields) {
             document.append(field, tuple.getValueByField(field));
         }
         //$set operator: Sets the value of a field in a document.

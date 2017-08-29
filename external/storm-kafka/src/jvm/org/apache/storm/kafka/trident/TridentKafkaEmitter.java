@@ -61,7 +61,7 @@ public class TridentKafkaEmitter {
     private TridentKafkaConfig _config;
     private String _topologyInstanceId;
 
-    public TridentKafkaEmitter(Map conf, TopologyContext context, TridentKafkaConfig config, String topologyInstanceId) {
+    public TridentKafkaEmitter(Map<String, Object> conf, TopologyContext context, TridentKafkaConfig config, String topologyInstanceId) {
         _config = config;
         _topologyInstanceId = topologyInstanceId;
         _connections = new DynamicPartitionConnections(_config, KafkaUtils.makeBrokerReader(conf, _config));
@@ -160,11 +160,6 @@ public class TridentKafkaEmitter {
 
     /**
      * re-emit the batch described by the meta data provided
-     *
-     * @param attempt
-     * @param collector
-     * @param partition
-     * @param meta
      */
     private void reEmitPartitionBatch(TransactionAttempt attempt, TridentCollector collector, Partition partition, Map meta) {
         LOG.info("re-emitting batch, attempt " + attempt);
@@ -176,7 +171,7 @@ public class TridentKafkaEmitter {
             ByteBufferMessageSet msgs = null;
             msgs = fetchMessages(consumer, partition, offset);
 
-            if(msgs != null) {
+            if (msgs != null) {
                 for (MessageAndOffset msg : msgs) {
                     if (offset == nextOffset) {
                         break;

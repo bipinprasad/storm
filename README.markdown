@@ -1,7 +1,7 @@
 Master Branch:  
 [![Travis CI](https://travis-ci.org/apache/storm.svg?branch=master)](https://travis-ci.org/apache/storm)
 [![Maven Version](https://maven-badges.herokuapp.com/maven-central/org.apache.storm/storm-core/badge.svg)](http://search.maven.org/#search|gav|1|g:"org.apache.storm"%20AND%20a:"storm-core")
-
+ 
 Storm is a distributed realtime computation system. Similar to how Hadoop provides a set of general primitives for doing batch processing, Storm provides a set of general primitives for doing realtime computation. Storm is simple, can be used with any programming language, [is used by many companies](http://storm.apache.org/documentation/Powered-By.html), and is a lot of fun to use!
 
 The [Rationale page](http://storm.apache.org/documentation/Rationale.html) explains what Storm is and why it was built. [This presentation](http://vimeo.com/40972420) is also a good introduction to the project.
@@ -33,10 +33,21 @@ You can subscribe to this list by sending an email to [dev-subscribe@storm.apach
 
 You can also [browse the archives of the storm-dev mailing list](http://mail-archives.apache.org/mod_mbox/storm-dev/).
 
+Storm developers who would want to track the JIRA issues should subscribe to [issues@storm.apache.org](mailto:issues@storm.apache.org).
+
+You can subscribe to this list by sending an email to [issues-subscribe@storm.apache.org](mailto:issues-subscribe@storm.apache.org). Likewise, you can cancel a subscription by sending an email to [issues-unsubscribe@storm.apache.org](mailto:issues-unsubscribe@storm.apache.org).
+
+You can view the archives of the mailing list [here](http://mail-archives.apache.org/mod_mbox/storm-issues/).
+
+### Issue tracker
+In case you want to raise a bug/feature or propose an idea, please use [Apache Jira](https://issues.apache.org/jira/projects/STORM)
+
 ### Which list should I send/subscribe to?
 If you are using a pre-built binary distribution of Storm, then chances are you should send questions, comments, storm-related announcements, etc. to [user@storm.apache.org](mailto:user@storm.apache.org).
 
 If you are building storm from source, developing new features, or otherwise hacking storm source code, then [dev@storm.apache.org](mailto:dev@storm.apache.org) is more appropriate.
+
+If you are committers and/or PMCs, or contributors looking for following up and participating development of Storm, then you would want to also subscribe [issues@storm.apache.org](issues@storm.apache.org) in addition to [dev@storm.apache.org](dev@storm.apache.org).
 
 ### What will happen with storm-user@googlegroups.com?
 All existing messages will remain archived there, and can be accessed/searched [here](https://groups.google.com/forum/#!forum/storm-user).
@@ -98,6 +109,9 @@ under the License.
 * John Fang ([@hustfxj](https://github.com/hustfxj))
 * Abhishek Agarwal ([@abhishekagarwal87](https://github.com/abhishekagarwal87))
 * Satish Duggana ([@satishd](https://github.com/satishd))
+* Xin Wang ([@vesense](https://github.com/vesense))
+* Hugo da Cruz Louro ([@hmcl](https://github.com/hmcl))
+* Stig Rohde Døssing ([@srdo](https://github.com/srdo/))
 
 ## Contributors
 
@@ -217,7 +231,6 @@ under the License.
 * Shyam Rajendran ([@bourneagain](https://github.com/bourneagain))
 * Reza Farivar ([@rfarivar](https://github.com/rfarivar))
 * Hugo Louro ([@hmcl](https://github.com/hmcl))
-* Xin Wang ([@vesense](https://github.com/vesense))
 * Charles Chan ([@charleswhchan](https://github.com/charleswhchan))
 * Chuanlei Ni ([@chuanlei](https://github.com/chuanlei))
 * Xingyu Su ([@errordaiwa](https://github.com/errordaiwa))
@@ -273,7 +286,10 @@ under the License.
 * Dohyun Lee ([@leedohyun](https://github.com/leedohyun))
 * Arthur Maciejewicz ([@Zintinio](https://github.com/Zintinio]))
 * Juan Paulo Gutierrez ([@juanpaulo](https://github.com/juanpaulo)) 
-
+* Ambud Sharma ([@ambud](https://github.com/ambud]))
+* Abhishek ([@aandis](https://github.com/aandis]))
+* Zhaokun Liu ([@liu-zhaokun](https://github.com/liu-zhaokun]))
+ 
 ## Acknowledgements
 
 YourKit is kindly supporting open source projects with its full-featured Java Profiler. YourKit, LLC is the creator of innovative and intelligent tools for profiling Java and .NET applications. Take a look at YourKit's leading software products: [YourKit Java Profiler](http://www.yourkit.com/java/profiler/index.jsp) and [YourKit .NET Profiler](http://www.yourkit.com/.net/profiler/index.jsp).

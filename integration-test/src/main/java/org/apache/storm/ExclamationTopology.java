@@ -44,7 +44,7 @@ public class ExclamationTopology {
     OutputCollector _collector;
 
     @Override
-    public void prepare(Map conf, TopologyContext context, OutputCollector collector) {
+    public void prepare(Map<String, Object> conf, TopologyContext context, OutputCollector collector) {
       _collector = collector;
     }
 
@@ -58,8 +58,6 @@ public class ExclamationTopology {
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
       declarer.declare(new Fields("word"));
     }
-
-
   }
 
   public static void main(String[] args) throws Exception {
@@ -67,20 +65,13 @@ public class ExclamationTopology {
 
     Config conf = new Config();
     conf.setDebug(true);
-
-    if (args != null && args.length > 0) {
-      conf.setNumWorkers(3);
-
-      StormSubmitter.submitTopologyWithProgressBar(args[0], conf, topology);
+    String topoName = "test";
+    if (args.length > 0) {
+        topoName = args[0];
     }
-    else {
 
-      LocalCluster cluster = new LocalCluster();
-      cluster.submitTopology("test", conf, topology);
-      Utils.sleep(10000);
-      cluster.killTopology("test");
-      cluster.shutdown();
-    }
+    conf.setNumWorkers(3);
+    StormSubmitter.submitTopologyWithProgressBar(topoName, conf, topology);
   }
 
   public static StormTopology getStormTopology() {
