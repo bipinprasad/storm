@@ -18,13 +18,12 @@
 
 package org.apache.storm.kafka.spout.trident;
 
+import java.io.Serializable;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.storm.trident.spout.ISpoutPartition;
 
-import java.io.Serializable;
-
 /**
- * {@link ISpoutPartition} that wraps {@link TopicPartition} information
+ * {@link ISpoutPartition} that wraps {@link TopicPartition} information.
  */
 public class KafkaTridentSpoutTopicPartition implements ISpoutPartition, Serializable {
     private TopicPartition topicPartition;
@@ -43,13 +42,17 @@ public class KafkaTridentSpoutTopicPartition implements ISpoutPartition, Seriali
 
     @Override
     public String getId() {
-        return topicPartition.topic() + "/" + topicPartition.partition();
+        return topicPartition.topic() + "@" + topicPartition.partition();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         KafkaTridentSpoutTopicPartition that = (KafkaTridentSpoutTopicPartition) o;
 

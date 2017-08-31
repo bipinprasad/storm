@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.storm.redis.bolt;
 
 import org.apache.storm.task.OutputCollector;
@@ -24,6 +25,9 @@ import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.config.JedisPoolConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
 import org.apache.storm.redis.common.container.JedisCommandsInstanceContainer;
+import org.apache.storm.topology.base.BaseTickTupleAwareRichBolt;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.utils.TupleUtils;
 import redis.clients.jedis.JedisCommands;
 
 import java.util.Map;
@@ -34,7 +38,8 @@ import java.util.Map;
  * Due to environment abstraction, AbstractRedisBolt provides JedisCommands which contains only single key operations.
  * <p/>
  * Custom Bolts may want to follow this pattern:
- * <p><blockquote><pre>
+ * <p/>
+ * <blockquote><pre>
  * JedisCommands jedisCommands = null;
  * try {
  *     jedisCommand = getInstance();
@@ -47,8 +52,7 @@ import java.util.Map;
  * </pre></blockquote>
  *
  */
-// TODO: Separate Jedis / JedisCluster to provide full operations for each environment to users
-public abstract class AbstractRedisBolt extends BaseRichBolt {
+public abstract class AbstractRedisBolt extends BaseTickTupleAwareRichBolt {
     protected OutputCollector collector;
 
     private transient JedisCommandsInstanceContainer container;
@@ -57,7 +61,8 @@ public abstract class AbstractRedisBolt extends BaseRichBolt {
     private JedisClusterConfig jedisClusterConfig;
 
     /**
-     * Constructor for single Redis environment (JedisPool)
+     * Constructor for single Redis environment (JedisPool).
+     *
      * @param config configuration for initializing JedisPool
      */
     public AbstractRedisBolt(JedisPoolConfig config) {
@@ -65,7 +70,8 @@ public abstract class AbstractRedisBolt extends BaseRichBolt {
     }
 
     /**
-     * Constructor for Redis Cluster environment (JedisCluster)
+     * Constructor for Redis Cluster environment (JedisCluster).
+     *
      * @param config configuration for initializing JedisCluster
      */
     public AbstractRedisBolt(JedisClusterConfig config) {
@@ -77,7 +83,7 @@ public abstract class AbstractRedisBolt extends BaseRichBolt {
      */
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector collector) {
-        // FIXME: stores map (stormConf), topologyContext and expose these to derived classes
+        // FIXME: stores map (topoConf), topologyContext and expose these to derived classes
         this.collector = collector;
 
         if (jedisPoolConfig != null) {

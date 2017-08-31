@@ -15,7 +15,7 @@
 ;; limitations under the License.
 (ns org.apache.storm.submitter-test
   (:use [clojure test])
-  (:use [org.apache.storm config testing])
+  (:use [org.apache.storm config])
   (:import [org.apache.storm StormSubmitter])
   )
 
@@ -26,7 +26,7 @@
           result (StormSubmitter/prepareZookeeperAuthentication conf)
           actual-payload (.get result STORM-ZOOKEEPER-TOPOLOGY-AUTH-PAYLOAD)
           actual-scheme (.get result STORM-ZOOKEEPER-TOPOLOGY-AUTH-SCHEME)]
-      (is (nil? actual-payload))
+      (is (= "foobar:12345" actual-payload))
       (is (= "digest" actual-scheme))))
 
   (testing "Scheme is set to digest if not already."
@@ -34,7 +34,7 @@
           result (StormSubmitter/prepareZookeeperAuthentication conf)
           actual-payload (.get result STORM-ZOOKEEPER-TOPOLOGY-AUTH-PAYLOAD)
           actual-scheme (.get result STORM-ZOOKEEPER-TOPOLOGY-AUTH-SCHEME)]
-      (is (nil? actual-payload))
+      (is (= "foobar:12345" actual-payload))
       (is (= "digest" actual-scheme))))
 
   (testing "A payload is generated when no payload is present."

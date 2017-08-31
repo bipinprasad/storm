@@ -1,18 +1,20 @@
-;; Licensed to the Apache Software Foundation (ASF) under one
-;; or more contributor license agreements.  See the NOTICE file
-;; distributed with this work for additional information
-;; regarding copyright ownership.  The ASF licenses this file
-;; to you under the Apache License, Version 2.0 (the
-;; "License"); you may not use this file except in compliance
-;; with the License.  You may obtain a copy of the License at
-;;
-;; http://www.apache.org/licenses/LICENSE-2.0
-;;
-;; Unless required by applicable law or agreed to in writing, software
-;; distributed under the License is distributed on an "AS IS" BASIS,
-;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-;; See the License for the specific language governing permissions and
-;; limitations under the License.
+;
+; Licensed to the Apache Software Foundation (ASF) under one
+; or more contributor license agreements.  See the NOTICE file
+; distributed with this work for additional information
+; regarding copyright ownership.  The ASF licenses this file
+; to you under the Apache License, Version 2.0 (the
+; "License"); you may not use this file except in compliance
+; with the License.  You may obtain a copy of the License at
+;
+; http://www.apache.org/licenses/LICENSE-2.0
+;
+; Unless required by applicable law or agreed to in writing, software
+; distributed under the License is distributed on an "AS IS" BASIS,
+; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+; See the License for the specific language governing permissions and
+; limitations under the License.
+;
 
 (ns org.apache.storm.ui.core
   (:use compojure.core)
@@ -22,14 +24,14 @@
         ring.middleware.multipart-params.temp-file)
   (:use [ring.middleware.json :only [wrap-json-params]])
   (:use [hiccup core page-helpers])
-  (:use [org.apache.storm config util log converter])
+  (:use [org.apache.storm config daemon-config util log])
   (:use [org.apache.storm.ui helpers])
   (:import [org.apache.storm.utils Time]
            [org.apache.storm.generated NimbusSummary]
            [org.apache.storm.stats StatsUtil]
            [org.apache.storm.ui UIHelpers IConfigurator FilterConfiguration]
            [org.apache.storm.metric StormMetricsRegistry])
-  (:import [org.apache.storm.utils Utils TopologySpoutLag])
+  (:import [org.apache.storm.utils TopologySpoutLag])
   (:use [clojure.string :only [blank? lower-case trim split]])
   (:import [org.apache.storm.generated ExecutorSpecificStats
             ExecutorStats ExecutorSummary ExecutorInfo TopologyInfo SpoutStats BoltStats
@@ -39,11 +41,11 @@
             TopologyStats CommonAggregateStats ComponentAggregateStats
             ComponentType BoltAggregateStats SpoutAggregateStats
             ExecutorAggregateStats SpecificAggregateStats ComponentPageInfo
-            LogConfig LogLevel LogLevelAction SupervisorPageInfo WorkerSummary])
+            LogConfig LogLevel LogLevelAction SupervisorPageInfo WorkerSummary OwnerResourceSummary])
   (:import [org.apache.storm.security.auth AuthUtils ReqContext])
   (:import [org.apache.storm.generated AuthorizationException ProfileRequest ProfileAction NodeInfo])
   (:import [org.apache.storm.security.auth AuthUtils])
-  (:import [org.apache.storm.utils Utils VersionInfo ConfigUtils])
+  (:import [org.apache.storm.utils VersionInfo ConfigUtils Utils WebAppUtils])
   (:import [org.apache.storm Config])
   (:import [java.io File])
   (:import [java.net URLEncoder URLDecoder])
@@ -79,12 +81,11 @@
 (def ui:num-activate-topology-http-requests (StormMetricsRegistry/registerMeter "ui:num-activate-topology-http-requests")) 
 (def ui:num-deactivate-topology-http-requests (StormMetricsRegistry/registerMeter "ui:num-deactivate-topology-http-requests")) 
 (def ui:num-debug-topology-http-requests (StormMetricsRegistry/registerMeter "ui:num-debug-topology-http-requests")) 
-(def ui:num-component-op-response-http-requests (StormMetricsRegistry/registerMeter "ui:num-component-op-response-http-requests")) 
-(def ui:num-topology-op-response-http-requests (StormMetricsRegistry/registerMeter "ui:num-topology-op-response-http-requests")) 
-(def ui:num-topology-op-response-http-requests (StormMetricsRegistry/registerMeter "ui:num-topology-op-response-http-requests")) 
+(def ui:num-component-op-response-http-requests (StormMetricsRegistry/registerMeter "ui:num-component-op-response-http-requests"))
 (def ui:num-topology-op-response-http-requests (StormMetricsRegistry/registerMeter "ui:num-topology-op-response-http-requests")) 
 (def ui:num-main-page-http-requests (StormMetricsRegistry/registerMeter "ui:num-main-page-http-requests")) 
-(def ui:num-topology-lag-http-requests (StormMetricsRegistry/registerMeter "ui:num-topology-lag-http-requests")) 
+(def ui:num-topology-lag-http-requests (StormMetricsRegistry/registerMeter "ui:num-topology-lag-http-requests"))
+(def ui:num-get-owner-resource-summaries-http-requests (StormMetricsRegistry/registerMeter "ui:num-get-owner-resource-summaries-http-request"))
 
 (defn assert-authorized-user
   ([op]
@@ -132,12 +133,12 @@
 
 (defn logviewer-link [host fname secure?]
   (if (and secure? (*STORM-CONF* LOGVIEWER-HTTPS-PORT))
-    (UIHelpers/urlFormat "https://%s:%s/log?file=%s"
+    (UIHelpers/urlFormat "https://%s:%s/api/v1/log?file=%s"
       (to-array
         [host
         (*STORM-CONF* LOGVIEWER-HTTPS-PORT)
         fname]))
-    (UIHelpers/urlFormat "http://%s:%s/log?file=%s"
+    (UIHelpers/urlFormat "http://%s:%s/api/v1/log?file=%s"
       (to-array
         [host
         (*STORM-CONF* LOGVIEWER-PORT)
@@ -145,19 +146,19 @@
 
 (defn event-log-link
   [topology-id component-id host port secure?]
-  (logviewer-link host (Utils/eventLogsFilename topology-id (str port)) secure?))
+  (logviewer-link host (WebAppUtils/eventLogsFilename topology-id (str port)) secure?))
 
 (defn worker-log-link [host port topology-id secure?]
   (if (or (empty? host) (let [port_str (str port "")] (or (empty? port_str) (= "0" port_str))))
     ""
-    (let [fname (Utils/logsFilename topology-id (str port))]
+    (let [fname (WebAppUtils/logsFilename topology-id (str port))]
       (logviewer-link host fname secure?))))
 
 (defn nimbus-log-link [host]
-  (UIHelpers/urlFormat "http://%s:%s/daemonlog?file=nimbus.log" (to-array [host (*STORM-CONF* LOGVIEWER-PORT)])))
+  (UIHelpers/urlFormat "http://%s:%s/api/v1/daemonlog?file=nimbus.log" (to-array [host (*STORM-CONF* LOGVIEWER-PORT)])))
 
 (defn supervisor-log-link [host]
-  (UIHelpers/urlFormat "http://%s:%s/daemonlog?file=supervisor.log" (to-array [host (*STORM-CONF* LOGVIEWER-PORT)])))
+  (UIHelpers/urlFormat "http://%s:%s/api/v1/daemonlog?file=supervisor.log" (to-array [host (*STORM-CONF* LOGVIEWER-PORT)])))
 
 (defn get-error-data
   [error]
@@ -183,7 +184,7 @@
     (.get_error_time_secs ^ErrorInfo error)))
 
 (defn worker-dump-link [host port topology-id]
-  (UIHelpers/urlFormat "http://%s:%s/dumps/%s/%s"
+  (UIHelpers/urlFormat "http://%s:%s/api/v1/dumps/%s/%s"
     (to-array [(URLEncoder/encode host)
               (*STORM-CONF* LOGVIEWER-PORT)
               (URLEncoder/encode topology-id)
@@ -309,7 +310,7 @@
           bolt-summs (filter (partial bolt-summary? topology) execs)
           spout-comp-summs (group-by-comp spout-summs)
           bolt-comp-summs (group-by-comp bolt-summs)
-          ;TODO: when translating this function, you should replace the filter-val with a proper for loop + if condition HERE
+          ;TODO: when translating this function, you should replace the filter-key with a proper for loop + if condition HERE
           bolt-comp-summs (filter-key (mk-include-sys-fn include-sys?)
                                       bolt-comp-summs)]
       (visualization-data
@@ -337,12 +338,12 @@
   (let [tplg-main-class (if (not-nil? tplg-config) (trim (tplg-config "topologyMainClass")))
         tplg-main-class-args (if (not-nil? tplg-config) (tplg-config "topologyMainClassArgs"))
         storm-home (System/getProperty "storm.home")
-        storm-conf-dir (str storm-home Utils/FILE_PATH_SEPARATOR "conf")
+        storm-conf-dir (str storm-home WebAppUtils/FILE_PATH_SEPARATOR "conf")
         storm-log-dir (if (not-nil? (*STORM-CONF* "storm.log.dir")) (*STORM-CONF* "storm.log.dir")
-                          (str storm-home Utils/FILE_PATH_SEPARATOR "logs"))
-        storm-libs (str storm-home Utils/FILE_PATH_SEPARATOR "lib" Utils/FILE_PATH_SEPARATOR "*")
-        java-cmd (str (System/getProperty "java.home") Utils/FILE_PATH_SEPARATOR "bin" Utils/FILE_PATH_SEPARATOR "java")
-        storm-cmd (str storm-home Utils/FILE_PATH_SEPARATOR "bin" Utils/FILE_PATH_SEPARATOR "storm")
+                                                                    (str storm-home WebAppUtils/FILE_PATH_SEPARATOR "logs"))
+        storm-libs (str storm-home WebAppUtils/FILE_PATH_SEPARATOR "lib" WebAppUtils/FILE_PATH_SEPARATOR "*")
+        java-cmd (str (System/getProperty "java.home") WebAppUtils/FILE_PATH_SEPARATOR "bin" WebAppUtils/FILE_PATH_SEPARATOR "java")
+        storm-cmd (str storm-home WebAppUtils/FILE_PATH_SEPARATOR "bin" WebAppUtils/FILE_PATH_SEPARATOR "storm")
         tplg-cmd-response (apply sh
                             (flatten
                               [storm-cmd "jar" tplg-jar-file tplg-main-class
@@ -407,7 +408,7 @@
         "slotsFree" free-slots
         "executorsTotal" total-executors
         "tasksTotal" total-tasks
-        "schedulerDisplayResource" (*STORM-CONF* Config/SCHEDULER_DISPLAY_RESOURCE)
+        "schedulerDisplayResource" (*STORM-CONF* SCHEDULER-DISPLAY-RESOURCE)
         "totalMem" total-mem
         "totalCpu" total-cpu
         "availMem" avail-mem
@@ -509,7 +510,7 @@
     ;; access on a per-topology basis (i.e. components)
     (let [supervisors-json (map supervisor-summary-to-json (.get_supervisor_summaries supervisor-page-info))]
       {"supervisors" supervisors-json
-       "schedulerDisplayResource" (*STORM-CONF* Config/SCHEDULER_DISPLAY_RESOURCE)
+       "schedulerDisplayResource" (*STORM-CONF* SCHEDULER-DISPLAY-RESOURCE)
        "workers" (into [] (for [^WorkerSummary worker-summary (.get_worker_summaries supervisor-page-info)]
                             (worker-summary-to-json secure? worker-summary)))})))
 
@@ -521,7 +522,33 @@
   ([summs]
    {"supervisors" (for [^SupervisorSummary s summs]
                     (supervisor-summary-to-json s))
-    "schedulerDisplayResource" (*STORM-CONF* Config/SCHEDULER_DISPLAY_RESOURCE)}))
+    "schedulerDisplayResource" (*STORM-CONF* SCHEDULER-DISPLAY-RESOURCE)}))
+
+(defnk get-topologies-map [summs :conditional (fn [t] true) :keys nil]
+  (for [^TopologySummary t summs :when (conditional t)]
+    (let [data {"id" (.get_id t)
+                "encodedId" (URLEncoder/encode (.get_id t))
+                "owner" (.get_owner t)
+                "name" (.get_name t)
+                "status" (.get_status t)
+                "uptime" (UIHelpers/prettyUptimeSec (.get_uptime_secs t))
+                "uptimeSeconds" (.get_uptime_secs t)
+                "tasksTotal" (.get_num_tasks t)
+                "workersTotal" (.get_num_workers t)
+                "executorsTotal" (.get_num_executors t)
+                "replicationCount" (.get_replication_count t)
+                "schedulerInfo" (.get_sched_status t)
+                "requestedMemOnHeap" (.get_requested_memonheap t)
+                "requestedMemOffHeap" (.get_requested_memoffheap t)
+                "requestedTotalMem" (+ (.get_requested_memonheap t) (.get_requested_memoffheap t))
+                "requestedCpu" (.get_requested_cpu t)
+                "assignedMemOnHeap" (.get_assigned_memonheap t)
+                "assignedMemOffHeap" (.get_assigned_memoffheap t)
+                "assignedTotalMem" (+ (.get_assigned_memonheap t) (.get_assigned_memoffheap t))
+                "assignedCpu" (.get_assigned_cpu t)
+                "topologyVersion" (.get_topology_version t)
+                "stormVersion" (.get_storm_version t)}]
+      (if (not-nil? keys) (select-keys data keys) data))))
 
 (defn all-topologies-summary
   ([]
@@ -530,30 +557,8 @@
      (all-topologies-summary
        (.get_topologies (.getClusterInfo ^Nimbus$Client nimbus)))))
   ([summs]
-   {"topologies"
-    (for [^TopologySummary t summs]
-      {
-       "id" (.get_id t)
-       "encodedId" (URLEncoder/encode (.get_id t))
-       "owner" (.get_owner t)
-       "name" (.get_name t)
-       "status" (.get_status t)
-       "uptime" (UIHelpers/prettyUptimeSec (.get_uptime_secs t))
-       "uptimeSeconds" (.get_uptime_secs t)
-       "tasksTotal" (.get_num_tasks t)
-       "workersTotal" (.get_num_workers t)
-       "executorsTotal" (.get_num_executors t)
-       "replicationCount" (.get_replication_count t)
-       "schedulerInfo" (.get_sched_status t)
-       "requestedMemOnHeap" (.get_requested_memonheap t)
-       "requestedMemOffHeap" (.get_requested_memoffheap t)
-       "requestedTotalMem" (+ (.get_requested_memonheap t) (.get_requested_memoffheap t))
-       "requestedCpu" (.get_requested_cpu t)
-       "assignedMemOnHeap" (.get_assigned_memonheap t)
-       "assignedMemOffHeap" (.get_assigned_memoffheap t)
-       "assignedTotalMem" (+ (.get_assigned_memonheap t) (.get_assigned_memoffheap t))
-       "assignedCpu" (.get_assigned_cpu t)})
-    "schedulerDisplayResource" (*STORM-CONF* Config/SCHEDULER_DISPLAY_RESOURCE)}))
+   {"topologies" (get-topologies-map summs)
+    "schedulerDisplayResource" (*STORM-CONF* SCHEDULER-DISPLAY-RESOURCE)}))
 
 (defn topology-stats [window stats]
   (let [times (stats-times (:emitted stats))
@@ -582,7 +587,7 @@
           bolt-executor-summaries (filter (partial bolt-summary? storm-topology) (.get_executors topology-info))
           spout-comp-id->executor-summaries (group-by-comp spout-executor-summaries)
           bolt-comp-id->executor-summaries (group-by-comp bolt-executor-summaries)
-          ;TODO: when translating this function, you should replace the filter-val with a proper for loop + if condition HERE
+          ;TODO: when translating this function, you should replace the filter-key with a proper for loop + if condition HERE
           bolt-comp-id->executor-summaries (filter-key (mk-include-sys-fn include-sys?) bolt-comp-id->executor-summaries)
           id->spout-spec (.get_spouts storm-topology)
           id->bolt (.get_bolts storm-topology)
@@ -678,10 +683,19 @@
      "requestedMemOnHeap" (.get_requested_memonheap topo-info)
      "requestedMemOffHeap" (.get_requested_memoffheap topo-info)
      "requestedCpu" (.get_requested_cpu topo-info)
+     "requestedTotalMem" (+ (.get_requested_memonheap topo-info) (.get_requested_memoffheap topo-info))
      "assignedMemOnHeap" (.get_assigned_memonheap topo-info)
      "assignedMemOffHeap" (.get_assigned_memoffheap topo-info)
      "assignedTotalMem" (+ (.get_assigned_memonheap topo-info) (.get_assigned_memoffheap topo-info))
      "assignedCpu" (.get_assigned_cpu topo-info)
+     "requestedRegularOnHeapMem" (.get_requested_regular_on_heap_memory topo-info)
+     "requestedSharedOnHeapMem" (.get_requested_shared_on_heap_memory topo-info)
+     "requestedRegularOffHeapMem" (.get_requested_regular_off_heap_memory topo-info)
+     "requestedSharedOffHeapMem" (.get_requested_shared_off_heap_memory topo-info)
+     "assignedRegularOnHeapMem" (.get_assigned_regular_on_heap_memory topo-info)
+     "assignedSharedOnHeapMem" (.get_assigned_shared_on_heap_memory topo-info)
+     "assignedRegularOffHeapMem" (.get_assigned_regular_off_heap_memory topo-info)
+     "assignedSharedOffHeapMem" (.get_assigned_shared_off_heap_memory topo-info)
      "topologyStats" topo-stats
      "workers"  (map (partial worker-summary-to-json secure?)
                      (.get_workers topo-info))
@@ -692,7 +706,9 @@
      "configuration" (.get_topology_conf topo-info)
      "debug" (or debugEnabled false)
      "samplingPct" (or samplingPct 10)
-     "replicationCount" (.get_replication_count topo-info)}))
+     "replicationCount" (.get_replication_count topo-info)
+     "topologyVersion" (.get_topology_version topo-info)
+     "stormVersion" (.get_storm_version topo-info)}))
 
 (defn exec-host-port
   [executors]
@@ -724,7 +740,7 @@
         "msgTimeout" msg-timeout
         "configuration" topology-conf
         "visualizationTable" []
-        "schedulerDisplayResource" (*STORM-CONF* Config/SCHEDULER_DISPLAY_RESOURCE)}))))
+        "schedulerDisplayResource" (*STORM-CONF* SCHEDULER-DISPLAY-RESOURCE)}))))
 
 (defn- sum
   [vals]
@@ -888,9 +904,9 @@
      "stream" (.get_streamId s)
      "executeLatency" (StatsUtil/floatStr (.get_execute_latency_ms bas))
      "processLatency" (StatsUtil/floatStr (.get_process_latency_ms bas))
-     "executed" (Utils/nullToZero (.get_executed bas))
-     "acked" (Utils/nullToZero (.get_acked cas))
-     "failed" (Utils/nullToZero (.get_failed cas))}))
+     "executed" (if-let [e (.get_executed bas)] e 0)
+     "acked" (if-let [a (.get_acked cas)] a 0)
+     "failed" (if-let [f (.get_failed cas)] f 0)}))
 
 (defmulti unpack-comp-output-stat
   (fn [[_ ^ComponentAggregateStats s]] (.get_type s)))
@@ -899,8 +915,8 @@
   [[stream-id ^ComponentAggregateStats stats]]
   (let [^CommonAggregateStats cas (.get_common_stats stats)]
     {"stream" stream-id
-     "emitted" (Utils/nullToZero (.get_emitted cas))
-     "transferred" (Utils/nullToZero (.get_transferred cas))}))
+     "emitted" (if-let [e (.get_emitted cas)] e 0)
+     "transferred" (if-let [t (.get_transferred cas)] t 0)}))
 
 (defmethod unpack-comp-output-stat ComponentType/SPOUT
   [[stream-id ^ComponentAggregateStats stats]]
@@ -908,11 +924,11 @@
         ^SpecificAggregateStats spec-s (.get_specific_stats stats)
         ^SpoutAggregateStats spout-s (.get_spout spec-s)]
     {"stream" stream-id
-     "emitted" (Utils/nullToZero (.get_emitted cas))
-     "transferred" (Utils/nullToZero (.get_transferred cas))
+     "emitted" (if-let [e (.get_emitted cas)] e 0)
+     "transferred" (if-let [t (.get_transferred cas)] t 0)
      "completeLatency" (StatsUtil/floatStr (.get_complete_latency_ms spout-s))
-     "acked" (Utils/nullToZero (.get_acked cas))
-     "failed" (Utils/nullToZero (.get_failed cas))}))
+     "acked" (if-let [a (.get_acked cas)] a 0)
+     "failed" (if-let [f (.get_failed cas)] f 0)}))
 
 (defmulti unpack-comp-exec-stat
   (fn [_ _ ^ComponentAggregateStats cas] (.get_type (.get_stats ^ExecutorAggregateStats cas))))
@@ -935,14 +951,14 @@
      "uptimeSeconds" uptime
      "host" host
      "port" port
-     "emitted" (Utils/nullToZero (.get_emitted cas))
-     "transferred" (Utils/nullToZero (.get_transferred cas))
+     "emitted" (if-let [e (.get_emitted cas)] e 0)
+     "transferred" (if-let [t (.get_transferred cas)] t 0)
      "capacity" (StatsUtil/floatStr (Utils/nullToZero (.get_capacity bas)))
      "executeLatency" (StatsUtil/floatStr (.get_execute_latency_ms bas))
-     "executed" (Utils/nullToZero (.get_executed bas))
+     "executed" (if-let [e (.get_executed bas)] e 0)
      "processLatency" (StatsUtil/floatStr (.get_process_latency_ms bas))
-     "acked" (Utils/nullToZero (.get_acked cas))
-     "failed" (Utils/nullToZero (.get_failed cas))
+     "acked" (if-let [a (.get_acked cas)] a 0)
+     "failed" (if-let [f (.get_failed cas)] f 0)
      "workerLogLink" (worker-log-link host port topology-id secure?)}))
 
 (defmethod unpack-comp-exec-stat ComponentType/SPOUT
@@ -963,11 +979,11 @@
      "uptimeSeconds" uptime
      "host" host
      "port" port
-     "emitted" (Utils/nullToZero (.get_emitted cas))
-     "transferred" (Utils/nullToZero (.get_transferred cas))
+     "emitted" (if-let [em (.get_emitted cas)] em 0)
+     "transferred" (if-let [t (.get_transferred cas)] t 0)
      "completeLatency" (StatsUtil/floatStr (.get_complete_latency_ms sas))
-     "acked" (Utils/nullToZero (.get_acked cas))
-     "failed" (Utils/nullToZero (.get_failed cas))
+     "acked" (if-let [ack (.get_acked cas)] ack 0)
+     "failed" (if-let [f (.get_failed cas)] f 0)
      "workerLogLink" (worker-log-link host port topology-id secure?)}))
 
 (defmulti unpack-component-page-info
@@ -993,6 +1009,14 @@
      "executorStats" (map (partial unpack-comp-exec-stat topology-id secure?)
                           (.get_exec_stats info))}
     (-> info .get_errors (component-errors topology-id secure?))))
+
+(defn clojurify-profile-request
+  [^ProfileRequest request]
+  (when request
+    {:host (.get_node (.get_nodeInfo request))
+     :port (first (.get_port (.get_nodeInfo request)))
+     :action     (.get_action request)
+     :timestamp  (.get_time_stamp request)}))
 
 (defn get-active-profile-actions
   [nimbus topology-id component]
@@ -1042,7 +1066,7 @@
        "requestedMemOnHeap" (.get (.get_resources_map comp-page-info) Config/TOPOLOGY_COMPONENT_RESOURCES_ONHEAP_MEMORY_MB)
        "requestedMemOffHeap" (.get (.get_resources_map comp-page-info) Config/TOPOLOGY_COMPONENT_RESOURCES_OFFHEAP_MEMORY_MB)
        "requestedCpu" (.get (.get_resources_map comp-page-info) Config/TOPOLOGY_COMPONENT_CPU_PCORE_PERCENT)
-       "schedulerDisplayResource" (*STORM-CONF* Config/SCHEDULER_DISPLAY_RESOURCE)
+       "schedulerDisplayResource" (*STORM-CONF* SCHEDULER-DISPLAY-RESOURCE)
        "topologyId" topology-id
        "topologyStatus" (.get_topology_status comp-page-info)
        "encodedTopologyId" (URLEncoder/encode topology-id)
@@ -1061,7 +1085,62 @@
        "profilerActive" (if (*STORM-CONF* WORKER-PROFILER-ENABLED)
                           (get-active-profile-actions nimbus topology-id component)
                           [])))))
-    
+
+(defn unpack-owner-resource-summary [summary]
+  (let [memory-guarantee (if (.is_set_memory_guarantee summary)
+                           (.get_memory_guarantee summary)
+                           "N/A")
+        cpu-guarantee (if (.is_set_cpu_guarantee summary)
+                        (.get_cpu_guarantee summary)
+                        "N/A")
+        isolated-node-guarantee (if (.is_set_isolated_node_guarantee summary)
+                                  (.get_isolated_node_guarantee summary)
+                                  "N/A")
+        memory-guarantee-remaining (if (.is_set_memory_guarantee_remaining summary)
+                                     (.get_memory_guarantee_remaining summary)
+                                     "N/A")
+        cpu-guarantee-remaining (if (.is_set_cpu_guarantee_remaining summary)
+                                  (.get_cpu_guarantee_remaining summary)
+                                  "N/A")]
+    {"owner" (.get_owner summary)
+     "totalTopologies" (.get_total_topologies summary)
+     "totalExecutors" (.get_total_executors summary)
+     "totalWorkers" (.get_total_workers summary)
+     "totalTasks" (.get_total_tasks summary)
+     "totalMemoryUsage" (.get_memory_usage summary)
+     "totalCpuUsage" (.get_cpu_usage summary)
+     "memoryGuarantee" memory-guarantee
+     "cpuGuarantee" cpu-guarantee
+     "isolatedNodes" isolated-node-guarantee
+     "memoryGuaranteeRemaining" memory-guarantee-remaining
+     "cpuGuaranteeRemaining" cpu-guarantee-remaining
+     "totalReqOnHeapMem" (.get_requested_on_heap_memory summary)
+     "totalReqOffHeapMem" (.get_requested_off_heap_memory summary)
+     "totalReqMem" (.get_requested_total_memory summary)
+     "totalReqCpu" (.get_requested_cpu summary)
+     "totalAssignedOnHeapMem" (.get_assigned_on_heap_memory summary)
+     "totalAssignedOffHeapMem" (.get_assigned_off_heap_memory summary)}))
+
+(defn owner-resource-summaries []
+  (thrift/with-configured-nimbus-connection nimbus
+    (let [summaries (.getOwnerResourceSummaries nimbus nil)]
+      {"schedulerDisplayResource" (*STORM-CONF* SCHEDULER-DISPLAY-RESOURCE)
+       "owners"
+         (for [summary summaries]
+           (unpack-owner-resource-summary summary))})))
+
+(defn owner-resource-summary [owner]
+  (thrift/with-configured-nimbus-connection nimbus
+    (let [summaries (.getOwnerResourceSummaries nimbus owner)]
+      (merge {"schedulerDisplayResource" (*STORM-CONF* SCHEDULER-DISPLAY-RESOURCE)}
+             (if (empty? summaries)
+               ;; send a default value, we couldn't find topos by that owner
+               (unpack-owner-resource-summary (OwnerResourceSummary. owner))
+               (let [topologies (.get_topologies (.getClusterInfo ^Nimbus$Client nimbus))
+                     data (get-topologies-map topologies :conditional (fn [t] (= (.get_owner t) owner)))]
+                 (merge {"topologies" data}
+                        (unpack-owner-resource-summary (first summaries)))))))))
+
 (defn- level-to-dict [level]
   (if level
     (let [timeout (.get_reset_log_level_timeout_secs level)
@@ -1142,6 +1221,16 @@
     (populate-context! servlet-request)
     (assert-authorized-user "getClusterInfo")
     (json-response (nimbus-summary) (:callback m)))
+  (GET "/api/v1/owner-resources" [:as {:keys [cookies servlet-request scheme]} id & m]
+    (.mark ui:num-get-owner-resource-summaries-http-requests)
+    (populate-context! servlet-request)
+    (assert-authorized-user "getOwnerResourceSummaries")
+    (json-response (owner-resource-summaries) (:callback m)))
+  (GET "/api/v1/owner-resources/:id" [:as {:keys [cookies servlet-request scheme]} id & m]
+    (.mark ui:num-get-owner-resource-summaries-http-requests)
+    (populate-context! servlet-request)
+    (assert-authorized-user "getOwnerResourceSummaries")
+    (json-response (owner-resource-summary id) (:callback m)))
   (GET "/api/v1/history/summary" [:as {:keys [cookies servlet-request]} & m]
     (let [user (.getUserName http-creds-handler servlet-request)]
       (json-response (topology-history-info user) (:callback m))))
@@ -1466,7 +1555,7 @@
   (try
     (let [conf *STORM-CONF*
           header-buffer-size (int (.get conf UI-HEADER-BUFFER-BYTES))
-          filters-confs [(FilterConfiguration. (conf UI-FILTER-PARAMS) (conf UI-FILTER))]
+          filters-confs [(FilterConfiguration. (conf UI-FILTER) (conf UI-FILTER-PARAMS))]
           https-port (int (or (conf UI-HTTPS-PORT) 0))
           https-ks-path (conf UI-HTTPS-KEYSTORE-PATH)
           https-ks-password (conf UI-HTTPS-KEYSTORE-PASSWORD)

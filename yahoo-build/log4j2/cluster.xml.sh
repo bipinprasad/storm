@@ -95,22 +95,22 @@ cat <<XML
 </appenders>
 <loggers>
 
-    <Logger name="backtype.storm.logging.filters.AccessLoggingFilter" level="info" additivity="false">
+    <Logger name="org.apache.storm.logging.filters.AccessLoggingFilter" level="info" additivity="false">
         <AppenderRef ref="WEB-ACCESS"/>
         <AppenderRef ref="syslog"/>
     </Logger>
-    <Logger name="backtype.storm.security.auth" level="info" additivity="false">
+    <Logger name="org.apache.storm.security.auth" level="info" additivity="false">
             <AppenderRef ref="THRIFT-ACCESS"/>
             <AppenderRef ref="syslog"/>
     </Logger>
-    <Logger name="backtype.storm.logging.ThriftAccessLogger" level="info" additivity="false">
+    <Logger name="org.apache.storm.logging.ThriftAccessLogger" level="info" additivity="false">
             <AppenderRef ref="THRIFT-ACCESS"/>
             <AppenderRef ref="syslog"/>
     </Logger>
-    <Logger name="backtype.storm.metric.LoggingMetricsConsumer" level="info">
+    <Logger name="org.apache.storm.metric.LoggingMetricsConsumer" level="info">
         <AppenderRef ref="METRICS"/>
     </Logger>
-    <Logger name="backtype.storm.scheduler" level="debug" additivity="false">
+    <Logger name="org.apache..storm.scheduler" level="debug" additivity="false">
         <AppenderRef ref="SCHEDULER" level="debug"/>
         <AppenderRef ref="A1" level="info"/>
         <AppenderRef ref="syslog" level="info"/>

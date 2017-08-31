@@ -18,9 +18,14 @@
 
 package org.apache.storm.hive.bolt;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
+import org.apache.storm.hive.bolt.mapper.DelimitedRecordHiveMapper;
+import org.apache.storm.hive.common.HiveOptions;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -28,13 +33,6 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
-
-import org.apache.storm.hive.bolt.mapper.DelimitedRecordHiveMapper;
-import org.apache.storm.hive.common.HiveOptions;
-
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 public class HiveTopology {
@@ -74,20 +72,12 @@ public class HiveTopology {
         // SentenceSpout --> MyBolt
         builder.setBolt(BOLT_ID, hiveBolt, 1)
                 .shuffleGrouping(USER_SPOUT_ID);
-        if (args.length == 3) {
-            LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology(TOPOLOGY_NAME, config, builder.createTopology());
-            waitForSeconds(20);
-            cluster.killTopology(TOPOLOGY_NAME);
-            System.out.println("cluster begin to shutdown");
-            cluster.shutdown();
-            System.out.println("cluster shutdown");
-            System.exit(0);
-        } else if(args.length >= 4) {
-            StormSubmitter.submitTopology(args[3], config, builder.createTopology());
-        } else {
-            System.out.println("Usage: HiveTopology metastoreURI dbName tableName [topologyNamey] [keytab file] [principal name]");
+        
+        String topoName = TOPOLOGY_NAME;
+        if(args.length >= 4) {
+            topoName = args[3];
         }
+        StormSubmitter.submitTopology(topoName, config, builder.createTopology());
     }
 
     public static void waitForSeconds(int seconds) {
@@ -114,7 +104,7 @@ public class HiveTopology {
             declarer.declare(new Fields("id","name","phone","street","city","state"));
         }
 
-        public void open(Map config, TopologyContext context,
+        public void open(Map<String, Object> config, TopologyContext context,
                          SpoutOutputCollector collector) {
             this.collector = collector;
             this.pending = new ConcurrentHashMap<UUID, Values>();
