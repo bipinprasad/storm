@@ -56,9 +56,14 @@ listKeys = set(["storm.auth.simple-white-list.users", "supervisor.slots.ports",
 mapKeys = set(["isolation.scheduler.machines", "ui.filter.params", "drpc.http.filter.params",
                "supervisor.scheduler.meta", "storm.group.mapping.service.params",
                "multitenant.scheduler.user.pools.loader.params",
-               "resource.aware.scheduler.user.pools.loader.params"])
+               "resource.aware.scheduler.user.pools.loader.params",
+               "supervisor.worker.version.classpath.map",
+               "supervisor.worker.version.main.map",
+               "supervisor.worker.version.logwriter.map"])
 
-allStringKeys = set(["ui.filter.params", "drpc.http.filter.params", "storm.group.mapping.service.params"])
+allStringKeys = set(["ui.filter.params", "drpc.http.filter.params", "storm.group.mapping.service.params",
+                     "supervisor.worker.version.classpath.map", "supervisor.worker.version.main.map",
+                     "supervisor.worker.version.logwriter.map"])
 
 ignoredKeys = set(["min.user.pid", "storm.zookeeper.auth.payload", "storm.cluster.user", "worker.launcher.group",
  "multitenant.scheduler.user.pools", "resource.aware.scheduler.user.pools"])
