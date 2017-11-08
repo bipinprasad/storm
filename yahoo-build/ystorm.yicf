@@ -375,10 +375,10 @@ file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-yarn-ap
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-yarn-client-2.7.2.7.1604210306.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-yarn-client-2.7.2.7.1604210306.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-yarn-common-2.7.2.7.1604210306.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-yarn-common-2.7.2.7.1604210306.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-yarn-server-common-2.7.2.7.1604210306.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-yarn-server-common-2.7.2.7.1604210306.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-annotations-1.1.0.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-annotations-1.1.0.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-client-1.1.0.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-client-1.1.0.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-common-1.1.0.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-common-1.1.0.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-protocol-1.1.0.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-protocol-1.1.0.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-annotations-1.1.12.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-annotations-1.1.12.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-client-1.1.12.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-client-1.1.12.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-common-1.1.12.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-common-1.1.12.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-protocol-1.1.12.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-protocol-1.1.12.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hive-ant-0.14.0.jar ../external/storm-autocreds/target/app-assembler/repo/hive-ant-0.14.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hive-cli-0.14.0.jar ../external/storm-autocreds/target/app-assembler/repo/hive-cli-0.14.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hive-common-0.14.0.jar ../external/storm-autocreds/target/app-assembler/repo/hive-common-0.14.0.jar
