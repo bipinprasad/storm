@@ -403,7 +403,7 @@ file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jackson-jaxrs-
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jackson-mapper-asl-1.9.13.jar ../external/storm-autocreds/target/app-assembler/repo/jackson-mapper-asl-1.9.13.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jackson-xc-1.9.13.jar ../external/storm-autocreds/target/app-assembler/repo/jackson-xc-1.9.13.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jansi-1.11.jar ../external/storm-autocreds/target/app-assembler/repo/jansi-1.11.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jaxb-api-2.2.2.jar ../external/storm-autocreds/target/app-assembler/repo/jaxb-api-2.2.2.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jaxb-api-2.3.0.jar ../external/storm-autocreds/target/app-assembler/repo/jaxb-api-2.3.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jcodings-1.0.8.jar ../external/storm-autocreds/target/app-assembler/repo/jcodings-1.0.8.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jdo-api-3.0.1.jar ../external/storm-autocreds/target/app-assembler/repo/jdo-api-3.0.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jetty-all-7.6.0.v20120127.jar ../external/storm-autocreds/target/app-assembler/repo/jetty-all-7.6.0.v20120127.jar
@@ -428,7 +428,6 @@ file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/protobuf-java-
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/servlet-api-2.5.jar ../external/storm-autocreds/target/app-assembler/repo/servlet-api-2.5.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/slf4j-api-1.7.21.jar ../external/storm-autocreds/target/app-assembler/repo/slf4j-api-1.7.21.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/snappy-java-1.0.4.1.jar ../external/storm-autocreds/target/app-assembler/repo/snappy-java-1.0.4.1.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/stax-api-1.0-2.jar ../external/storm-autocreds/target/app-assembler/repo/stax-api-1.0-2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/stax-api-1.0.1.jar ../external/storm-autocreds/target/app-assembler/repo/stax-api-1.0.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/stringtemplate-3.2.1.jar ../external/storm-autocreds/target/app-assembler/repo/stringtemplate-3.2.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/velocity-1.5.jar ../external/storm-autocreds/target/app-assembler/repo/velocity-1.5.jar
