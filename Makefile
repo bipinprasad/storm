@@ -1,5 +1,5 @@
 
-export GIT_REPO = git@git.corp.yahoo.com:storm/storm_tools.git
+export GIT_REPO = git@git.ouroath.com:storm/storm_tools.git
 export GIT_SCRIPTS_BRANCH = storm_tools
 #DIST TAG to allow CI to find the correct versions to test
 export STORM_LATEST_RELEASE_TAG = ystorm_master_launcher_latest_2_x
