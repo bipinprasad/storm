@@ -204,9 +204,12 @@ public class ConstraintSolverStrategy extends BaseResourceAwareStrategy {
         nodes = RAS_Nodes.getAllNodesFrom(cluster);
         Map<WorkerSlot, Set<String>> workerCompAssignment = new HashMap<>();
         Map<RAS_Node, Set<String>> nodeCompAssignment = new HashMap<>();
+        Map<String, Object> topoConf = td.getConf();
         //set max number of states to search
+        Object maxStateSearchObj = topoConf.getOrDefault(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_STATE_SEARCH,
+            topoConf.get(Config.TOPOLOGY_CONSTRAINTS_MAX_DEPTH_TRAVERSAL));
         final int maxStateSearch = Math.min(MAX_STATE_SEARCH,
-            ObjectReader.getInt(td.getConf().get(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_STATE_SEARCH), DEFAULT_STATE_SEARCH));
+            ObjectReader.getInt(maxStateSearchObj, DEFAULT_STATE_SEARCH));
 
         final long maxTimeMs =
             ObjectReader.getInt(td.getConf().get(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_TIME_SECS), -1).intValue() * 1000L;
@@ -365,6 +368,9 @@ public class ConstraintSolverStrategy extends BaseResourceAwareStrategy {
             }
         }
         List<List<String>> constraints = (List<List<String>>) topo.getConf().get(Config.TOPOLOGY_RAS_CONSTRAINTS);
+        if (constraints == null) {
+            constraints = (List<List<String>>) topo.getConf().get(Config.TOPOLOGY_CONSTRAINTS);
+        }
         if (constraints != null) {
             for (List<String> constraintPair : constraints) {
                 String comp1 = constraintPair.get(0);
