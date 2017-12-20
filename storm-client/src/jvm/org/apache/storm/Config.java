@@ -363,6 +363,14 @@ public class Config extends HashMap<String, Object> {
     public static final String TOPOLOGY_RAS_CONSTRAINTS = "topology.ras.constraints";
 
     /**
+     * Declare scheduling constraints for a topology.
+     * @deprecated please use TOPOLOGY_RAS_CONSTRAINTS.
+     */
+    @Deprecated
+    @CustomValidator(validatorClass = ListOfListOfStringValidator.class)
+    public static final String TOPOLOGY_CONSTRAINTS = "topology.constraints";
+
+    /**
      * Array of components that scheduler should try to place on separate hosts when using the constraint solver strategy or the
      * multi-tenant scheduler.
      */
@@ -375,6 +383,15 @@ public class Config extends HashMap<String, Object> {
     @isInteger
     @isPositiveNumber
     public static final String TOPOLOGY_RAS_CONSTRAINT_MAX_STATE_SEARCH = "topology.ras.constraint.max.state.search";
+
+    /**
+     * Declare max traversal depth for find solutions that satisfy constraints
+     * @deprecated please use TOPOLOGY_RAS_CONTRAINT_MAX_STATE_SEARCH
+     */
+    @isInteger
+    @isPositiveNumber
+    @Deprecated
+    public static final String TOPOLOGY_CONSTRAINTS_MAX_DEPTH_TRAVERSAL = "topology.constraints.max.depth.traversal";
 
     /**
      * The maximum number of seconds to spend scheduling a topology using the constraint solver.  Null means no limit.
