@@ -13,7 +13,7 @@ internal:
 
 copy_test_files:
 	mkdir ${SRC_DIR}/my_test_results
-	for dir in ${SRC_DIR}/storm-core/target/test-reports   ${SRC_DIR}/storm-core/target/surefire-reports  ${SRC_DIR}/storm-yahoo/target/surefire-reports  ${SRC_DIR}/examples/*/target/surefire-reports  ${SRC_DIR}/external/*/target/surefire-reports ; do \
+	for dir in `find ${SRC_DIR} -type d \( -name test-reports -or -name surefire-reports \)` ; do \
 		if [ -d $$dir ] ;\
 		then \
 			cp $$dir/*.xml ${SRC_DIR}/my_test_results ;\
