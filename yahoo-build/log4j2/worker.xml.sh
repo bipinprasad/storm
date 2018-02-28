@@ -26,11 +26,12 @@ cat <<XML
 <properties>
     <property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} %c{1.} %t [%p] %msg%n</property>
     <property name="patternNoTime">%msg%n</property>
+    <property name="patternMetrics">%d %-8r %m%n</property>
 </properties>
 <appenders>
     <RollingFile name="A1"
-                 fileName="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}"
-                 filePattern="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.%d{yyyy-MM-dd-HH-mm-ss}.gz">
+        fileName="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}"
+        filePattern="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.%d{yyyy-MM-dd-HH-mm-ss}.gz">
         <PatternLayout>
             <pattern>\${pattern}</pattern>
         </PatternLayout>
@@ -39,8 +40,8 @@ cat <<XML
         </Policies>
     </RollingFile>
     <RollingFile name="STDOUT"
-                 fileName="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.out"
-                 filePattern="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.out.%d{yyyy-MM-dd-HH-mm-ss}.gz">
+        fileName="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.out"
+        filePattern="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.out.%d{yyyy-MM-dd-HH-mm-ss}.gz">
         <PatternLayout>
             <pattern>\${patternNoTime}</pattern>
         </PatternLayout>
@@ -49,13 +50,23 @@ cat <<XML
         </Policies>
     </RollingFile>
     <RollingFile name="STDERR"
-                 fileName="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.err"
-                 filePattern="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.err.%d{yyyy-MM-dd-HH-mm-ss}.gz">
+        fileName="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.err"
+        filePattern="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.err.%d{yyyy-MM-dd-HH-mm-ss}.gz">
         <PatternLayout>
             <pattern>\${patternNoTime}</pattern>
         </PatternLayout>
         <Policies>
             <SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
+        </Policies>
+    </RollingFile>
+    <RollingFile name="METRICS"
+		fileName="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.metrics"
+		filePattern="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.metrics.%d{yyyy-MM-dd-HH-mm-ss}.gz">
+        <PatternLayout>
+            <pattern>\${patternMetrics}</pattern>
+        </PatternLayout>
+        <Policies>
+            <SizeBasedTriggeringPolicy size="100 MB"/>
         </Policies>
     </RollingFile>
     <Syslog name="syslog" format="RFC5424" charset="UTF-8" host="${syslog_host}" port="514"
@@ -66,13 +77,16 @@ cat <<XML
             <KeyValuePair key="ClassName" value="%c{1.}"/>
         </LoggerFields>
     </Syslog>
-
 </appenders>
 <loggers>
     <root level="info"> <!-- We log everything -->
         <appender-ref ref="A1"/>
         <appender-ref ref="syslog"/>
     </root>
+    <Logger name="org.apache.storm.metric.LoggingMetricsConsumer" level="info" additivity="false">
+        <appender-ref ref="METRICS"/>
+        <appender-ref ref="syslog"/>
+    </Logger>
     <Logger name="STDERR" level="INFO">
         <appender-ref ref="STDERR"/>
         <appender-ref ref="syslog"/>
