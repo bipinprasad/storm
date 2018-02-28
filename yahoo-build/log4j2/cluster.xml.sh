@@ -22,7 +22,7 @@ cat <<XML
  limitations under the License.
 -->
 
-<configuration monitorInterval="60">
+<configuration monitorInterval="60" shutdownHook="disable">
 <properties>
     <property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} %t %c{1.} [%p] %msg%n</property>
     <property name="patternMetrics">%d %-8r %m%n</property>
@@ -110,7 +110,7 @@ cat <<XML
     <Logger name="org.apache.storm.metric.LoggingMetricsConsumer" level="info">
         <AppenderRef ref="METRICS"/>
     </Logger>
-    <Logger name="org.apache..storm.scheduler" level="debug" additivity="false">
+    <Logger name="org.apache.storm.scheduler" level="debug" additivity="false">
         <AppenderRef ref="SCHEDULER" level="debug"/>
         <AppenderRef ref="A1" level="info"/>
         <AppenderRef ref="syslog" level="info"/>
