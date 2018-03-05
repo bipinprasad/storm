@@ -1011,7 +1011,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
         Utils.addShutdownHookWithDelayedForceKill(() -> {
             nimbus.shutdown();
             server.stop();
-        }, 10);
+        }, 5);
         if (AuthUtils.areWorkerTokensEnabledServer(server, conf)) {
             nimbus.initWorkerTokenManager();
         }
