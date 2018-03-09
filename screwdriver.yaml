@@ -5,7 +5,7 @@ shared:
         env.MVN_MAKE_OPTS: --batch-mode
 
     notifications:
-        email: "storm-devel@yahoo-inc.com"
+        email: "storm-devel@oath.com"
     steps:
         git_tag:
             description: Git tag after successful release
