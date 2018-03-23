@@ -4,7 +4,7 @@ End to end storm integration tests
 Running tests end-to-end
 ------------------------
 Assumption:
-A single version of storm binary zip such as `storm-dist/binary/target/apache-storm-2.0.0.y.zip` is present
+A single version of storm binary zip such as `storm-dist/binary/target/apache-storm-2.0.0-SNAPSHOT.zip` is present
 The following command will bring up a vagrant cluster.
 ```sh
 cd integration-test/config
