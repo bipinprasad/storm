@@ -310,7 +310,6 @@ public class Utils {
                     LOG.info("Halting after {} seconds", numSecs);
                     Time.sleepSecs(numSecs);
                     LOG.warn("Forcing Halt...");
-                    LOG.warn("{}", Utils.threadDump());
                     Runtime.getRuntime().halt(20);
                 } catch (Exception e) {
                     LOG.warn("Exception in the ShutDownHook", e);
