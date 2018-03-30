@@ -24,11 +24,10 @@ cat <<XML
 
 <configuration monitorInterval="60" shutdownHook="disable">
 <properties>
-    <property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} %t %c{1.} [%p] %msg%n</property>
-    <property name="patternMetrics">%d %-8r %m%n</property>
+    <property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} %c{1.} %t [%p] %msg%n</property>
 </properties>
 <appenders>
-    <RollingFile name="A1" immediateFlush="false"
+    <RollingFile name="A1"
                  fileName="\${sys:storm.log.dir}/\${sys:logfile.name}"
                  filePattern="\${sys:storm.log.dir}/\${sys:logfile.name}.%i.gz">
         <PatternLayout>
@@ -39,7 +38,7 @@ cat <<XML
         </Policies>
         <DefaultRolloverStrategy max="9"/>
     </RollingFile>
-    <RollingFile name="WEB-ACCESS" immediateFlush="false"
+    <RollingFile name="WEB-ACCESS"
                  fileName="\${sys:storm.log.dir}/access-web-\${sys:daemon.name}.log"
                  filePattern="\${sys:storm.log.dir}/access-web-\${sys:daemon.name}.log.%i.gz">
         <PatternLayout>
@@ -50,25 +49,25 @@ cat <<XML
         </Policies>
         <DefaultRolloverStrategy max="9"/>
     </RollingFile>
-    <RollingFile name="THRIFT-ACCESS" immediateFlush="false"
+    <RollingFile name="THRIFT-ACCESS"
                  fileName="\${sys:storm.log.dir}/access-\${sys:logfile.name}"
                  filePattern="\${sys:storm.log.dir}/access-\${sys:logfile.name}.%i.gz">
         <PatternLayout>
-           <pattern>\${pattern}</pattern>
+            <pattern>\${pattern}</pattern>
         </PatternLayout>
         <Policies>
-           <SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
+            <SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
         </Policies>
         <DefaultRolloverStrategy max="9"/>
     </RollingFile>
-    <RollingFile name="METRICS" immediateFlush="false"
-                 fileName="\${sys:storm.log.dir}/metrics.log"
-                 filePattern="\${sys:storm.log.dir}/metrics.log.%i.gz">
+    <RollingFile name="METRICS"
+                 fileName="\${sys:storm.log.dir}/\${sys:logfile.name}.metrics"
+                 filePattern="\${sys:storm.log.dir}/\${sys:logfile.name}.metrics.%i.gz">
         <PatternLayout>
             <pattern>\${patternMetrics}</pattern>
         </PatternLayout>
         <Policies>
-            <SizeBasedTriggeringPolicy size="2 MB"/> <!-- Or every 100 MB -->
+            <SizeBasedTriggeringPolicy size="100 MB"/>
         </Policies>
         <DefaultRolloverStrategy max="9"/>
     </RollingFile>
@@ -91,7 +90,6 @@ cat <<XML
             <KeyValuePair key="ClassName" value="%c{1.}"/>
         </LoggerFields>
     </Syslog>
-
 </appenders>
 <loggers>
 
@@ -100,20 +98,16 @@ cat <<XML
         <AppenderRef ref="syslog"/>
     </Logger>
     <Logger name="org.apache.storm.security.auth" level="info" additivity="false">
-            <AppenderRef ref="THRIFT-ACCESS"/>
-            <AppenderRef ref="syslog"/>
+        <AppenderRef ref="THRIFT-ACCESS"/>
+        <AppenderRef ref="syslog"/>
     </Logger>
     <Logger name="org.apache.storm.logging.ThriftAccessLogger" level="info" additivity="false">
-            <AppenderRef ref="THRIFT-ACCESS"/>
-            <AppenderRef ref="syslog"/>
+        <AppenderRef ref="THRIFT-ACCESS"/>
+        <AppenderRef ref="syslog"/>
     </Logger>
-    <Logger name="org.apache.storm.metric.LoggingMetricsConsumer" level="info">
-        <AppenderRef ref="METRICS"/>
-    </Logger>
-    <Logger name="org.apache.storm.scheduler" level="debug" additivity="false">
-        <AppenderRef ref="SCHEDULER" level="debug"/>
-        <AppenderRef ref="A1" level="info"/>
-        <AppenderRef ref="syslog" level="info"/>
+    <Logger name="org.apache.storm.metric.LoggingClusterMetricsConsumer" level="info" additivity="false">
+        <appender-ref ref="METRICS"/>
+        <appender-ref ref="syslog"/>
     </Logger>
     <root level="info"> <!-- We log everything -->
         <appender-ref ref="A1"/>
