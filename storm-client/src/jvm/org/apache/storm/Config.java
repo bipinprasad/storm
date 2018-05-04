@@ -320,7 +320,7 @@ public class Config extends HashMap<String, Object> {
     @isPositiveNumber
     public static final String TOPOLOGY_RAS_CONSTRAINT_MAX_STATE_SEARCH = "topology.ras.constraint.max.state.search";
     /**
-     * Declare max traversal depth for find solutions that satisfy constraints
+     * Declare max traversal depth for find solutions that satisfy constraints.
      * @deprecated please use TOPOLOGY_RAS_CONTRAINT_MAX_STATE_SEARCH
      */
     @isInteger
