@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
@@ -47,13 +49,13 @@ public class YamasStore implements MetricStore, AutoCloseable {
     public static final String YAMAS_STORE_PROXY_PORT_CONFIG = "yamas.store.http.proxy.port";
     public static final String YAMAS_STORE_BOUNCER_URL_CONFIG = "yamas.store.bouncer.url";
 
-    static String stormCluster = null;
-    private static String yamasInsertUrl = null;
-    static String namespace = null;
-    private static String yamasQueryUrl = null;
-    private static String bouncerUser = null;
-    static String bouncerLoginUrl = null;
-    private static HttpHost httpProxy = null;
+    private String stormCluster = null;
+    private String yamasInsertUrl = null;
+    private String namespace = null;
+    private String yamasQueryUrl = null;
+    private String bouncerUser = null;
+    private String bouncerLoginUrl = null;
+    private HttpHost httpProxy = null;
     private long nextBouncerLogin = 0L;
     private Header YBYCookieHeader = null;
 
@@ -162,7 +164,7 @@ public class YamasStore implements MetricStore, AutoCloseable {
      */
     @Override
     public boolean populateValue(Metric metric) throws MetricException {
-        JSONObject query = YamasQueryBuilder.createQuery(metric);
+        JSONObject query = this.createQuery(metric);
         List<Metric> metrics = this.getMetrics(query, metric.getAggLevel());
         if (metrics.isEmpty() || metrics.size() > 1) {
             return false;
@@ -187,7 +189,7 @@ public class YamasStore implements MetricStore, AutoCloseable {
      */
     @Override
     public void scan(FilterOptions filter, ScanCallback scanCallback) throws MetricException {
-        Map<AggLevel, JSONObject> queryMap = YamasQueryBuilder.createQueries(filter);
+        Map<AggLevel, JSONObject> queryMap = this.createQueries(filter);
         for (Map.Entry<AggLevel, JSONObject> entry : queryMap.entrySet()) {
             AggLevel aggLevel = entry.getKey();
             JSONObject query = entry.getValue();
@@ -367,5 +369,140 @@ public class YamasStore implements MetricStore, AutoCloseable {
             }
         }
         return metricList;
+    }
+
+    Map<AggLevel, JSONObject> createQueries(FilterOptions filterOptions)
+            throws MetricException {
+        if (filterOptions.getMetricName() == null) {
+            throw new MetricException("Unable to scan Yamas without a metric name specified");
+        }
+
+        String topologyId = filterOptions.getTopologyId() == null ? "*" : filterOptions.getTopologyId();
+        String componentId = filterOptions.getComponentId() == null ? "*" : filterOptions.getComponentId();
+        String executorId = filterOptions.getExecutorId() == null ? "*" : filterOptions.getExecutorId();
+        String hostname = filterOptions.getHostId() == null ? "*" : filterOptions.getHostId();
+        Integer port = filterOptions.getPort() == null ? 0 : filterOptions.getPort();
+        String streamId = filterOptions.getStreamId() == null ? "*" : filterOptions.getStreamId();
+
+        return createQueries(filterOptions.getMetricName(), filterOptions.getStartTime(), filterOptions.getEndTime(),
+                topologyId, componentId, executorId, hostname, port, streamId, filterOptions.getAggLevels());
+    }
+
+    private Map<AggLevel, JSONObject> createQueries(String metricName, long startTime,
+                                                           Long endTime, String topologyId, String componentId, String executorId,
+                                                           String hostName, Integer port, String streamId, Set<AggLevel> aggLevels)
+            throws MetricException {
+
+        Map<AggLevel, JSONObject> queryMap = new HashMap<>(aggLevels.size());
+
+        for (AggLevel aggLevel : aggLevels) {
+            JSONObject query = createQuery(metricName, startTime, endTime, topologyId, componentId, executorId,
+                    hostName, port, streamId, aggLevel);
+            queryMap.put(aggLevel, query);
+        }
+
+        return queryMap;
+    }
+
+    JSONObject createQuery(Metric m) throws MetricException {
+        return createQuery(m.getMetricName(), m.getTimestamp(), null, m.getTopologyId(), m.getComponentId(),
+                m.getExecutorId(), m.getHostname(), m.getPort(), m.getStreamId(), m.getAggLevel());
+    }
+
+    private JSONObject createQuery(String metricName, long startTime, Long endTime,
+                                          String topologyId, String componentId, String executorId, String hostName,
+                                          Integer port, String streamId, AggLevel aggLevel) throws MetricException {
+
+        JSONObject obj = new JSONObject();
+
+        long aggLevelValueMs = aggLevel.getValue() * 1000L * 60L;
+        if (aggLevel.equals(AggLevel.AGG_LEVEL_NONE)) {
+            aggLevelValueMs = 1000L;  // use 1 second for Yamas
+        }
+
+        startTime = aggLevelValueMs * (startTime / aggLevelValueMs);
+        obj.put("start", startTime);
+
+        // we need to specify an end range for yamas at least as large as the bucket size
+        long minEndTime = startTime + 1000L * 60L * aggLevelValueMs;
+        if (endTime == null || minEndTime > endTime) {
+            endTime = minEndTime;
+        } else {
+            // need to round end time to match what the bucket takes for Yamas
+            endTime = aggLevelValueMs * ((endTime + 1) / aggLevelValueMs);
+        }
+        obj.put("end", endTime);
+
+        JSONArray queries = new JSONArray();
+        obj.put("queries", queries);
+
+        JSONObject query = new JSONObject();
+        queries.add(query);
+
+        query.put("aggregator", "zimsum");
+        query.put("metric", namespace + "." + stormCluster + "." + metricName);
+
+        switch (aggLevel) {
+            case AGG_LEVEL_NONE:
+                query.put("downsample", "1s-avg");
+                break;
+            case AGG_LEVEL_1_MIN:
+                query.put("downsample", "1m-avg");
+                break;
+            case AGG_LEVEL_10_MIN:
+                query.put("downsample", "10m-avg");
+                break;
+            case AGG_LEVEL_60_MIN:
+                query.put("downsample", "60m-avg");
+                break;
+            default:
+                throw new MetricException("Invalid agglevel - " + aggLevel);
+        }
+
+        JSONArray filters = new JSONArray();
+        query.put("filters", filters);
+
+        obj.put("showQuery", false);
+
+        addFilter(filters, "topologyId", topologyId);
+        addFilter(filters, "componentId", componentId);
+        addFilter(filters, "executorId", executorId);
+        addFilter(filters, "hostname", hostName);
+        addFilter(filters, "streamId", streamId);
+        addFilter(filters, "port", port);
+
+        return obj;
+    }
+
+    private void addFilter(JSONArray filters, String key, String value) throws MetricException {
+        JSONObject filter = new JSONObject();
+        filter.put("filter", value);
+        if (value.contains("*")) {
+            filter.put("type", "wildcard");
+        } else {
+            filter.put("type", "literal_or");
+        }
+
+        filter.put("groupBy", true);
+        filter.put("tagk", key);
+
+        filters.add(filter);
+    }
+
+    private void addFilter(JSONArray filters, String key, Integer value) throws MetricException {
+        JSONObject filter = new JSONObject();
+        // currently only used by port - 0 means wildcard
+        if (value == 0) {
+            filter.put("filter", "*");
+            filter.put("type", "wildcard");
+        } else {
+            filter.put("filter", value);
+            filter.put("type", "literal_or");
+        }
+
+        filter.put("groupBy", true);
+        filter.put("tagk", key);
+
+        filters.add(filter);
     }
 }
