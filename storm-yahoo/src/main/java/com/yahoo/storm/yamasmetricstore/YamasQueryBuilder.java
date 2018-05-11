@@ -115,27 +115,30 @@ class YamasQueryBuilder {
         return obj;
     }
 
-    private static void addFilter(JSONArray filters, String key, Object value) throws MetricException {
+    private static void addFilter(JSONArray filters, String key, String value) throws MetricException {
         JSONObject filter = new JSONObject();
-        if (value instanceof String) {
-            String val = (String)value;
-            filter.put("filter", val);
-            if (val.contains("*")) {
-                filter.put("type", "wildcard");
-            } else {
-                filter.put("type", "literal_or");
-            }
-        } else if (value instanceof Integer) {  // currently only used by port - 0 means wildcard
-            Integer port = (Integer)value;
-            if (port == 0) {
-                filter.put("filter", "*");
-                filter.put("type", "wildcard");
-            } else {
-                filter.put("filter", port);
-                filter.put("type", "literal_or");
-            }
+        filter.put("filter", value);
+        if (value.contains("*")) {
+            filter.put("type", "wildcard");
         } else {
-            throw new MetricException("Unsupported filter value " + value);
+            filter.put("type", "literal_or");
+        }
+
+        filter.put("groupBy", true);
+        filter.put("tagk", key);
+
+        filters.add(filter);
+    }
+
+    private static void addFilter(JSONArray filters, String key, Integer value) throws MetricException {
+        JSONObject filter = new JSONObject();
+        // currently only used by port - 0 means wildcard
+        if (value == 0) {
+            filter.put("filter", "*");
+            filter.put("type", "wildcard");
+        } else {
+            filter.put("filter", value);
+            filter.put("type", "literal_or");
         }
 
         filter.put("groupBy", true);

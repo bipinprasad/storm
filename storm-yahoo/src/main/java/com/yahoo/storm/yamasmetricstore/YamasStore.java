@@ -2,23 +2,34 @@ package com.yahoo.storm.yamasmetricstore;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.message.BasicHeader;
 import org.apache.storm.metricstore.AggLevel;
 import org.apache.storm.metricstore.FilterOptions;
 import org.apache.storm.metricstore.Metric;
 import org.apache.storm.metricstore.MetricException;
 import org.apache.storm.metricstore.MetricStore;
 import org.apache.storm.utils.ObjectReader;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import yjava.byauth.jaas.HttpClientBouncerAuth;
 
 public class YamasStore implements MetricStore, AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(YamasStore.class);
@@ -39,10 +50,12 @@ public class YamasStore implements MetricStore, AutoCloseable {
     static String stormCluster = null;
     private static String yamasInsertUrl = null;
     static String namespace = null;
-    static String yamasQueryUrl = null;
-    static String bouncerUser = null;
+    private static String yamasQueryUrl = null;
+    private static String bouncerUser = null;
     static String bouncerLoginUrl = null;
-    static HttpHost httpProxy = null;
+    private static HttpHost httpProxy = null;
+    private long nextBouncerLogin = 0L;
+    private Header YBYCookieHeader = null;
 
     /**
      * Create metric store instance using the configurations provided via the config map.
@@ -128,17 +141,10 @@ public class YamasStore implements MetricStore, AutoCloseable {
         postRequest.setEntity(input);
 
         HttpResponse response;
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        try {
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             response = httpClient.execute(postRequest);
         } catch (IOException e) {
             throw new MetricException("Failed to execute post for " + metricJson.toString(), e);
-        } finally {
-            try {
-                httpClient.close();
-            } catch (IOException e) {
-                LOG.error("Failed to close " + httpClient, e);
-            }
         }
 
         if (response.getStatusLine().getStatusCode() != 200) {
@@ -157,7 +163,7 @@ public class YamasStore implements MetricStore, AutoCloseable {
     @Override
     public boolean populateValue(Metric metric) throws MetricException {
         JSONObject query = YamasQueryBuilder.createQuery(metric);
-        List<Metric> metrics = YamasMetricFetcher.getMetrics(query, metric.getAggLevel());
+        List<Metric> metrics = this.getMetrics(query, metric.getAggLevel());
         if (metrics.isEmpty() || metrics.size() > 1) {
             return false;
         }
@@ -185,10 +191,181 @@ public class YamasStore implements MetricStore, AutoCloseable {
         for (Map.Entry<AggLevel, JSONObject> entry : queryMap.entrySet()) {
             AggLevel aggLevel = entry.getKey();
             JSONObject query = entry.getValue();
-            List<Metric> metrics = YamasMetricFetcher.getMetrics(query, aggLevel);
+            List<Metric> metrics = this.getMetrics(query, aggLevel);
             for (Metric m : metrics) {
                 scanCallback.cb(m);
             }
         }
+    }
+
+    private List<Metric> getMetrics(JSONObject query, AggLevel aggLevel)
+            throws MetricException {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("metric query: " + query.toString());
+        }
+        String result = postQuery(query);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("metric result: " + result);
+        }
+        return parseQueryResult(result, aggLevel);
+    }
+
+    private String postQuery(JSONObject query) throws MetricException {
+        HttpPost postRequest = new HttpPost(yamasQueryUrl);
+        DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(httpProxy);
+        String output;
+        try (CloseableHttpClient httpClient = HttpClients.custom().setRoutePlanner(routePlanner).build()) {
+            StringEntity input;
+            HttpResponse response;
+            try {
+                input = new StringEntity(query.toString());
+            } catch (UnsupportedEncodingException e) {
+                throw new MetricException("Unable to post metric query", e);
+            }
+            input.setContentType("application/json");
+            postRequest.setEntity(input);
+            postRequest.addHeader(getYbyCookieHeader());
+
+            try {
+                response = httpClient.execute(postRequest);
+            } catch (IOException e) {
+                throw new MetricException("Failed to get response", e);
+            }
+
+            if (response.getStatusLine().getStatusCode() != 200) {
+                throw new MetricException("Failed to query for metrics " + query.toString() + ", status code: "
+                        + response.getStatusLine().getStatusCode());
+            }
+
+            try {
+                output = IOUtils.toString(response.getEntity().getContent(), Charset.defaultCharset());
+            } catch (IOException e) {
+                throw new MetricException("Failed to read response", e);
+            }
+        } catch (IOException e) {
+            throw new MetricException("Failed to close client", e);
+        }
+
+        return output;
+    }
+
+    private Header getYbyCookieHeader() throws MetricException {
+        if (System.currentTimeMillis() > nextBouncerLogin) {
+            String password = getBouncerPassword(bouncerUser);
+            HttpClientBouncerAuth localHttpClientBouncerAuth = new HttpClientBouncerAuth();
+            String ybyCookie;
+            try {
+                ybyCookie = localHttpClientBouncerAuth.authenticate2(bouncerLoginUrl, bouncerUser,
+                        password.toCharArray(), true);
+            } catch (Exception e) {
+                throw new MetricException("Failed to get YBYCookie", e);
+            }
+            YBYCookieHeader = new BasicHeader("Cookie", ybyCookie);
+            nextBouncerLogin = System.currentTimeMillis() + 3600L * 1000L;
+        }
+        return YBYCookieHeader;
+    }
+
+    private String getBouncerPassword(String user) throws MetricException {
+        String[] args = new String[]{"ykeykeygetkey", user};
+        ProcessBuilder pb = new ProcessBuilder(args);
+        String output;
+        Process proc;
+        int rc;
+        try {
+            proc = pb.start();
+            output = IOUtils.toString(proc.getInputStream(), Charset.defaultCharset());
+            rc = proc.waitFor();
+        } catch (Exception e) {
+            throw new MetricException("Failed to login to Bouncer", e);
+        }
+        if (rc != 0) {
+            throw new MetricException("Failed to login to Bouncer");
+        }
+        proc.destroy();
+        return output.trim();
+    }
+
+    private List<Metric> parseQueryResult(String result, AggLevel aggLevel) throws MetricException {
+        JSONParser parser = new JSONParser();
+        JSONArray metrics;
+
+        List<Metric> metricList = new ArrayList<>();
+
+        try {
+            metrics = (JSONArray) parser.parse(result);
+        } catch (Exception e) {
+            throw new MetricException("Failed to parse query result: " + result, e);
+        }
+
+        if (metrics == null) {
+            return metricList;
+        }
+
+        for (Object o : metrics) {
+            JSONObject metricJson;
+            if (o instanceof JSONObject) {
+                metricJson = (JSONObject)o;
+            } else {
+                throw new MetricException("Failed to parse metrics from: " + result);
+            }
+            List<Metric> parseResults = parseMetricJson(metricJson, aggLevel);
+            metricList.addAll(parseResults);
+        }
+        return metricList;
+    }
+
+    private List<Metric> parseMetricJson(JSONObject metricJson, AggLevel aggLevel) throws MetricException {
+        List<Metric> metricList = new ArrayList<>();
+        String metricName = (String)metricJson.get("metric");
+        JSONObject dps = (JSONObject)metricJson.get("dps");
+
+        JSONObject tags = (JSONObject)metricJson.get("tags");
+        String topologyId = "";
+        String componentId = "";
+        String executorId = "";
+        String hostname = "";
+        String streamId = "";
+        int port = 0;
+
+        for (Iterator iterator = tags.keySet().iterator(); iterator.hasNext();) {
+            String key = (String) iterator.next();
+            Object value = tags.get(key);
+            if (value instanceof String) {
+                String val = (String)value;
+                if (key.equals("topologyId")) {
+                    topologyId = val;
+                } else if (key.equals("componentId")) {
+                    componentId = val;
+                } else if (key.equals("executorId")) {
+                    executorId = val;
+                } else if (key.equals("hostname")) {
+                    hostname = val;
+                } else if (key.equals("streamId")) {
+                    streamId = val;
+                } else if (key.equals("port")) {
+                    port = Integer.parseInt(val);
+                }
+            }
+        }
+
+        for (Iterator iterator = dps.keySet().iterator(); iterator.hasNext();) {
+            String timestampString = (String)iterator.next();
+            Object val = dps.get(timestampString);
+
+            if (val != null) {
+                double metricValue = ((Number)val).doubleValue();
+                long timestamp = Long.parseLong(timestampString) *  1000L;
+                Metric m = new Metric(metricName, timestamp, topologyId, metricValue, componentId, executorId,
+                        hostname, streamId, port, aggLevel);
+                m.setValue(metricValue);
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Created metric " + m);
+                }
+                metricList.add(m);
+            }
+        }
+        return metricList;
     }
 }
