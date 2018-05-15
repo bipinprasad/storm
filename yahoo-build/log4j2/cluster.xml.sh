@@ -109,6 +109,11 @@ cat <<XML
         <appender-ref ref="METRICS"/>
         <appender-ref ref="syslog"/>
     </Logger>
+    <Logger name="org.apache.storm.scheduler" level="debug" additivity="false">
+        <AppenderRef ref="SCHEDULER" level="debug"/>
+        <AppenderRef ref="A1" level="info"/>
+        <AppenderRef ref="syslog" level="info"/>
+    </Logger>
     <root level="info"> <!-- We log everything -->
         <appender-ref ref="A1"/>
         <appender-ref ref="syslog"/>
