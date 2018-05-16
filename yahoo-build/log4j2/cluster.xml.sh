@@ -97,10 +97,6 @@ cat <<XML
         <AppenderRef ref="WEB-ACCESS"/>
         <AppenderRef ref="syslog"/>
     </Logger>
-    <Logger name="org.apache.storm.security.auth" level="info" additivity="false">
-        <AppenderRef ref="THRIFT-ACCESS"/>
-        <AppenderRef ref="syslog"/>
-    </Logger>
     <Logger name="org.apache.storm.logging.ThriftAccessLogger" level="info" additivity="false">
         <AppenderRef ref="THRIFT-ACCESS"/>
         <AppenderRef ref="syslog"/>
