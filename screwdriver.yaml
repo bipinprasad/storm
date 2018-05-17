@@ -10,8 +10,8 @@ shared:
         git_tag:
             description: Git tag after successful release
             command: gmake git_tag
-    #triggers:
-    #    - sd@145451
+    triggers:
+        - sd@266240
     plugins:
         coverage:
             enabled: false
