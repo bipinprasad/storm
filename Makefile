@@ -16,7 +16,7 @@ copy_test_files:
 	for dir in `find ${SRC_DIR} -type d \( -name test-reports -or -name surefire-reports \)` ; do \
 		if [ -d $$dir ] ;\
 		then \
-			cp $$dir/*.xml ${SRC_DIR}/my_test_results ;\
+			cp $$dir/*.xml ${SRC_DIR}/my_test_results || true;\
 		fi ;\
 	done
 
