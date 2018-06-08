@@ -57,6 +57,7 @@ dir 3777 - - lib64/storm/$(BASE_VERSION)/logs/metadata
 find 755 - - lib64/storm/$(BASE_VERSION)/bin/ ../bin/ -type f
 ## Dependency
 # lib
+file 444 - - lib64/storm/$(BASE_VERSION)/lib/shaded-deps-$(BASE_VERSION).jar ../storm-core/target/dependency/shaded-deps-$(BASE_VERSION).jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/asm-5.0.3.jar ../storm-core/target/dependency/asm-5.0.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/carbonite-1.5.0.jar ../storm-core/target/dependency/carbonite-1.5.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/cheshire-5.5.0.jar ../storm-core/target/dependency/cheshire-5.5.0.jar
@@ -79,12 +80,10 @@ file 444 - - lib64/storm/$(BASE_VERSION)/lib/crypto-equality-1.0.0.jar ../storm-
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/crypto-random-1.2.0.jar ../storm-core/target/dependency/crypto-random-1.2.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/curator-client-4.0.1.jar ../storm-core/target/dependency/curator-client-4.0.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/curator-framework-4.0.1.jar ../storm-core/target/dependency/curator-framework-4.0.1.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib/curator-recipes-4.0.1.jar ../storm-core/target/dependency/curator-recipes-4.0.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/guava-16.0.1.jar ../storm-core/target/dependency/guava-16.0.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/hadoop-auth-2.7.2.7.1604210306.jar ../storm-core/target/dependency/hadoop-auth-2.7.2.7.1604210306.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/hiccup-0.3.6.jar ../storm-core/target/dependency/hiccup-0.3.6.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/httpclient-4.3.3.jar ../storm-core/target/dependency/httpclient-4.3.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib/httpcore-4.4.1.jar ../storm-core/target/dependency/httpcore-4.4.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/jackson-core-2.9.4.jar ../storm-core/target/dependency/jackson-core-2.9.4.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/jackson-dataformat-cbor-2.9.4.jar ../storm-core/target/dependency/jackson-dataformat-cbor-2.9.4.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/jackson-dataformat-smile-2.9.4.jar ../storm-core/target/dependency/jackson-dataformat-smile-2.9.4.jar
@@ -98,19 +97,16 @@ file 444 - - lib64/storm/$(BASE_VERSION)/lib/jetty-server-9.4.7.v20170914.jar ..
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/jetty-servlet-9.4.7.v20170914.jar ../storm-core/target/dependency/jetty-servlet-9.4.7.v20170914.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/jetty-servlets-9.4.7.v20170914.jar ../storm-core/target/dependency/jetty-servlets-9.4.7.v20170914.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/jetty-util-9.4.7.v20170914.jar ../storm-core/target/dependency/jetty-util-9.4.7.v20170914.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib/jgrapht-core-0.9.0.jar ../storm-core/target/dependency/jgrapht-core-0.9.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/jline-0.9.94.jar ../storm-core/target/dependency/jline-0.9.94.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/joda-time-2.3.jar ../storm-core/target/dependency/joda-time-2.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/json-simple-1.1.jar ../storm-core/target/dependency/json-simple-1.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/kryo-3.0.3.jar ../storm-core/target/dependency/kryo-3.0.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/kryo-shaded-3.0.3.jar ../storm-core/target/dependency/kryo-shaded-3.0.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib/libthrift-0.11.0.jar ../storm-core/target/dependency/libthrift-0.11.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/log4j-api-2.8.2.jar ../storm-core/target/dependency/log4j-api-2.8.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/log4j-core-2.8.2.jar ../storm-core/target/dependency/log4j-core-2.8.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/log4j-over-slf4j-1.6.6.jar ../storm-core/target/dependency/log4j-over-slf4j-1.6.6.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/log4j-slf4j-impl-2.8.2.jar ../storm-core/target/dependency/log4j-slf4j-impl-2.8.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/math.numeric-tower-0.0.1.jar ../storm-core/target/dependency/math.numeric-tower-0.0.1.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib/metrics-clojure-2.5.1.jar ../storm-core/target/dependency/metrics-clojure-2.5.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/metrics-core-3.1.0.jar ../storm-core/target/dependency/metrics-core-3.1.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/minlog-1.3.0.jar ../storm-core/target/dependency/minlog-1.3.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/netty-3.9.9.Final.jar ../storm-core/target/dependency/netty-3.9.9.Final.jar
@@ -126,7 +122,6 @@ file 444 - - lib64/storm/$(BASE_VERSION)/lib/ring-servlet-1.6.2.jar ../storm-cor
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/rocksdbjni-5.8.6.jar ../storm-core/target/dependency/rocksdbjni-5.8.6.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/slf4j-api-1.7.21.jar ../storm-core/target/dependency/slf4j-api-1.7.21.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/snakeyaml-1.11.jar ../storm-core/target/dependency/snakeyaml-1.11.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib/sysout-over-slf4j-1.0.2.jar ../storm-core/target/dependency/sysout-over-slf4j-1.0.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/tigris-0.1.1.jar ../storm-core/target/dependency/tigris-0.1.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/tools.cli-0.3.1.jar ../storm-core/target/dependency/tools.cli-0.3.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/tools.logging-0.2.3.jar ../storm-core/target/dependency/tools.logging-0.2.3.jar
@@ -135,43 +130,22 @@ file 444 - - lib64/storm/$(BASE_VERSION)/lib/tools.namespace-0.2.11.jar ../storm
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/xz-1.0.jar ../storm-core/target/dependency/xz-1.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/zookeeper-3.4.6.jar ../storm-core/target/dependency/zookeeper-3.4.6.jar
 # lib-worker
+file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/shaded-deps-$(BASE_VERSION).jar ../storm-client/target/dependency/shaded-deps-$(BASE_VERSION).jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/asm-5.0.3.jar ../storm-client/target/dependency/asm-5.0.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/commons-codec-1.6.jar ../storm-client/target/dependency/commons-codec-1.6.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/commons-collections-3.2.2.jar ../storm-client/target/dependency/commons-collections-3.2.2.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/commons-io-2.5.jar ../storm-client/target/dependency/commons-io-2.5.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/commons-lang-2.5.jar ../storm-client/target/dependency/commons-lang-2.5.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/commons-logging-1.1.3.jar ../storm-client/target/dependency/commons-logging-1.1.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/curator-client-4.0.1.jar ../storm-client/target/dependency/curator-client-4.0.1.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/curator-framework-4.0.1.jar ../storm-client/target/dependency/curator-framework-4.0.1.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/jctools-core-2.0.1.jar ../storm-client/target/dependency/jctools-core-2.0.1.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/guava-16.0.1.jar ../storm-client/target/dependency/guava-16.0.1.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/httpclient-4.3.3.jar ../storm-client/target/dependency/httpclient-4.3.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/httpcore-4.4.1.jar ../storm-client/target/dependency/httpcore-4.4.1.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/javax.servlet-api-3.1.0.jar ../storm-client/target/dependency/javax.servlet-api-3.1.0.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/jgrapht-core-0.9.0.jar ../storm-client/target/dependency/jgrapht-core-0.9.0.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/jline-0.9.94.jar ../storm-client/target/dependency/jline-0.9.94.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/json-simple-1.1.jar ../storm-client/target/dependency/json-simple-1.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/kryo-3.0.3.jar ../storm-client/target/dependency/kryo-3.0.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/libthrift-0.11.0.jar ../storm-client/target/dependency/libthrift-0.11.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/log4j-api-2.8.2.jar ../storm-client/target/dependency/log4j-api-2.8.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/log4j-core-2.8.2.jar ../storm-client/target/dependency/log4j-core-2.8.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/log4j-over-slf4j-1.6.6.jar ../storm-client/target/dependency/log4j-over-slf4j-1.6.6.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/log4j-slf4j-impl-2.8.2.jar ../storm-client/target/dependency/log4j-slf4j-impl-2.8.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/minlog-1.3.0.jar ../storm-client/target/dependency/minlog-1.3.0.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/netty-3.9.9.Final.jar ../storm-client/target/dependency/netty-3.9.9.Final.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/objenesis-2.1.jar ../storm-client/target/dependency/objenesis-2.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/reflectasm-1.10.1.jar ../storm-client/target/dependency/reflectasm-1.10.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/slf4j-api-1.7.21.jar ../storm-client/target/dependency/slf4j-api-1.7.21.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/snakeyaml-1.11.jar ../storm-client/target/dependency/snakeyaml-1.11.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/sysout-over-slf4j-1.0.2.jar ../storm-client/target/dependency/sysout-over-slf4j-1.0.2.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/zookeeper-3.4.6.jar ../storm-client/target/dependency/zookeeper-3.4.6.jar
 # lib-webapp
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/aopalliance-repackaged-2.5.0-b05.jar ../storm-webapp/target/dependency/aopalliance-repackaged-2.5.0-b05.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/argparse4j-0.8.1.jar ../storm-webapp/target/dependency/argparse4j-0.8.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/classmate-1.3.1.jar ../storm-webapp/target/dependency/classmate-1.3.1.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/commons-codec-1.6.jar ../storm-webapp/target/dependency/commons-codec-1.6.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/commons-lang3-3.7.jar ../storm-webapp/target/dependency/commons-lang3-3.7.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/commons-logging-1.1.3.jar ../storm-webapp/target/dependency/commons-logging-1.1.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/commons-text-1.2.jar ../storm-webapp/target/dependency/commons-text-1.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/dropwizard-assets-1.3.0.jar ../storm-webapp/target/dependency/dropwizard-assets-1.3.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/dropwizard-configuration-1.3.0.jar ../storm-webapp/target/dependency/dropwizard-configuration-1.3.0.jar
@@ -191,8 +165,6 @@ file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/hibernate-validator-5.4.2.Fi
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/hk2-api-2.5.0-b05.jar ../storm-webapp/target/dependency/hk2-api-2.5.0-b05.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/hk2-locator-2.5.0-b05.jar ../storm-webapp/target/dependency/hk2-locator-2.5.0-b05.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/hk2-utils-2.5.0-b05.jar ../storm-webapp/target/dependency/hk2-utils-2.5.0-b05.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/httpclient-4.3.3.jar ../storm-webapp/target/dependency/httpclient-4.3.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/httpcore-4.4.1.jar ../storm-webapp/target/dependency/httpcore-4.4.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/j2html-1.0.0.jar ../storm-webapp/target/dependency/j2html-1.0.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/jackson-annotations-2.9.0.jar ../storm-webapp/target/dependency/jackson-annotations-2.9.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/jackson-core-2.9.4.jar ../storm-webapp/target/dependency/jackson-core-2.9.4.jar
@@ -240,7 +212,6 @@ file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/jool-0.9.12.jar ../storm-web
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/json-simple-1.1.jar ../storm-webapp/target/dependency/json-simple-1.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/jsr305-3.0.2.jar ../storm-webapp/target/dependency/jsr305-3.0.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/jul-to-slf4j-1.7.25.jar ../storm-webapp/target/dependency/jul-to-slf4j-1.7.25.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/libthrift-0.11.0.jar ../storm-webapp/target/dependency/libthrift-0.11.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/log4j-api-2.8.2.jar ../storm-webapp/target/dependency/log4j-api-2.8.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/log4j-core-2.8.2.jar ../storm-webapp/target/dependency/log4j-core-2.8.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-webapp/log4j-over-slf4j-1.6.6.jar ../storm-webapp/target/dependency/log4j-over-slf4j-1.6.6.jar
@@ -276,14 +247,12 @@ file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/commons-lang3-3.2
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/commons-logging-1.1.3.jar ../sql/storm-sql-runtime/target/app-assembler/repo/commons-logging-1.1.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/guava-16.0.1.jar ../sql/storm-sql-runtime/target/app-assembler/repo/guava-16.0.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/httpclient-4.3.3.jar ../sql/storm-sql-runtime/target/app-assembler/repo/httpclient-4.3.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/httpcore-4.4.1.jar ../sql/storm-sql-runtime/target/app-assembler/repo/httpcore-4.4.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/jackson-annotations-2.9.0.jar ../sql/storm-sql-runtime/target/app-assembler/repo/jackson-annotations-2.9.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/jackson-core-2.9.4.jar ../sql/storm-sql-runtime/target/app-assembler/repo/jackson-core-2.9.4.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/jackson-core-asl-1.9.13.jar ../sql/storm-sql-runtime/target/app-assembler/repo/jackson-core-asl-1.9.13.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/jackson-databind-2.9.4.jar ../sql/storm-sql-runtime/target/app-assembler/repo/jackson-databind-2.9.4.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/jackson-mapper-asl-1.9.13.jar ../sql/storm-sql-runtime/target/app-assembler/repo/jackson-mapper-asl-1.9.13.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/janino-2.7.6.jar ../sql/storm-sql-runtime/target/app-assembler/repo/janino-2.7.6.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/libthrift-0.11.0.jar ../sql/storm-sql-runtime/target/app-assembler/repo/libthrift-0.11.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/paranamer-2.3.jar ../sql/storm-sql-runtime/target/app-assembler/repo/paranamer-2.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/protobuf-java-3.1.0.jar ../sql/storm-sql-runtime/target/app-assembler/repo/protobuf-java-3.1.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/runtime/slf4j-api-1.7.21.jar ../sql/storm-sql-runtime/target/app-assembler/repo/slf4j-api-1.7.21.jar
@@ -305,13 +274,11 @@ file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/commons-logging-1.1.
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/commons-pool-1.5.4.jar ../sql/storm-sql-core/target/app-assembler/repo/commons-pool-1.5.4.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/guava-16.0.1.jar ../sql/storm-sql-core/target/app-assembler/repo/guava-16.0.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/httpclient-4.3.3.jar ../sql/storm-sql-core/target/app-assembler/repo/httpclient-4.3.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/httpcore-4.4.1.jar ../sql/storm-sql-core/target/app-assembler/repo/httpcore-4.4.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/jackson-annotations-2.9.0.jar ../sql/storm-sql-core/target/app-assembler/repo/jackson-annotations-2.9.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/jackson-core-2.9.4.jar ../sql/storm-sql-core/target/app-assembler/repo/jackson-core-2.9.4.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/jackson-databind-2.9.4.jar ../sql/storm-sql-core/target/app-assembler/repo/jackson-databind-2.9.4.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/janino-2.7.6.jar ../sql/storm-sql-core/target/app-assembler/repo/janino-2.7.6.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/jsr305-1.3.9.jar ../sql/storm-sql-core/target/app-assembler/repo/jsr305-1.3.9.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/libthrift-0.11.0.jar ../sql/storm-sql-core/target/app-assembler/repo/libthrift-0.11.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/protobuf-java-3.1.0.jar ../sql/storm-sql-core/target/app-assembler/repo/protobuf-java-3.1.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/slf4j-api-1.7.21.jar ../sql/storm-sql-core/target/app-assembler/repo/slf4j-api-1.7.21.jar
 
@@ -394,7 +361,6 @@ file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hive-shims-com
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hive-webhcat-java-client-0.14.0.jar ../external/storm-autocreds/target/app-assembler/repo/hive-webhcat-java-client-0.14.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/htrace-core-3.1.0-incubating.jar ../external/storm-autocreds/target/app-assembler/repo/htrace-core-3.1.0-incubating.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/httpclient-4.3.3.jar ../external/storm-autocreds/target/app-assembler/repo/httpclient-4.3.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/httpcore-4.4.1.jar ../external/storm-autocreds/target/app-assembler/repo/httpcore-4.4.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jackson-core-asl-1.9.13.jar ../external/storm-autocreds/target/app-assembler/repo/jackson-core-asl-1.9.13.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jackson-jaxrs-1.9.13.jar ../external/storm-autocreds/target/app-assembler/repo/jackson-jaxrs-1.9.13.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/jackson-mapper-asl-1.9.13.jar ../external/storm-autocreds/target/app-assembler/repo/jackson-mapper-asl-1.9.13.jar
@@ -466,7 +432,6 @@ file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/hadoop-common-2.7.2.7.160
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/hadoop-hdfs-2.7.2.7.1604210306.jar ../external/storm-hdfs-blobstore/target/dependency/hadoop-hdfs-2.7.2.7.1604210306.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/htrace-core-3.1.0-incubating.jar ../external/storm-hdfs-blobstore/target/dependency/htrace-core-3.1.0-incubating.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/httpclient-4.3.3.jar ../external/storm-hdfs-blobstore/target/dependency/httpclient-4.3.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/httpcore-4.4.1.jar ../external/storm-hdfs-blobstore/target/dependency/httpcore-4.4.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/jackson-core-asl-1.9.13.jar ../external/storm-hdfs-blobstore/target/dependency/jackson-core-asl-1.9.13.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/jackson-mapper-asl-1.9.13.jar ../external/storm-hdfs-blobstore/target/dependency/jackson-mapper-asl-1.9.13.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/java-xmlbuilder-0.4.jar ../external/storm-hdfs-blobstore/target/dependency/java-xmlbuilder-0.4.jar
@@ -522,6 +487,8 @@ file 6550 root root lib64/storm/$(BASE_VERSION)/bin/worker-launcher ../storm-cor
 # TODO are we pulling this in? file 444 - - lib64/libcgroupOOMMonitor.so ../storm-core/target/native/target/usr/local/lib/libcgroupOOMMonitor.so
 
 file 444 - - lib64/jars/storm.pom ../pom.xml
+file 444 - - lib64/jars/shaded-deps.jar ../shaded-deps/target/shaded-deps-$(BASE_VERSION).jar
+file 444 - - lib64/jars/shaded-deps.pom ../shaded-deps/dependency-reduced-pom.xml
 file 444 - - lib64/jars/storm-core.jar ../storm-core/target/storm-core-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-core.pom ../storm-core/pom.xml
 file 444 - - lib64/jars/storm-client.jar ../storm-client/target/storm-client-$(BASE_VERSION).jar
