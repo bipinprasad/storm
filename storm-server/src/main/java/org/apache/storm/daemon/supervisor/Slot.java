@@ -13,7 +13,6 @@
 package org.apache.storm.daemon.supervisor;
 
 import com.codahale.metrics.Meter;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,6 +44,7 @@ import org.apache.storm.localizer.LocallyCachedBlob;
 import org.apache.storm.metric.StormMetricsRegistry;
 import org.apache.storm.metricstore.WorkerMetricsProcessor;
 import org.apache.storm.scheduler.ISupervisor;
+import org.apache.storm.shade.com.google.common.annotations.VisibleForTesting;
 import org.apache.storm.utils.LocalState;
 import org.apache.storm.utils.ObjectReader;
 import org.apache.storm.utils.Time;
@@ -381,7 +381,7 @@ public class Slot extends Thread implements AutoCloseable, BlobChangingCallback 
      * @return the updated dynamicState
      */
     private static DynamicState filterChangingBlobsFor(DynamicState dynamicState, final LocalAssignment assignment) {
-        if (!dynamicState.changingBlobs.isEmpty()) {
+        if (dynamicState.changingBlobs.isEmpty()) {
             return dynamicState;
         }
 

@@ -9,8 +9,11 @@ EXEC_CONF_DIR?=/home/y/conf/storm/
 
 all: build
 
-test: RELEASE
-	cd .. && $(MVN) -fae -Pnative -Pyahoo -Pcoverage -Pall-tests -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
+shaded-deps-install:
+	cd ../shaded-deps && $(MVN) install -DskipTests
+
+test: shaded-deps-install RELEASE
+	cd .. && $(MVN) -fae -Pnative -Pyahoo -Pcoverage -Pall-tests '-P!include-shaded-deps' -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
 
 check: test
 	@echo "Errors or Failures:"
@@ -18,8 +21,8 @@ check: test
 	@! egrep -iq '<fail|<error' ../*/target/test-reports/*.xml 
 
 
-build: RELEASE
-	cd .. && $(MVN) -Pnative -Pyahoo -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install -DskipTests ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
+build: shaded-deps-install RELEASE
+	cd .. && $(MVN) -Pnative -Pyahoo '-P!include-shaded-deps' -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install -DskipTests ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
 
 dist_tag: RELEASE
 	$(shell echo "ystorm_`cat RELEASE`" | sed 's/\./_/g' > DIST_TAG)
