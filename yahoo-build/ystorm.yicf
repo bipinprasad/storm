@@ -83,6 +83,7 @@ file 444 - - lib64/storm/$(BASE_VERSION)/lib/curator-framework-4.0.1.jar ../stor
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/guava-16.0.1.jar ../storm-core/target/dependency/guava-16.0.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/hadoop-auth-2.7.2.7.1604210306.jar ../storm-core/target/dependency/hadoop-auth-2.7.2.7.1604210306.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/hiccup-0.3.6.jar ../storm-core/target/dependency/hiccup-0.3.6.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/lib/httpcore-4.3.2.jar ../storm-core/target/dependency/httpcore-4.3.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/httpclient-4.3.3.jar ../storm-core/target/dependency/httpclient-4.3.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/jackson-core-2.9.4.jar ../storm-core/target/dependency/jackson-core-2.9.4.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/jackson-dataformat-cbor-2.9.4.jar ../storm-core/target/dependency/jackson-dataformat-cbor-2.9.4.jar
