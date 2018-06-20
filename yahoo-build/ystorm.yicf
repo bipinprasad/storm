@@ -110,7 +110,7 @@ file 444 - - lib64/storm/$(BASE_VERSION)/lib/log4j-slf4j-impl-2.8.2.jar ../storm
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/math.numeric-tower-0.0.1.jar ../storm-core/target/dependency/math.numeric-tower-0.0.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/metrics-core-3.1.0.jar ../storm-core/target/dependency/metrics-core-3.1.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/minlog-1.3.0.jar ../storm-core/target/dependency/minlog-1.3.0.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib/netty-3.9.9.Final.jar ../storm-core/target/dependency/netty-3.9.9.Final.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/lib/netty-3.7.0.Final.jar ../storm-core/target/dependency/netty-3.7.0.Final.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/ns-tracker-0.3.1.jar ../storm-core/target/dependency/ns-tracker-0.3.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/objenesis-2.6.jar ../storm-core/target/dependency/objenesis-2.6.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib/reflectasm-1.10.1.jar ../storm-core/target/dependency/reflectasm-1.10.1.jar
@@ -327,7 +327,7 @@ file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/groovy-all-2.1
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/gson-2.2.4.jar ../external/storm-autocreds/target/app-assembler/repo/gson-2.2.4.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/guava-16.0.1.jar ../external/storm-autocreds/target/app-assembler/repo/guava-16.0.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-annotations-2.7.2.7.1604210306.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-annotations-2.7.2.7.1604210306.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-auth-2.5.1.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-auth-2.5.1.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-auth-2.7.4.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-auth-2.7.4.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-client-2.7.2.7.1604210306.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-client-2.7.2.7.1604210306.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-common-2.7.2.7.1604210306.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-common-2.7.2.7.1604210306.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-hdfs-2.7.2.7.1604210306.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-hdfs-2.7.2.7.1604210306.jar
@@ -340,10 +340,10 @@ file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-yarn-ap
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-yarn-client-2.7.2.7.1604210306.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-yarn-client-2.7.2.7.1604210306.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-yarn-common-2.7.2.7.1604210306.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-yarn-common-2.7.2.7.1604210306.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hadoop-yarn-server-common-2.7.2.7.1604210306.jar ../external/storm-autocreds/target/app-assembler/repo/hadoop-yarn-server-common-2.7.2.7.1604210306.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-annotations-1.1.12.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-annotations-1.1.12.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-client-1.1.12.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-client-1.1.12.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-common-1.1.12.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-common-1.1.12.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-protocol-1.1.12.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-protocol-1.1.12.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-annotations-1.4.4.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-annotations-1.4.4.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-client-1.4.4.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-client-1.4.4.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-common-1.4.4.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-common-1.4.4.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hbase-protocol-1.4.4.jar ../external/storm-autocreds/target/app-assembler/repo/hbase-protocol-1.4.4.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hive-ant-0.14.0.jar ../external/storm-autocreds/target/app-assembler/repo/hive-ant-0.14.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hive-cli-0.14.0.jar ../external/storm-autocreds/target/app-assembler/repo/hive-cli-0.14.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/hive-common-0.14.0.jar ../external/storm-autocreds/target/app-assembler/repo/hive-common-0.14.0.jar
@@ -383,8 +383,8 @@ file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/libfb303-0.9.0
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/libthrift-0.11.0.jar ../external/storm-autocreds/target/app-assembler/repo/libthrift-0.11.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/log4j-1.2.17.jar ../external/storm-autocreds/target/app-assembler/repo/log4j-1.2.17.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/mail-1.4.1.jar ../external/storm-autocreds/target/app-assembler/repo/mail-1.4.1.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/netty-3.9.9.Final.jar ../external/storm-autocreds/target/app-assembler/repo/netty-3.9.9.Final.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/netty-all-4.0.23.Final.jar ../external/storm-autocreds/target/app-assembler/repo/netty-all-4.0.23.Final.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/netty-3.6.2.Final.jar ../external/storm-autocreds/target/app-assembler/repo/netty-3.6.2.Final.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/netty-all-4.1.25.Final.jar ../external/storm-autocreds/target/app-assembler/repo/netty-all-4.1.25.Final.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/opencsv-2.3.jar ../external/storm-autocreds/target/app-assembler/repo/opencsv-2.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/oro-2.0.8.jar ../external/storm-autocreds/target/app-assembler/repo/oro-2.0.8.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/protobuf-java-2.5.0.jar ../external/storm-autocreds/target/app-assembler/repo/protobuf-java-2.5.0.jar
@@ -442,8 +442,8 @@ file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/jsch-0.1.42.jar ../extern
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/jsr305-3.0.0.jar ../external/storm-hdfs-blobstore/target/dependency/jsr305-3.0.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/leveldbjni-all-1.8.jar ../external/storm-hdfs-blobstore/target/dependency/leveldbjni-all-1.8.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/libthrift-0.11.0.jar ../external/storm-hdfs-blobstore/target/dependency/libthrift-0.11.0.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/netty-3.9.9.Final.jar ../external/storm-hdfs-blobstore/target/dependency/netty-3.9.9.Final.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/netty-all-4.0.23.Final.jar ../external/storm-hdfs-blobstore/target/dependency/netty-all-4.0.23.Final.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/netty-3.6.2.Final.jar ../external/storm-hdfs-blobstore/target/dependency/netty-3.6.2.Final.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/netty-all-4.1.25.Final.jar ../external/storm-hdfs-blobstore/target/dependency/netty-all-4.1.25.Final.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/paranamer-2.3.jar ../external/storm-hdfs-blobstore/target/dependency/paranamer-2.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/protobuf-java-2.5.0.jar ../external/storm-hdfs-blobstore/target/dependency/protobuf-java-2.5.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/slf4j-api-1.7.21.jar ../external/storm-hdfs-blobstore/target/dependency/slf4j-api-1.7.21.jar
@@ -555,8 +555,6 @@ file 444 - - lib64/jars/storm-autocreds.jar ../external/storm-autocreds/target/s
 file 444 - - lib64/jars/storm-autocreds.pom ../external/storm-autocreds/pom.xml
 file 444 - - lib64/jars/storm-cassandra.jar ../external/storm-cassandra/target/storm-cassandra-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-cassandra.pom ../external/storm-cassandra/pom.xml
-file 444 - - lib64/jars/storm-druid.jar ../external/storm-druid/target/storm-druid-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-druid.pom ../external/storm-druid/pom.xml
 file 444 - - lib64/jars/storm-elasticsearch.jar ../external/storm-elasticsearch/target/storm-elasticsearch-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-elasticsearch.pom ../external/storm-elasticsearch/pom.xml
 file 444 - - lib64/jars/storm-eventhubs.jar ../external/storm-eventhubs/target/storm-eventhubs-$(BASE_VERSION).jar
