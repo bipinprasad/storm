@@ -160,7 +160,6 @@ file 444 - - lib64/jars/storm-jms-examples.jar ../examples/storm-jms-examples/ta
 file 444 - - lib64/jars/storm-jms-examples.pom ../examples/storm-jms-examples/pom.xml
 file 444 - - lib64/jars/storm-kafka-client-examples.jar ../examples/storm-kafka-client-examples/target/storm-kafka-client-examples-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-kafka-client-examples.pom ../examples/storm-kafka-client-examples/pom.xml
-file 444 - - lib64/jars/storm-kafka-examples.jar ../examples/storm-kafka-examples/target/storm-kafka-examples-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-loadgen.jar ../examples/storm-loadgen/target/storm-loadgen-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-loadgen.pom ../examples/storm-loadgen/pom.xml
 file 444 - - lib64/jars/storm-mongodb-examples.jar ../examples/storm-mongodb-examples/target/storm-mongodb-examples-$(BASE_VERSION).jar
@@ -202,7 +201,6 @@ file 444 - - lib64/jars/storm-jdbc.jar ../external/storm-jdbc/target/storm-jdbc-
 file 444 - - lib64/jars/storm-jdbc.pom ../external/storm-jdbc/pom.xml
 file 444 - - lib64/jars/storm-jms.jar ../external/storm-jms/target/storm-jms-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-jms.pom ../external/storm-jms/pom.xml
-file 444 - - lib64/jars/storm-kafka.jar ../external/storm-kafka/target/storm-kafka-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-kafka-client.jar ../external/storm-kafka-client/target/storm-kafka-client-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-kafka-client.pom ../external/storm-kafka-client/pom.xml
 file 444 - - lib64/jars/storm-kafka-monitor.jar ../external/storm-kafka-monitor/target/storm-kafka-monitor-$(BASE_VERSION).jar
