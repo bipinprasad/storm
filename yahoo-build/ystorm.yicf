@@ -86,7 +86,8 @@ find 444 - - lib64/storm/$(BASE_VERSION)/lib-tools/sql/core/ ../sql/storm-sql-co
 find 444 - - lib64/storm/$(BASE_VERSION)/external/storm-autocreds/ ../external/storm-autocreds/target/app-assembler/repo/ -type f
 
 # put storm-hdfs-blobstore and its dependencies to extlib-daemon
-find 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/ ../external/storm-hdfs-blobstore/target/ -type f
+file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/storm-hdfs-blobstore-$(BASE_VERSION).jar ../external/storm-hdfs-blobstore/target/storm-hdfs-blobstore-$(BASE_VERSION).jar
+find 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/ ../external/storm-hdfs-blobstore/target/dependency -type f
 
 # public, example, external
 find 444 - - lib64/storm/$(BASE_VERSION)/ ../ -maxdepth 1 -type f -iname '*.md' -or -iname '*.markdown'
