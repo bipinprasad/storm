@@ -71,6 +71,7 @@ file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/minlog-1.3.0.jar ../storm-cl
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/objenesis-2.1.jar ../storm-client/target/dependency/objenesis-2.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/reflectasm-1.10.1.jar ../storm-client/target/dependency/reflectasm-1.10.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/slf4j-api-1.7.21.jar ../storm-client/target/dependency/slf4j-api-1.7.21.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/metrics-core-3.1.0.jar ../storm-client/target/dependency/metrics-core-3.1.0.jar
 
 # lib-webapp
 #
@@ -166,11 +167,12 @@ symlink - - - lib64/storm/$(BASE_VERSION)/lib/junixsocket.jar           /home/y/
 symlink - - - lib64/storm/$(BASE_VERSION)/lib/auth_core.jar             /home/y/lib/jars/auth_core.jar
 symlink - - - lib64/storm/$(BASE_VERSION)/lib/data_core.jar             /home/y/lib/jars/data_core.jar
 
+# yamas_client
+find 444 - - lib64/storm/$(BASE_VERSION)/lib/ ../storm-yahoo/target/dependency/ -type f -iname 'yamas_*.jar'
+
+
 #The actual group of the executable will be set by a pre-activate script
 file 6550 root root lib64/storm/$(BASE_VERSION)/bin/worker-launcher ../storm-core/target/native/target/usr/local/bin/worker-launcher
-
-# cgroup monitoring native library
-# TODO are we pulling this in? file 444 - - lib64/libcgroupOOMMonitor.so ../storm-core/target/native/target/usr/local/lib/libcgroupOOMMonitor.so
 
 file 444 - - lib64/jars/storm.pom ../pom.xml
 file 444 - - lib64/jars/shaded-deps.jar ../shaded-deps/target/shaded-deps-$(BASE_VERSION).jar

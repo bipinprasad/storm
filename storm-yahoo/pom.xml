@@ -286,5 +286,10 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
     </dependency>
+      <dependency>
+          <groupId>yahoo.yinst.ystorm_contrib</groupId>
+          <artifactId>yamas_dropwizard</artifactId>
+          <version>0.4.0.122</version>
+      </dependency>
   </dependencies>
 </project>
