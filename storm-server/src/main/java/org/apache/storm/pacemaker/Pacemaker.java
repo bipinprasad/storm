@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.storm.generated.HBMessage;
 import org.apache.storm.generated.HBMessageData;
@@ -51,13 +50,7 @@ public class Pacemaker implements IServerMessageHandler {
     public Pacemaker(Map<String, Object> conf) {
         heartbeats = new ConcurrentHashMap();
         this.conf = conf;
-        StormMetricsRegistry.registerGauge("pacemaker:size-total-keys",
-                                           new Callable() {
-                                               @Override
-                                               public Integer call() throws Exception {
-                                                   return heartbeats.size();
-                                               }
-                                           });
+        StormMetricsRegistry.registerGauge("pacemaker:size-total-keys", () -> heartbeats.size());
         StormMetricsRegistry.startMetricsReporters(conf);
     }
 
