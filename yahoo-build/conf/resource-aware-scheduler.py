@@ -45,8 +45,8 @@ user_resource_pool_key = "resource.aware.scheduler.user.pools"
 config = {k[8:].replace("_", ".") : v for k, v in os.environ.items() if k.startswith("ystorm__")}
 
 resource_pool_json = config.get(user_resource_pool_key)
-if resource_pool_json is not None:
-    resource_pool = "";
+if resource_pool_json:
+    resource_pool = ""
     try:
         resource_pool = {user_resource_pool_key: json.loads(resource_pool_json)}
     except:
