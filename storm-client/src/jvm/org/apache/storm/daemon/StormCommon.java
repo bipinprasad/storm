@@ -252,8 +252,12 @@ public class StormCommon {
 
     @SuppressWarnings("unchecked")
     public static void addAcker(Map<String, Object> conf, StormTopology topology) {
-        int ackerNum =
-            ObjectReader.getInt(conf.get(Config.TOPOLOGY_ACKER_EXECUTORS), ObjectReader.getInt(conf.get(Config.TOPOLOGY_WORKERS)));
+        //conf.get(Config.TOPOLOGY_ACKER_EXECUTORS) can be a double value when we do rolling upgrade from 0.10 to 2.x,
+        //because in some cases Config.TOPOLOGY_ACKER_EXECUTORS is set to the estimated worker count
+        //and the corresponding clojure function in 0.10 returns a double value.
+        double ackerNumDouble = ObjectReader.getDouble(conf.get(Config.TOPOLOGY_ACKER_EXECUTORS), ObjectReader.getDouble(conf.get(Config.TOPOLOGY_WORKERS)));
+        int ackerNum = (int) Math.ceil(ackerNumDouble);
+
         Map<GlobalStreamId, Grouping> inputs = ackerInputs(topology);
 
         Map<String, StreamInfo> outputStreams = new HashMap<String, StreamInfo>();
