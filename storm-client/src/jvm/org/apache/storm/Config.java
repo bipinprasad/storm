@@ -19,6 +19,7 @@
 package org.apache.storm;
 
 import com.esotericsoftware.kryo.Serializer;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import org.apache.storm.metric.IEventLogger;
 import org.apache.storm.policy.IWaitStrategy;
 import org.apache.storm.serialization.IKryoDecorator;
 import org.apache.storm.serialization.IKryoFactory;
+import org.apache.storm.utils.Utils;
 import org.apache.storm.validation.ConfigValidation;
 import org.apache.storm.validation.ConfigValidation.EventLoggerRegistryValidator;
 import org.apache.storm.validation.ConfigValidation.ListOfListOfStringValidator;
@@ -1107,6 +1109,8 @@ public class Config extends HashMap<String, Object> {
     public static final String BLOBSTORE_CLEANUP_ENABLE = "blobstore.cleanup.enable";
     /**
      * principal for nimbus/supervisor to use to access secure hdfs for the blobstore.
+     * If there is an instance of the string "HOSTNAME" within the principal, it will
+     * be replaced with the host name of the server the daemon is running on.
      */
     @isString
     public static final String BLOBSTORE_HDFS_PRINCIPAL = "blobstore.hdfs.principal";
@@ -1901,4 +1905,11 @@ public class Config extends HashMap<String, Object> {
         this.put(Config.TOPOLOGY_SCHEDULER_STRATEGY, strategy);
     }
 
+    public static String getBlobstoreHDFSPrincipal(Map conf) throws UnknownHostException {
+        String principal = (String)conf.get(Config.BLOBSTORE_HDFS_PRINCIPAL);
+        if (principal != null) {
+            principal = principal.replace("HOSTNAME", Utils.localHostname());
+        }
+        return principal;
+    }
 }
