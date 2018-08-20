@@ -31,7 +31,6 @@
            [org.apache.storm.stats StatsUtil]
            [org.apache.storm.ui UIHelpers IConfigurator FilterConfiguration]
            [org.apache.storm.metric StormMetricsRegistry])
-  (:import [org.apache.storm.utils TopologySpoutLag])
   (:use [clojure.string :only [blank? lower-case trim split]])
   (:import [org.apache.storm.generated ExecutorSpecificStats
             ExecutorStats ExecutorSummary ExecutorInfo TopologyInfo SpoutStats BoltStats
@@ -879,11 +878,7 @@
           merged-bolt-stats (map (fn [[k v]] (merge-executor-stats window k v)) bolt-comp-summs)]
       (merge {"window" window "window-hint" window-hint "spouts" merged-spout-stats "bolts" merged-bolt-stats}))))
 
-(defn topology-lag [id topology-conf]
-  (thrift/with-configured-nimbus-connection nimbus
-    (let [topology (.getUserTopology ^Nimbus$Client nimbus
-                                               id)]
-      (TopologySpoutLag/lag topology topology-conf))))
+(defn topology-lag [id topology-conf] {})
 
 (defn component-errors
   [errors-list topology-id secure?]
