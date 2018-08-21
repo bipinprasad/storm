@@ -606,9 +606,7 @@ public abstract class BaseResourceAwareStrategy implements IStrategy {
      * @return the ids n that node.
      */
     public List<RAS_Node> hostnameToNodes(String hostname) {
-        LOG.debug("hostnameToNodes looking for {} in  {}", hostname, hostnameToNodes);
         List<RAS_Node> result = hostnameToNodes.getOrDefault(hostname, Collections.emptyList());
-        LOG.debug("result {}", result);
         return result;
     }
 
