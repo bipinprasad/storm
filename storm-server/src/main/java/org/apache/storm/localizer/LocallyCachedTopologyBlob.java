@@ -129,6 +129,12 @@ public class LocallyCachedTopologyBlob extends LocallyCachedBlob {
     @Override
     public long fetchUnzipToTemp(ClientBlobStore store)
         throws IOException, KeyNotFoundException, AuthorizationException {
+        synchronized (LocallyCachedTopologyBlob.class) {
+            if (!Files.exists(topologyBasicBlobsRootDir)) {
+                Files.createDirectories(topologyBasicBlobsRootDir);
+                fsOps.setupStormCodeDir(owner, topologyBasicBlobsRootDir.toFile());
+            }
+        }
         if (isLocalMode && type == TopologyBlobType.TOPO_JAR) {
             LOG.debug("DOWNLOADING LOCAL JAR to TEMP LOCATION... {}", topologyId);
             //This is a special case where the jar was not uploaded so we will not download it (it is already on the classpath)
@@ -244,6 +250,7 @@ public class LocallyCachedTopologyBlob extends LocallyCachedBlob {
             // basis, but that is a lot harder and the changes run fairly quickly so it should not be a big deal.
             fsOps.setupStormCodeDir(owner, topologyBasicBlobsRootDir.toFile());
             File sharedMemoryDirFinalLocation = new File(topologyBasicBlobsRootDir.toFile(), "shared_by_topology");
+            sharedMemoryDirFinalLocation.mkdirs();
             fsOps.setupWorkerArtifactsDir(owner, sharedMemoryDirFinalLocation);
         }
         LOG.debug("Writing out version file {} with version {}", versionFile, newVersion);
