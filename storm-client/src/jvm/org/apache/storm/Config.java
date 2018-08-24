@@ -38,6 +38,7 @@ import org.apache.storm.validation.ConfigValidation.MetricRegistryValidator;
 import org.apache.storm.validation.ConfigValidation.MetricReportersValidator;
 import org.apache.storm.validation.ConfigValidationAnnotations.CustomValidator;
 import org.apache.storm.validation.ConfigValidationAnnotations.NotNull;
+import org.apache.storm.validation.ConfigValidationAnnotations.Password;
 import org.apache.storm.validation.ConfigValidationAnnotations.isBoolean;
 import org.apache.storm.validation.ConfigValidationAnnotations.isImplementationOfClass;
 import org.apache.storm.validation.ConfigValidationAnnotations.isInteger;
@@ -1167,6 +1168,7 @@ public class Config extends HashMap<String, Object> {
      * authentication.
      */
     @isString
+    @Password
     public static final String STORM_ZOOKEEPER_TOPOLOGY_AUTH_PAYLOAD = "storm.zookeeper.topology.auth.payload";
     /**
      * The cluster Zookeeper authentication scheme to use, e.g. "digest". Defaults to no authentication.

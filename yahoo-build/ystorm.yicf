@@ -142,11 +142,11 @@ file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/zookeeper-3.4.6.jar ../ex
 
 # public, example, external
 find 444 - - lib64/storm/$(BASE_VERSION)/ ../ -maxdepth 1 -type f -iname '*.md' -or -iname '*.markdown'
-find 444 - - lib64/storm/$(BASE_VERSION)/public/css/ ../storm-core/src/ui/public/css/ -maxdepth 1 -type f -iname '*.css'
-find 444 - - lib64/storm/$(BASE_VERSION)/public/images/ ../storm-core/src/ui/public/images/ -maxdepth 1 -type f -iname '*.png' -or -iname '*.gif'
-find 444 - - lib64/storm/$(BASE_VERSION)/public/js/ ../storm-core/src/ui/public/js/ -maxdepth 1 -type f -iname '*.js'
-find 444 - - lib64/storm/$(BASE_VERSION)/public/templates/ ../storm-core/src/ui/public/templates/ -maxdepth 1 -type f -iname '*.html'
-find 444 - - lib64/storm/$(BASE_VERSION)/public/ ../storm-core/src/ui/public/ -maxdepth 1 -type f -iname '*.html'
+find 444 - - lib64/storm/$(BASE_VERSION)/public/css/ ../storm-webapp/src/main/java/org/apache/storm/daemon/ui/WEB-INF/css/ -maxdepth 1 -type f -iname '*.css'
+find 444 - - lib64/storm/$(BASE_VERSION)/public/images/ ../storm-webapp/src/main/java/org/apache/storm/daemon/ui/WEB-INF/images/ -maxdepth 1 -type f -iname '*.png' -or -iname '*.gif'
+find 444 - - lib64/storm/$(BASE_VERSION)/public/js/ ../storm-webapp/src/main/java/org/apache/storm/daemon/ui/WEB-INF/js/ -maxdepth 1 -type f -iname '*.js'
+find 444 - - lib64/storm/$(BASE_VERSION)/public/templates/ ../storm-webapp/src/main/java/org/apache/storm/daemon/ui/WEB-INF/templates/ -maxdepth 1 -type f -iname '*.html'
+find 444 - - lib64/storm/$(BASE_VERSION)/public/ ../storm-webapp/src/main/java/org/apache/storm/daemon/ui/WEB-INF/ -maxdepth 1 -type f -iname '*.html'
 find 444 - - lib64/storm/$(BASE_VERSION)/examples/ ../examples/ -type f -not -path '*/target/*'
 find 444 - - lib64/storm/$(BASE_VERSION)/external/ ../external/ -type f -iname 'README.*'
 
