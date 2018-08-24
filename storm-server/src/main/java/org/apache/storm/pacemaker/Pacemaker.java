@@ -12,7 +12,6 @@
 
 package org.apache.storm.pacemaker;
 
-import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import java.util.ArrayList;
@@ -41,16 +40,15 @@ public class Pacemaker implements IServerMessageHandler {
     private final static Meter meterTotalReceivedSize = StormMetricsRegistry.registerMeter("pacemaker:total-receive-size");
     private final static Meter meterGetPulseCount = StormMetricsRegistry.registerMeter("pacemaker:get-pulse=count");
     private final static Meter meterTotalSentSize = StormMetricsRegistry.registerMeter("pacemaker:total-sent-size");
-    private final static Histogram histogramHeartbeatSize =
-        StormMetricsRegistry.registerHistogram("pacemaker:heartbeat-size", new ExponentiallyDecayingReservoir());
-    private Map<String, byte[]> heartbeats;
-    private Map<String, Object> conf;
+    private final static Histogram histogramHeartbeatSize = StormMetricsRegistry.registerHistogram("pacemaker:heartbeat-size");
+    private final Map<String, byte[]> heartbeats;
+    private final Map<String, Object> conf;
 
 
     public Pacemaker(Map<String, Object> conf) {
-        heartbeats = new ConcurrentHashMap();
+        heartbeats = new ConcurrentHashMap<>();
         this.conf = conf;
-        StormMetricsRegistry.registerGauge("pacemaker:size-total-keys", () -> heartbeats.size());
+        StormMetricsRegistry.registerGauge("pacemaker:size-total-keys", heartbeats::size);
         StormMetricsRegistry.startMetricsReporters(conf);
     }
 

@@ -491,6 +491,10 @@ public class Utils {
     }
 
     public static <T> T javaDeserialize(byte[] serialized, Class<T> clazz) {
+        if ("true".equalsIgnoreCase(System.getProperty("java.deserialization.disabled"))) {
+            throw new AssertionError("java deserialization has been disabled and is only safe from within a worker process");
+        }
+
         try {
             ByteArrayInputStream bis = new ByteArrayInputStream(serialized);
             ObjectInputStream ois = null;
@@ -1187,6 +1191,10 @@ public class Utils {
         final java.lang.management.ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
         final java.lang.management.ThreadInfo[] threadInfos = threadMXBean.getThreadInfo(threadMXBean.getAllThreadIds(), 100);
         for (java.lang.management.ThreadInfo threadInfo : threadInfos) {
+            if (threadInfo == null) {
+                //Thread died before we could get the info, skip
+                continue;
+            }
             dump.append('"');
             dump.append(threadInfo.getThreadName());
             dump.append("\" ");

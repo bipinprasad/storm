@@ -88,6 +88,7 @@ public class BlacklistScheduler implements IScheduler {
         cachedSupervisors = new HashMap<>();
         blacklistHost = new HashSet<>();
 
+        //nimbus:num-blacklisted-supervisor + non-blacklisted supervisor = nimbus:num-supervisors
         StormMetricsRegistry.registerGauge("nimbus:num-blacklisted-supervisor", () -> blacklistHost.size());
     }
 

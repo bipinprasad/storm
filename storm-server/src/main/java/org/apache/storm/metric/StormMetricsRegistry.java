@@ -12,79 +12,111 @@
 
 package org.apache.storm.metric;
 
+import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.MetricSet;
 import com.codahale.metrics.Reservoir;
+import com.codahale.metrics.Timer;
+
 import java.util.Map;
-import java.util.concurrent.Callable;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.storm.daemon.metrics.MetricsUtils;
 import org.apache.storm.daemon.metrics.reporters.PreparableReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("unchecked")
-public class StormMetricsRegistry {
-    public static final MetricRegistry DEFAULT_REGISTRY = new MetricRegistry();
+public class StormMetricsRegistry extends MetricRegistry {
+    @VisibleForTesting
+    static final StormMetricsRegistry REGISTRY = new StormMetricsRegistry();
     private static final Logger LOG = LoggerFactory.getLogger(StormMetricsRegistry.class);
 
-    public static Meter registerMeter(String name) {
-        Meter meter = new Meter();
-        return register(name, meter);
+    private StormMetricsRegistry() {/*Singleton pattern*/}
+
+    public static <V> Gauge<V> registerGauge(final String name, final Gauge<V> gauge) {
+        return REGISTRY.register(name, gauge);
     }
 
-    public static <T> Gauge<T> registerCallableAsGauge(final String name, final Callable<T> fn) {
-        Gauge<T> gauge = () -> {
-            try {
-                return fn.call();
-            } catch (Exception e) {
-                LOG.error("Error getting gauge value for {}", name, e);
-            }
-            return null;
-        };
-        return register(name, gauge);
-    }
-
-    public static <T> Gauge<T> registerGauge(final String name, final Gauge<T> gauge) {
-        return register(name, gauge);
-    }
-
-    public static void registerProvidedGauge(final String name, Gauge gauge) {
-        register(name, gauge);
+    public static Histogram registerHistogram(String name) {
+        return registerHistogram(name, new ExponentiallyDecayingReservoir());
     }
 
     public static Histogram registerHistogram(String name, Reservoir reservoir) {
-        Histogram histogram = new Histogram(reservoir);
-        return register(name, histogram);
+        return REGISTRY.register(name, new Histogram(reservoir));
     }
 
-    public static void startMetricsReporters(Map<String, Object> topoConf) {
-        for (PreparableReporter reporter : MetricsUtils.getPreparableReporters(topoConf)) {
-            startMetricsReporter(reporter, topoConf);
-        }
+    public static Meter registerMeter(String name) {
+        return REGISTRY.register(name, new Meter());
     }
 
-    private static void startMetricsReporter(PreparableReporter reporter, Map<String, Object> topoConf) {
-        reporter.prepare(StormMetricsRegistry.DEFAULT_REGISTRY, topoConf);
-        reporter.start();
-        LOG.info("Started statistics report plugin...");
+    public static void registerMeter(String name, Meter meter) {
+        REGISTRY.register(name, meter);
     }
 
-    private static <T extends Metric> T register(String name, T metric) {
-        T ret;
-        try {
-            ret = DEFAULT_REGISTRY.register(name, metric);
-        } catch (IllegalArgumentException e) {
-            // swallow IllegalArgumentException when the metric exists already
-            ret = (T) DEFAULT_REGISTRY.getMetrics().get(name);
-            if (ret == null) {
-                throw e;
+    public static void registerMetricSet(MetricSet metrics) {
+        REGISTRY.registerAll(metrics);
+    }
+
+    public static void unregisterMetricSet(MetricSet metrics) {
+        unregisterMetricSet(null, metrics);
+    }
+
+    public static void unregisterMetricSet(String prefix, MetricSet metrics) {
+        for (Map.Entry<String, Metric> entry : metrics.getMetrics().entrySet()) {
+            final String name = name(prefix, entry.getKey());
+            if (entry.getValue() instanceof MetricSet) {
+                unregisterMetricSet(name, (MetricSet) entry.getValue());
             } else {
-                LOG.warn("Metric {} has already been registered", name);
+                REGISTRY.remove(name);
             }
         }
-        return ret;
+    }
+
+    public static Timer registerTimer(String name) {
+        return REGISTRY.register(name, new Timer());
+    }
+
+    /**
+     * Start metrics reporters for the registry singleton.
+     *
+     * @param topoConf config that specifies reporter plugin
+     */
+    public static void startMetricsReporters(Map<String, Object> topoConf) {
+        for (PreparableReporter reporter : MetricsUtils.getPreparableReporters(topoConf)) {
+            reporter.prepare(StormMetricsRegistry.REGISTRY, topoConf);
+            reporter.start();
+            LOG.info("Started statistics report plugin...");
+        }
+    }
+
+    /**
+     * Override parent method to swallow exceptions for double registration, including MetricSet registration
+     * This is more similar to super#getOrAdd than super#register.
+     * Notice that this method is only accessible to the private singleton, hence private to client code.
+     *
+     * @param name name of the metric
+     * @param metric metric to be registered
+     * @param <T> type of metric
+     * @return metric just registered or existing metric, if double registration occurs.
+     * @throws IllegalArgumentException name already exist with a different kind of metric
+     */
+    @Override
+    public <T extends Metric> T register(final String name, T metric) throws IllegalArgumentException {
+        assert !(metric instanceof MetricSet);
+        try {
+            return super.register(name, metric);
+        } catch (IllegalArgumentException e) {
+            @SuppressWarnings("unchecked")
+            final T existing = (T) REGISTRY.getMetrics().get(name);
+            if (metric.getClass().isInstance(existing)) {
+                LOG.warn("Metric {} has already been registered", name);
+                return existing;
+            }
+            throw e;
+        }
     }
 }

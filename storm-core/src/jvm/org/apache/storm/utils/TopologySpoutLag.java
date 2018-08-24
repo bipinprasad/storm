@@ -1,7 +1,11 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.  The ASF licenses this file to you under the Apache License, Version
- * 2.0 (the "License"); you may not use this file except in compliance with the License.  You may obtain a copy of the License at
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -19,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.storm.generated.ComponentCommon;
-import org.apache.storm.generated.ComponentObject;
 import org.apache.storm.generated.SpoutSpec;
 import org.apache.storm.generated.StormTopology;
 import org.json.simple.JSONValue;
@@ -40,13 +43,12 @@ public class TopologySpoutLag {
     public static Map<String, Map<String, Object>> lag(StormTopology stormTopology, Map<String, Object> topologyConf) {
         Map<String, Map<String, Object>> result = new HashMap<>();
         Map<String, SpoutSpec> spouts = stormTopology.get_spouts();
-        String className = null;
-        for (Map.Entry<String, SpoutSpec> spout : spouts.entrySet()) {
+        for (Map.Entry<String, SpoutSpec> spout: spouts.entrySet()) {
             try {
                 SpoutSpec spoutSpec = spout.getValue();
                 addLagResultForKafkaSpout(result, spout.getKey(), spoutSpec);
             } catch (Exception e) {
-                logger.warn("Exception thrown while getting lag for spout id: " + spout.getKey() + " and spout class: " + className);
+                logger.warn("Exception thrown while getting lag for spout id: " + spout.getKey());
                 logger.warn("Exception message:" + e.getMessage(), e);
             }
         }
