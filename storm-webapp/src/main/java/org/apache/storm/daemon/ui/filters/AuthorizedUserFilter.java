@@ -162,10 +162,7 @@ public class AuthorizedUserFilter implements ContainerRequestFilter {
         if (uiAclHandler != null) {
             if (!uiAclHandler.permit(reqContext, op, conf)) {
                 Principal principal = reqContext.principal();
-                String user = "unknown";
-                if (principal != null) {
-                    user = principal.getName();
-                }
+                String user = (principal != null) ? principal.getName() : "unknown";
                 containerRequestContext.abortWith(
                         makeResponse(new AuthorizationException("UI request '" + op + "' for '"
                                         + user + "' user is not authorized"),
