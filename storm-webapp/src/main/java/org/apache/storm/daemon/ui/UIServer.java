@@ -109,6 +109,16 @@ public class UIServer {
         context.setContextPath("/");
         jettyServer.setHandler(context);
 
+        FilterConfiguration filterConfiguration =
+                new FilterConfiguration(
+                        (String) conf.get(DaemonConfig.UI_FILTER),
+                        (Map<String, String>) conf.get(DaemonConfig.UI_FILTER_PARAMS)
+                );
+        final List<FilterConfiguration> filterConfigurationList = Arrays.asList(filterConfiguration);
+
+        // Making sure UI Filter plugins are applied first
+        UIHelpers.configFilters(context, filterConfigurationList);
+
         ResourceConfig resourceConfig =
                 new ResourceConfig()
                         .packages("org.apache.storm.daemon.ui.resources")
@@ -156,15 +166,6 @@ public class UIServer {
         ServletHolder holderPwd = new ServletHolder("default", DefaultServlet.class);
         holderPwd.setInitParameter("dirAllowed","true");
         context.addServlet(holderPwd,"/");
-
-        FilterConfiguration filterConfiguration =
-                new FilterConfiguration(
-                        (String) conf.get(DaemonConfig.UI_FILTER),
-                        (Map<String, String>) conf.get(DaemonConfig.UI_FILTER_PARAMS)
-                );
-        final List<FilterConfiguration> filterConfigurationList = Arrays.asList(filterConfiguration);
-
-        UIHelpers.configFilters(context, filterConfigurationList);
 
         StormMetricsRegistry.startMetricsReporters(conf);
         try {
