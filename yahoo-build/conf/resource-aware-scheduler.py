@@ -1,4 +1,4 @@
-#!/home/y/bin/python
+#!/usr/bin/python
 
 # We are using /home/y/bin/python as this script needs to use python 2.7.
 # When yinst runs, /bin/env python returns /usr/bin/python which

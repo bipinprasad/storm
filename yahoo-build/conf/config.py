@@ -1,4 +1,4 @@
-#!/home/y/bin/python
+#!/usr/bin/python
 
 # We are using /home/y/bin/python in case we need to use the
 # version of python pulled in by storm's dependencies.
