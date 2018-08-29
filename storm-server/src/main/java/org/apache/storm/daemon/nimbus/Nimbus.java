@@ -2749,6 +2749,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
         }
 
         ClusterSummary ret = new ClusterSummary(summaries, topologySummaries, nimbuses);
+        ret.set_nimbus_uptime_secs(uptime);
         return ret;
     }
 
