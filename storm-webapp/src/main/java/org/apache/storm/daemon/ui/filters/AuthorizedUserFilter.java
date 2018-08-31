@@ -161,7 +161,7 @@ public class AuthorizedUserFilter implements ContainerRequestFilter {
         }
 
         if (uiAclHandler != null) {
-            if (!uiAclHandler.permit(reqContext, op, conf)) {
+            if (!uiAclHandler.permit(reqContext, op, topoConf)) {
                 Principal principal = reqContext.principal();
                 String user = (principal != null) ? principal.getName() : "unknown";
                 containerRequestContext.abortWith(
