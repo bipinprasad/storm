@@ -1112,6 +1112,10 @@ public class Config extends HashMap<String, Object> {
      * principal for nimbus/supervisor to use to access secure hdfs for the blobstore.
      * If there is an instance of the string "HOSTNAME" within the principal, it will
      * be replaced with the host name of the server the daemon is running on.
+     * This functionality is deprecated, instead please use the following.
+     * The format is generally "primary/instance@REALM", where "instance" field is optional.
+     * If the instance field of the principal is the string "_HOST", it will
+     + be replaced with the host name of the server the daemon is running on (by calling {@link #getBlobstoreHDFSPrincipal(Map conf)} method).
      */
     @isString
     public static final String BLOBSTORE_HDFS_PRINCIPAL = "blobstore.hdfs.principal";
@@ -1907,10 +1911,16 @@ public class Config extends HashMap<String, Object> {
         this.put(Config.TOPOLOGY_SCHEDULER_STRATEGY, strategy);
     }
 
+    private static final String HOSTNAME_PATTERN = "_HOST";
+
     public static String getBlobstoreHDFSPrincipal(Map conf) throws UnknownHostException {
         String principal = (String)conf.get(Config.BLOBSTORE_HDFS_PRINCIPAL);
         if (principal != null) {
             principal = principal.replace("HOSTNAME", Utils.localHostname());
+            String[] components = principal.split("[/@]");
+            if (components.length == 3 && components[1].equals(HOSTNAME_PATTERN)) {
+                principal = components[0] + "/" + Utils.localHostname() + "@" + components[2];
+            }
         }
         return principal;
     }
