@@ -584,7 +584,7 @@ public class UIHelpers {
         result.put("memAssignedPercentUtil", supervisorTotalMemory > 0
                 ? String.valueOf((supervisorUsedMemory  * 100.0) / supervisorTotalMemory) : "0.0");
         result.put("cpuAssignedPercentUtil", supervisorTotalCpu > 0
-                ? String.valueOf(supervisorUsedCpu * 100.0) / supervisorTotalCpu) : "0.0");
+                ? String.valueOf((supervisorUsedCpu * 100.0) / supervisorTotalCpu) : "0.0");
         result.put("bugtracker-url", conf.get(DaemonConfig.UI_PROJECT_BUGTRACKER_URL));
         result.put("central-log-url", conf.get(DaemonConfig.UI_CENTRAL_LOGGING_URL));
         return result;
