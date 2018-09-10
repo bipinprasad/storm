@@ -63,10 +63,10 @@ find 444 - - lib64/storm/$(BASE_VERSION)/lib/ ../storm-core/target/dependency/ -
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/shaded-deps-$(BASE_VERSION).jar ../storm-client/target/dependency/shaded-deps-$(BASE_VERSION).jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/asm-5.0.3.jar ../storm-client/target/dependency/asm-5.0.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/kryo-3.0.3.jar ../storm-client/target/dependency/kryo-3.0.3.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/log4j-api-2.8.2.jar ../storm-client/target/dependency/log4j-api-2.8.2.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/log4j-core-2.8.2.jar ../storm-client/target/dependency/log4j-core-2.8.2.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/log4j-api-2.11.1.jar ../storm-client/target/dependency/log4j-api-2.11.1.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/log4j-core-2.11.1.jar ../storm-client/target/dependency/log4j-core-2.11.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/log4j-over-slf4j-1.6.6.jar ../storm-client/target/dependency/log4j-over-slf4j-1.6.6.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/log4j-slf4j-impl-2.8.2.jar ../storm-client/target/dependency/log4j-slf4j-impl-2.8.2.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/log4j-slf4j-impl-2.11.1.jar ../storm-client/target/dependency/log4j-slf4j-impl-2.11.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/minlog-1.3.0.jar ../storm-client/target/dependency/minlog-1.3.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/objenesis-2.1.jar ../storm-client/target/dependency/objenesis-2.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/lib-worker/reflectasm-1.10.1.jar ../storm-client/target/dependency/reflectasm-1.10.1.jar
