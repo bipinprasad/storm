@@ -24,6 +24,11 @@ import org.apache.storm.generated.AuthorizationException;
  * Wraps the generated TException to allow getMessage() to return a valid string.
  */
 public class WrappedAuthorizationException extends AuthorizationException {
+    public WrappedAuthorizationException(AuthorizationException ae) {
+        super(ae.get_msg());
+        this.initCause(ae);
+    }
+
     public WrappedAuthorizationException(String msg) {
         super(msg);
     }
