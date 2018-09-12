@@ -1085,6 +1085,11 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getStatDisplayMapLong.
+     * @param windowToTransferred windowToTransferred
+     * @return getStatDisplayMapLong
+     */
     private static Map<String, Long> getStatDisplayMapLong(Map<String,Long> windowToTransferred) {
         Map<String, Long> result = new HashMap();
         for (Map.Entry<String, Long> entry : windowToTransferred.entrySet()) {
@@ -1093,6 +1098,11 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getCommonAggStatsMap.
+     * @param commonAggregateStats commonAggregateStats
+     * @return getCommonAggStatsMap
+     */
     private static Map<String, Object> getCommonAggStatsMap(CommonAggregateStats commonAggregateStats) {
         Map<String, Object> result = new HashMap();
         result.put("executors", commonAggregateStats.get_num_executors());
@@ -1116,16 +1126,26 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getTruncatedErrorString.
+     * @param errorString errorString
+     * @return getTruncatedErrorString
+     */
     private static String getTruncatedErrorString(String errorString) {
         return errorString.substring(0, Math.min(errorString.length(), 200));
     }
 
+    /**
+     * getSpoutAggStatsMap.
+     * @param componentAggregateStats componentAggregateStats
+     * @param window window
+     * @return getSpoutAggStatsMap
+     */
     private static Map<String, Object> getSpoutAggStatsMap(
             ComponentAggregateStats componentAggregateStats, String window) {
         Map<String, Object> result = new HashMap();
         SpoutAggregateStats spoutAggregateStats = componentAggregateStats.get_specific_stats().get_spout();
         CommonAggregateStats commonStats = componentAggregateStats.get_common_stats();
-        result.putAll(getCommonAggStatsMap(commonStats));
         result.put("window", window);
         result.put("windowPretty", getWindowHint(window));
         result.put("emitted", commonStats.get_emitted());
@@ -1140,11 +1160,16 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getBoltAggStatsMap.
+     * @param componentAggregateStats componentAggregateStats
+     * @param window window
+     * @return getBoltAggStatsMap
+     */
     private static Map<String, Object> getBoltAggStatsMap(
             ComponentAggregateStats componentAggregateStats, String window) {
         Map<String, Object> result = new HashMap();
         CommonAggregateStats commonStats = componentAggregateStats.get_common_stats();
-        result.putAll(getCommonAggStatsMap(commonStats));
         result.put("window", window);
         result.put("windowPretty", getWindowHint(window));
         result.put("emitted", commonStats.get_emitted());
@@ -1159,14 +1184,30 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * nullToZero.
+     * @param value value
+     * @return nullToZero
+     */
     private static Long nullToZero(Long value) {
         return Objects.isNull(value) ? value : 0;
     }
 
+    /**
+     * nullToZero.
+     * @param value value
+     * @return nullToZero
+     */
     private static Double nullToZero(Double value) {
         return Objects.isNull(value) ? value : 0;
     }
 
+    /**
+     * getBoltInputStats.
+     * @param globalStreamId globalStreamId
+     * @param componentAggregateStats componentAggregateStats
+     * @return getBoltInputStats
+     */
     private static Map<String, Object> getBoltInputStats(GlobalStreamId globalStreamId,
                                                          ComponentAggregateStats componentAggregateStats) {
         Map<String, Object> result = new HashMap();
@@ -1185,6 +1226,12 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getBoltOutputStats.
+     * @param streamId streamId
+     * @param componentAggregateStats componentAggregateStats
+     * @return getBoltOutputStats
+     */
     private static Map<String, Object> getBoltOutputStats(String streamId,
                                                           ComponentAggregateStats componentAggregateStats) {
         Map<String, Object> result = new HashMap();
@@ -1195,6 +1242,12 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getSpoutOutputStats.
+     * @param streamId streamId
+     * @param componentAggregateStats componentAggregateStats
+     * @return getSpoutOutputStats
+     */
     private static Map<String, Object> getSpoutOutputStats(String streamId,
                                                            ComponentAggregateStats componentAggregateStats) {
         SpecificAggregateStats specificAggregateStats = componentAggregateStats.get_specific_stats();
@@ -1304,11 +1357,13 @@ public class UIHelpers {
     private static Map<String, Object> getTopologySpoutAggStatsMap(ComponentAggregateStats componentAggregateStats,
                                                                    String spoutId) {
         Map<String, Object> result = new HashMap();
-        ErrorInfo lastError = componentAggregateStats.get_last_error();
+        CommonAggregateStats commonStats = componentAggregateStats.get_common_stats();
+        result.putAll(getCommonAggStatsMap(commonStats));
         result.put("spoutId", spoutId);
         result.put("encodedSpoutId", URLEncoder.encode(spoutId));
         SpoutAggregateStats spoutAggregateStats = componentAggregateStats.get_specific_stats().get_spout();
         result.put("completeLatency", spoutAggregateStats.get_complete_latency_ms());
+        ErrorInfo lastError = componentAggregateStats.get_last_error();
         result.put("lastError", Objects.isNull(lastError) ?  "" : getTruncatedErrorString(lastError.get_error()));
         return result;
     }
@@ -1316,6 +1371,8 @@ public class UIHelpers {
     private static Map<String, Object> getTopologyBoltAggStatsMap(ComponentAggregateStats componentAggregateStats,
                                                                   String boltId) {
         Map<String, Object> result = new HashMap();
+        CommonAggregateStats commonStats = componentAggregateStats.get_common_stats();
+        result.putAll(getCommonAggStatsMap(commonStats));
         result.put("boltId", boltId);
         result.put("encodedBoltId", URLEncoder.encode(boltId));
         BoltAggregateStats boltAggregateStats = componentAggregateStats.get_specific_stats().get_bolt();
@@ -1739,14 +1796,30 @@ public class UIHelpers {
                                                          Map config) {
         Map<String, Object> result = new HashMap();
 
-        result.put("boltStats", componentPageInfo.get_window_to_stats().entrySet().stream().map(
-                e -> getBoltAggStatsMap(e.getValue(), e.getKey())).collect(Collectors.toList()));
-        result.put("inputStats", componentPageInfo.get_gsid_to_input_stats().entrySet().stream().map(
-                e -> getBoltInputStats(e.getKey(), e.getValue())).collect(Collectors.toList()));
-        result.put("outputStats", componentPageInfo.get_sid_to_output_stats().entrySet().stream().map(
-                e -> getBoltOutputStats(e.getKey(), e.getValue())).collect(Collectors.toList()));
-        result.put("executorStats", componentPageInfo.get_exec_stats().stream().map(
-                e -> getBoltExecutorStats(topologyId, config, e)).collect(Collectors.toList()));
+        result.put(
+                "boltStats",
+                componentPageInfo.get_window_to_stats().entrySet().stream().map(
+                        e -> getBoltAggStatsMap(e.getValue(), e.getKey())
+                ).collect(Collectors.toList())
+        );
+        result.put(
+                "inputStats",
+                componentPageInfo.get_gsid_to_input_stats().entrySet().stream().map(
+                        e -> getBoltInputStats(e.getKey(), e.getValue())
+                ).collect(Collectors.toList())
+        );
+        result.put(
+                "outputStats",
+                componentPageInfo.get_sid_to_output_stats().entrySet().stream().map(
+                    e -> getBoltOutputStats(e.getKey(), e.getValue())
+                ).collect(Collectors.toList())
+        );
+        result.put(
+                "executorStats",
+                componentPageInfo.get_exec_stats().stream().map(
+                        e -> getBoltExecutorStats(topologyId, config, e)
+                ).collect(Collectors.toList())
+        );
         result.putAll(getComponentErrors(componentPageInfo.get_errors(), topologyId, config));
         return result;
     }
@@ -1755,12 +1828,24 @@ public class UIHelpers {
                                                           String topologyId, String window, boolean sys,
                                                           Map config) {
         Map<String, Object> result = new HashMap();
-        result.put("spoutSummary", componentPageInfo.get_window_to_stats().entrySet().stream().map(
-                e -> getSpoutAggStatsMap(e.getValue(), e.getKey())).collect(Collectors.toList()));
-        result.put("outputStats", componentPageInfo.get_sid_to_output_stats().entrySet().stream().map(
-                e -> getSpoutOutputStats(e.getKey(), e.getValue())).collect(Collectors.toList()));
-        result.put("executorStats", componentPageInfo.get_exec_stats().stream().map(
-                e -> getSpoutExecutorStats(topologyId, config, e)).collect(Collectors.toList()));
+        result.put(
+                "spoutSummary",
+                componentPageInfo.get_window_to_stats().entrySet().stream().map(
+                        e -> getSpoutAggStatsMap(e.getValue(), e.getKey())
+                ).collect(Collectors.toList())
+        );
+        result.put(
+                "outputStats",
+                componentPageInfo.get_sid_to_output_stats().entrySet().stream().map(
+                        e -> getSpoutOutputStats(e.getKey(), e.getValue())
+                ).collect(Collectors.toList())
+        );
+        result.put(
+                "executorStats",
+                componentPageInfo.get_exec_stats().stream().map(
+                        e -> getSpoutExecutorStats(topologyId, config, e)
+                ).collect(Collectors.toList())
+        );
         result.putAll(getComponentErrors(componentPageInfo.get_errors(), topologyId, config));
         return result;
     }
