@@ -30,7 +30,8 @@ import org.apache.storm.metric.StormMetricsRegistry;
 
 
 public class LogFileDownloader {
-    private static final Histogram fileDownloadSizeDistMB= StormMetricsRegistry.registerHistogram("logviewer:download-file-size-rounded-MB");
+    private static final Histogram fileDownloadSizeDistMB =
+            StormMetricsRegistry.registerHistogram("logviewer:download-file-size-rounded-MB");
 
     private final String logRoot;
     private final String daemonLogRoot;
