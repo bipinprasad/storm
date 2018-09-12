@@ -1338,8 +1338,10 @@ public class UIHelpers {
                                                           String topologyId, Map config) {
         Map<String, Object> result = new HashMap();
         errorInfoList.sort(Comparator.comparingInt(ErrorInfo::get_error_time_secs));
-        result.put("componentErrors", errorInfoList.stream().map(
-                e -> getComponentErrorInfo(e, config, topologyId)
+        result.put(
+                "componentErrors",
+                errorInfoList.stream().map(
+                        e -> getComponentErrorInfo(e, config, topologyId)
         ).collect(Collectors.toList()));
         return result;
     }
@@ -1348,8 +1350,10 @@ public class UIHelpers {
                                                          String topologyId, Map config) {
         Map<String, Object> result = new HashMap();
         errorInfoList.sort(Comparator.comparingInt(ErrorInfo::get_error_time_secs));
-        result.put("topologyErrors", errorInfoList.stream().map(
-                e -> getComponentErrorInfo(e, config, topologyId)
+        result.put(
+                "topologyErrors",
+                errorInfoList.stream().map(
+                        e -> getComponentErrorInfo(e, config, topologyId)
         ).collect(Collectors.toList()));
         return result;
     }
@@ -1824,6 +1828,83 @@ public class UIHelpers {
         return result;
     }
 
+    public static Map<String, Object> unpackSpoutPageInfo(ComponentPageInfo componentPageInfo,
+                                                          String topologyId, String window, boolean sys,
+                                                          Map config) {
+        Map<String, Object> result = new HashMap();
+        result.put(
+                "spoutSummary",
+                componentPageInfo.get_window_to_stats().entrySet().stream().map(
+                        e -> getSpoutAggStatsMap(e.getValue(), e.getKey())
+                ).collect(Collectors.toList())
+        );
+        result.put(
+                "outputStats",
+                componentPageInfo.get_sid_to_output_stats().entrySet().stream().map(
+                        e -> getSpoutOutputStats(e.getKey(), e.getValue())
+                ).collect(Collectors.toList())
+        );
+        result.put(
+                "executorStats",
+                componentPageInfo.get_exec_stats().stream().map(
+                        e -> getSpoutExecutorStats(topologyId, config, e)
+                ).collect(Collectors.toList())
+        );
+        result.putAll(getComponentErrors(componentPageInfo.get_errors(), topologyId, config));
+        return result;
+    }
+
+    /**
+     * unpackBoltPageInfo.
+     * @param componentPageInfo componentPageInfo
+     * @param topologyId topologyId
+     * @param window window
+     * @param sys sys
+     * @param config config
+     * @return unpackBoltPageInfo
+     */
+    public static Map<String, Object> unpackBoltPageInfo(ComponentPageInfo componentPageInfo,
+                                                         String topologyId, String window, boolean sys,
+                                                         Map config) {
+        Map<String, Object> result = new HashMap();
+
+        result.put(
+                "boltStats",
+                componentPageInfo.get_window_to_stats().entrySet().stream().map(
+                        e -> getBoltAggStatsMap(e.getValue(), e.getKey())
+                ).collect(Collectors.toList())
+        );
+        result.put(
+                "inputStats",
+                componentPageInfo.get_gsid_to_input_stats().entrySet().stream().map(
+                        e -> getBoltInputStats(e.getKey(), e.getValue())
+                ).collect(Collectors.toList())
+        );
+        result.put(
+                "outputStats",
+                componentPageInfo.get_sid_to_output_stats().entrySet().stream().map(
+                    e -> getBoltOutputStats(e.getKey(), e.getValue())
+                ).collect(Collectors.toList())
+        );
+        result.put(
+                "executorStats",
+                componentPageInfo.get_exec_stats().stream().map(
+                        e -> getBoltExecutorStats(topologyId, config, e)
+                ).collect(Collectors.toList())
+        );
+        result.putAll(getComponentErrors(componentPageInfo.get_errors(), topologyId, config));
+        return result;
+    }
+
+    /**
+     * unpackSpoutPageInfo.
+     * @param componentPageInfo componentPageInfo
+     * @param topologyId topologyId
+     * @param window window
+     * @param sys sys
+     * @param config config
+     * @return unpackSpoutPageInfo
+     */
     public static Map<String, Object> unpackSpoutPageInfo(ComponentPageInfo componentPageInfo,
                                                           String topologyId, String window, boolean sys,
                                                           Map config) {
