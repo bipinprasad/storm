@@ -2969,7 +2969,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
             @SuppressWarnings("unchecked")
             Map<String, Object> topoConf = (Map<String, Object>) JSONValue.parse(jsonConf);
             try {
-                ConfigValidation.validateFields(topoConf);
+                ConfigValidation.validateTopoConf(topoConf);
             } catch (IllegalArgumentException ex) {
                 throw new WrappedInvalidTopologyException(ex.getMessage());
             }
