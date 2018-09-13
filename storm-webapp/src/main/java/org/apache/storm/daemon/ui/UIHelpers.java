@@ -588,9 +588,9 @@ public class UIHelpers {
         result.put("schedulerDisplayResource",
                 conf.get(DaemonConfig.SCHEDULER_DISPLAY_RESOURCE));
         result.put("memAssignedPercentUtil", supervisorTotalMemory > 0
-                ? String.valueOf((supervisorUsedMemory  * 100.0) / supervisorTotalMemory) : "0.0");
+                ? StatsUtil.floatStr((supervisorUsedMemory  * 100.0) / supervisorTotalMemory) : "0.0");
         result.put("cpuAssignedPercentUtil", supervisorTotalCpu > 0
-                ? String.valueOf((supervisorUsedCpu * 100.0) / supervisorTotalCpu) : "0.0");
+                ? StatsUtil.floatStr((supervisorUsedCpu * 100.0) / supervisorTotalCpu) : "0.0");
         result.put("bugtracker-url", conf.get(DaemonConfig.UI_PROJECT_BUGTRACKER_URL));
         result.put("central-log-url", conf.get(DaemonConfig.UI_CENTRAL_LOGGING_URL));
         return result;
@@ -1263,6 +1263,13 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getBoltExecutorStats.
+     * @param topologyId topologyId
+     * @param config config
+     * @param executorAggregateStats executorAggregateStats
+     * @return getBoltExecutorStats
+     */
     private static Map<String, Object> getBoltExecutorStats(String topologyId, Map<String, Object> config,
                                                             ExecutorAggregateStats executorAggregateStats) {
         Map<String, Object> result = new HashMap();
@@ -1293,6 +1300,13 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getSpoutExecutorStats.
+     * @param topologyId topologyId
+     * @param config config
+     * @param executorAggregateStats executorAggregateStats
+     * @return getSpoutExecutorStats
+     */
     private static Map<String, Object> getSpoutExecutorStats(String topologyId, Map<String, Object> config,
                                                              ExecutorAggregateStats executorAggregateStats) {
         Map<String, Object> result = new HashMap();
@@ -1320,6 +1334,13 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getComponentErrorInfo.
+     * @param errorInfo errorInfo
+     * @param config config
+     * @param topologyId topologyId
+     * @return getComponentErrorInfo
+     */
     private static Map<String, Object> getComponentErrorInfo(ErrorInfo errorInfo, Map config,
                                                              String topologyId) {
         Map<String, Object> result = new HashMap();
@@ -1334,26 +1355,50 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getComponentErrors.
+     * @param errorInfoList errorInfoList
+     * @param topologyId topologyId
+     * @param config config
+     * @return getComponentErrors
+     */
     private static Map<String, Object> getComponentErrors(List<ErrorInfo> errorInfoList,
                                                           String topologyId, Map config) {
         Map<String, Object> result = new HashMap();
         errorInfoList.sort(Comparator.comparingInt(ErrorInfo::get_error_time_secs));
-        result.put("componentErrors", errorInfoList.stream().map(
-                e -> getComponentErrorInfo(e, config, topologyId)
-        ).collect(Collectors.toList()));
+        result.put(
+                "componentErrors",
+                errorInfoList.stream().map(e -> getComponentErrorInfo(e, config, topologyId))
+                        .collect(Collectors.toList())
+        );
         return result;
     }
 
+    /**
+     * getTopologyErrors.
+     * @param errorInfoList errorInfoList
+     * @param topologyId topologyId
+     * @param config config
+     * @return getTopologyErrors
+     */
     private static Map<String, Object> getTopologyErrors(List<ErrorInfo> errorInfoList,
                                                          String topologyId, Map config) {
         Map<String, Object> result = new HashMap();
         errorInfoList.sort(Comparator.comparingInt(ErrorInfo::get_error_time_secs));
-        result.put("topologyErrors", errorInfoList.stream().map(
-                e -> getComponentErrorInfo(e, config, topologyId)
-        ).collect(Collectors.toList()));
+        result.put(
+                "topologyErrors",
+                errorInfoList.stream().map(e -> getComponentErrorInfo(e, config, topologyId))
+                        .collect(Collectors.toList())
+        );
         return result;
     }
 
+    /**
+     * getTopologySpoutAggStatsMap.
+     * @param componentAggregateStats componentAggregateStats
+     * @param spoutId spoutId
+     * @return getTopologySpoutAggStatsMap
+     */
     private static Map<String, Object> getTopologySpoutAggStatsMap(ComponentAggregateStats componentAggregateStats,
                                                                    String spoutId) {
         Map<String, Object> result = new HashMap();
@@ -1368,6 +1413,12 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getTopologyBoltAggStatsMap.
+     * @param componentAggregateStats componentAggregateStats
+     * @param boltId boltId
+     * @return getTopologyBoltAggStatsMap
+     */
     private static Map<String, Object> getTopologyBoltAggStatsMap(ComponentAggregateStats componentAggregateStats,
                                                                   String boltId) {
         Map<String, Object> result = new HashMap();
@@ -1385,6 +1436,11 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * getTopologyStatsMap.
+     * @param topologyStats topologyStats
+     * @return getTopologyStatsMap
+     */
     private static List<Map> getTopologyStatsMap(TopologyStats topologyStats) {
         List<Map> result = new ArrayList();
 
@@ -1409,6 +1465,13 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * unpackTopologyInfo.
+     * @param topologyPageInfo topologyPageInfo
+     * @param window window
+     * @param config config
+     * @return unpackTopologyInfo
+     */
     private static Map<String,Object> unpackTopologyInfo(TopologyPageInfo topologyPageInfo, String window, Map<String,Object> config) {
         Map<String, Object> result = new HashMap();
         result.put("id", topologyPageInfo.get_id());
@@ -1791,6 +1854,15 @@ public class UIHelpers {
 
     }
 
+    /**
+     * unpackBoltPageInfo.
+     * @param componentPageInfo componentPageInfo
+     * @param topologyId topologyId
+     * @param window window
+     * @param sys sys
+     * @param config config
+     * @return unpackBoltPageInfo
+     */
     public static Map<String, Object> unpackBoltPageInfo(ComponentPageInfo componentPageInfo,
                                                          String topologyId, String window, boolean sys,
                                                          Map config) {
@@ -1824,6 +1896,15 @@ public class UIHelpers {
         return result;
     }
 
+    /**
+     * unpackSpoutPageInfo.
+     * @param componentPageInfo componentPageInfo
+     * @param topologyId topologyId
+     * @param window window
+     * @param sys sys
+     * @param config config
+     * @return unpackSpoutPageInfo
+     */
     public static Map<String, Object> unpackSpoutPageInfo(ComponentPageInfo componentPageInfo,
                                                           String topologyId, String window, boolean sys,
                                                           Map config) {
