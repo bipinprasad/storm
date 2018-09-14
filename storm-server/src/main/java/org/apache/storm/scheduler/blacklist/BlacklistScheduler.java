@@ -105,7 +105,6 @@ public class BlacklistScheduler implements IScheduler {
         Set<String> blacklistHosts = getBlacklistHosts(cluster, topologies);
         this.blacklistHost = blacklistHosts;
         cluster.setBlacklistedHosts(blacklistHosts);
-        LOG.debug("blacklistedhosts {}", blacklistHosts);
         removeLongTimeDisappearFromCache();
 
         underlyingScheduler.schedule(topologies, cluster);
