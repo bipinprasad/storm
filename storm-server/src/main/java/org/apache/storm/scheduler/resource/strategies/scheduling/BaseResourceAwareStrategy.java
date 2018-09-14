@@ -213,7 +213,6 @@ public abstract class BaseResourceAwareStrategy implements IStrategy {
     }
 
     protected List<String> makeHostToNodeIds(List<String> hosts) {
-        LOG.debug("hostNameToNodes from makeHostToNodeIds for {} in {}",hosts, hostnameToNodes);
         if (hosts == null) {
             return Collections.emptyList();
         }
@@ -226,7 +225,6 @@ public abstract class BaseResourceAwareStrategy implements IStrategy {
                 }
             }
         }
-        LOG.debug(String.valueOf(ret));
         return ret;
     }
 
@@ -575,7 +573,6 @@ public abstract class BaseResourceAwareStrategy implements IStrategy {
      */
     private void logClusterInfo() {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("hostnameToNodes {}", hostnameToNodes);
             LOG.debug("Cluster:");
             for (Map.Entry<String, List<String>> clusterEntry : networkTopography.entrySet()) {
                 String rackId = clusterEntry.getKey();

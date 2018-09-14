@@ -44,7 +44,6 @@ import org.apache.storm.security.auth.ReqContext;
 import org.apache.storm.thrift.TException;
 import org.apache.storm.utils.NimbusClient;
 import org.apache.storm.utils.Utils;
-import org.apache.storm.utils.WrappedAuthorizationException;
 import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +79,7 @@ public class AuthorizedUserFilter implements ContainerRequestFilter {
      */
     public static Response makeResponse(Exception ex, ContainerRequestContext request, int statusCode) {
         String callback = null;
-        LOG.debug("Making response for request {}", request);
+
         if (request.getMediaType() != null && request.getMediaType().equals(MediaType.APPLICATION_JSON_TYPE)) {
             try {
                 String json = IOUtils.toString(request.getEntityStream(), Charsets.UTF_8);
@@ -113,7 +112,7 @@ public class AuthorizedUserFilter implements ContainerRequestFilter {
         Map topoConf = null;
         if (annotation.needsTopoId()) {
             final String topoId = containerRequestContext.getUriInfo().getPathParameters().get("id").get(0);
-            try (NimbusClient nimbusClient = NimbusClient.getConfiguredClient(conf)) {
+            try (NimbusClient nimbusClient = NimbusClient.getConfiguredClient(conf)){
                 topoConf = (Map) JSONValue.parse(nimbusClient.getClient().getTopologyConf(topoId));
             } catch (AuthorizationException ae) {
                 LOG.error("Nimbus isn't allowing {} to access the topology conf of {}. {}", ReqContext.context(), topoId, ae.get_msg());
@@ -167,7 +166,10 @@ public class AuthorizedUserFilter implements ContainerRequestFilter {
         if (uiAclHandler != null) {
             if (!uiAclHandler.permit(reqContext, op, topoConf)) {
                 Principal principal = reqContext.principal();
-                String user = (principal != null) ? principal.getName() : "unknown";
+                String user = "unknown";
+                if (principal != null) {
+                    user = principal.getName();
+                }
                 containerRequestContext.abortWith(
                         makeResponse(new AuthorizationException("UI request '" + op + "' for '"
                                         + user + "' user is not authorized"),
