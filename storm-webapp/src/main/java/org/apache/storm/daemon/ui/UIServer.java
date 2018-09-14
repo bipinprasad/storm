@@ -114,7 +114,6 @@ public class UIServer {
                 );
         final List<FilterConfiguration> filterConfigurationList = Arrays.asList(filterConfiguration);
 
-        // Making sure UI Filter plugins are applied first
         UIHelpers.configFilters(context, filterConfigurationList);
 
         ResourceConfig resourceConfig =
