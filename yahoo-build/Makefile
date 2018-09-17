@@ -22,7 +22,7 @@ check: test
 
 
 build: shaded-deps-install RELEASE
-	cd .. && $(MVN) -Pnative -Pyahoo '-P!include-shaded-deps' -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install dependency:copy-dependencies -DskipTests ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
+	cd .. && $(MVN) -Pnative -Pyahoo '-P!include-shaded-deps' -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install -DskipTests ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
 
 dist_tag: RELEASE
 	$(shell echo "ystorm_`cat RELEASE`" | sed 's/\./_/g' > DIST_TAG)
