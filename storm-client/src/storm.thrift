@@ -430,6 +430,7 @@ struct RebalanceOptions {
 
 struct Credentials {
   1: required map<string,string> creds;
+  2: optional string topoOwner;
 }
 
 enum TopologyInitialStatus {
