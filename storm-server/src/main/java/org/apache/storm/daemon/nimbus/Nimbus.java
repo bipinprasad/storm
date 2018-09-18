@@ -170,6 +170,7 @@ import org.apache.storm.scheduler.multitenant.MultitenantScheduler;
 import org.apache.storm.scheduler.resource.ResourceAwareScheduler;
 import org.apache.storm.scheduler.resource.ResourceUtils;
 import org.apache.storm.scheduler.resource.normalization.NormalizedResourceRequest;
+import org.apache.storm.scheduler.resource.normalization.ResourceMetrics;
 import org.apache.storm.security.INimbusCredentialPlugin;
 import org.apache.storm.security.auth.ClientAuthUtils;
 import org.apache.storm.security.auth.IAuthorizer;
@@ -189,6 +190,7 @@ import org.apache.storm.shade.com.google.common.collect.Maps;
 import org.apache.storm.shade.org.apache.curator.framework.CuratorFramework;
 import org.apache.storm.shade.org.apache.zookeeper.ZooDefs;
 import org.apache.storm.shade.org.apache.zookeeper.data.ACL;
+import org.apache.storm.stats.ClientStatsUtil;
 import org.apache.storm.stats.StatsUtil;
 import org.apache.storm.thrift.TException;
 import org.apache.storm.utils.BufferInputStream;
@@ -225,52 +227,51 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
     public static final SimpleVersion MIN_VERSION_SUPPORT_RPC_HEARTBEAT = new SimpleVersion("2.0.0");
     private static final Logger LOG = LoggerFactory.getLogger(Nimbus.class);
     //    Metrics
-    private static final Meter submitTopologyWithOptsCalls = StormMetricsRegistry.registerMeter("nimbus:num-submitTopologyWithOpts-calls");
-    private static final Meter submitTopologyCalls = StormMetricsRegistry.registerMeter("nimbus:num-submitTopology-calls");
-    private static final Meter killTopologyWithOptsCalls = StormMetricsRegistry.registerMeter("nimbus:num-killTopologyWithOpts-calls");
-    private static final Meter killTopologyCalls = StormMetricsRegistry.registerMeter("nimbus:num-killTopology-calls");
-    private static final Meter rebalanceCalls = StormMetricsRegistry.registerMeter("nimbus:num-rebalance-calls");
-    private static final Meter activateCalls = StormMetricsRegistry.registerMeter("nimbus:num-activate-calls");
-    private static final Meter deactivateCalls = StormMetricsRegistry.registerMeter("nimbus:num-deactivate-calls");
-    private static final Meter debugCalls = StormMetricsRegistry.registerMeter("nimbus:num-debug-calls");
-    private static final Meter setWorkerProfilerCalls = StormMetricsRegistry.registerMeter("nimbus:num-setWorkerProfiler-calls");
-    private static final Meter getComponentPendingProfileActionsCalls = StormMetricsRegistry.registerMeter(
-        "nimbus:num-getComponentPendingProfileActions-calls");
-    private static final Meter setLogConfigCalls = StormMetricsRegistry.registerMeter("nimbus:num-setLogConfig-calls");
-    private static final Meter uploadNewCredentialsCalls = StormMetricsRegistry.registerMeter("nimbus:num-uploadNewCredentials-calls");
-    private static final Meter beginFileUploadCalls = StormMetricsRegistry.registerMeter("nimbus:num-beginFileUpload-calls");
-    private static final Meter uploadChunkCalls = StormMetricsRegistry.registerMeter("nimbus:num-uploadChunk-calls");
-    private static final Meter finishFileUploadCalls = StormMetricsRegistry.registerMeter("nimbus:num-finishFileUpload-calls");
-    private static final Meter downloadChunkCalls = StormMetricsRegistry.registerMeter("nimbus:num-downloadChunk-calls");
-    private static final Meter getNimbusConfCalls = StormMetricsRegistry.registerMeter("nimbus:num-getNimbusConf-calls");
-    private static final Meter getLogConfigCalls = StormMetricsRegistry.registerMeter("nimbus:num-getLogConfig-calls");
-    private static final Meter getTopologyConfCalls = StormMetricsRegistry.registerMeter("nimbus:num-getTopologyConf-calls");
-    private static final Meter getTopologyCalls = StormMetricsRegistry.registerMeter("nimbus:num-getTopology-calls");
-    private static final Meter getUserTopologyCalls = StormMetricsRegistry.registerMeter("nimbus:num-getUserTopology-calls");
-    private static final Meter getClusterInfoCalls = StormMetricsRegistry.registerMeter("nimbus:num-getClusterInfo-calls");
-    private static final Meter getLeaderCalls = StormMetricsRegistry.registerMeter("nimbus:num-getLeader-calls");
-    private static final Meter isTopologyNameAllowedCalls = StormMetricsRegistry.registerMeter("nimbus:num-isTopologyNameAllowed-calls");
-    private static final Meter getTopologyInfoWithOptsCalls = StormMetricsRegistry.registerMeter(
-        "nimbus:num-getTopologyInfoWithOpts-calls");
-    private static final Meter getTopologyInfoCalls = StormMetricsRegistry.registerMeter("nimbus:num-getTopologyInfo-calls");
-    private static final Meter getTopologyPageInfoCalls = StormMetricsRegistry.registerMeter("nimbus:num-getTopologyPageInfo-calls");
-    private static final Meter getSupervisorPageInfoCalls = StormMetricsRegistry.registerMeter("nimbus:num-getSupervisorPageInfo-calls");
-    private static final Meter getComponentPageInfoCalls = StormMetricsRegistry.registerMeter("nimbus:num-getComponentPageInfo-calls");
-    private static final Meter getOwnerResourceSummariesCalls = StormMetricsRegistry.registerMeter(
-        "nimbus:num-getOwnerResourceSummaries-calls");
+    private final Meter submitTopologyWithOptsCalls;
+    private final Meter submitTopologyCalls;
+    private final Meter killTopologyWithOptsCalls;
+    private final Meter killTopologyCalls;
+    private final Meter rebalanceCalls;
+    private final Meter activateCalls;
+    private final Meter deactivateCalls;
+    private final Meter debugCalls;
+    private final Meter setWorkerProfilerCalls;
+    private final Meter getComponentPendingProfileActionsCalls;
+    private final Meter setLogConfigCalls;
+    private final Meter uploadNewCredentialsCalls;
+    private final Meter beginFileUploadCalls;
+    private final Meter uploadChunkCalls;
+    private final Meter finishFileUploadCalls;
+    private final Meter beginFileDownloadCalls;
+    private final Meter downloadChunkCalls;
+    private final Meter getNimbusConfCalls;
+    private final Meter getLogConfigCalls;
+    private final Meter getTopologyConfCalls;
+    private final Meter getTopologyCalls;
+    private final Meter getUserTopologyCalls;
+    private final Meter getClusterInfoCalls;
+    private final Meter getLeaderCalls;
+    private final Meter isTopologyNameAllowedCalls;
+    private final Meter getTopologyInfoWithOptsCalls;
+    private final Meter getTopologyInfoCalls;
+    private final Meter getTopologyPageInfoCalls;
+    private final Meter getSupervisorPageInfoCalls;
+    private final Meter getComponentPageInfoCalls;
+    private final Histogram scheduleTopologyTimeMs;
+    private final Meter getOwnerResourceSummariesCalls;
+    private final Meter shutdownCalls;
+    private final Meter processWorkerMetricsCalls;
     //Timer
-    private static final Timer fileUploadDuration = StormMetricsRegistry.registerTimer("nimbus:files-upload-duration-ms");
-    private static final Timer schedulingDuration = StormMetricsRegistry.registerTimer("nimbus:topology-scheduling-duration-ms");
+    private final Timer fileUploadDuration;
+    private final Timer schedulingDuration;
     //Scheduler histogram
-    private static final Histogram numAddedExecPerScheduling = StormMetricsRegistry.registerHistogram("nimbus:num-added-executors-per-scheduling");
-    private static final Histogram numAddedSlotPerScheduling = StormMetricsRegistry.registerHistogram("nimbus:num-added-slots-per-scheduling");
-    private static final Histogram numRemovedExecPerScheduling = StormMetricsRegistry.registerHistogram("nimbus:num-removed-executors-per-scheduling");
-    private static final Histogram numRemovedSlotPerScheduling = StormMetricsRegistry.registerHistogram("nimbus:num-removed-slots-per-scheduling");
-    private static final Histogram numNetExecIncreasePerScheduling = StormMetricsRegistry.registerHistogram("nimbus:num-net-executors-increase-per-scheduling");
-    private static final Histogram numNetSlotIncreasePerScheduling = StormMetricsRegistry.registerHistogram("nimbus:num-net-slots-increase-per-scheduling");
+    private final Histogram numAddedExecPerScheduling;
+    private final Histogram numAddedSlotPerScheduling;
+    private final Histogram numRemovedExecPerScheduling;
+    private final Histogram numRemovedSlotPerScheduling;
+    private final Histogram numNetExecIncreasePerScheduling;
+    private final Histogram numNetSlotIncreasePerScheduling;
     // END Metrics
-    private static final Meter shutdownCalls = StormMetricsRegistry.registerMeter("nimbus:num-shutdown-calls");
-    private static final Meter processWorkerMetricsCalls = StormMetricsRegistry.registerMeter("nimbus:process-worker-metric-calls");
     private static final String STORM_VERSION = VersionInfo.getVersion();
 
     public static List<ACL> getNimbusAcls(Map<String, Object> conf) {
@@ -297,7 +298,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
         Assignment oldAssignment = state.assignmentInfo(topoId, null);
         state.removeStorm(topoId);
         notifySupervisorsAsKilled(state, oldAssignment, nimbus.getAssignmentsDistributer());
-        nimbus.getHeartbeatsCache().getAndUpdate(new Dissoc<>(topoId));
+        nimbus.heartbeatsCache.removeTopo(topoId);
         nimbus.getIdToExecutors().getAndUpdate(new Dissoc<>(topoId));
         return null;
     };
@@ -404,7 +405,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
     private final Object submitLock = new Object();
     private final Object schedLock = new Object();
     private final Object credUpdateLock = new Object();
-    private final AtomicReference<Map<String, Map<List<Integer>, Map<String, Object>>>> heartbeatsCache;
+    private final HeartbeatCache heartbeatsCache;
     private final AtomicBoolean heartbeatsReadyFlag;
     private final IWorkerHeartbeatsRecoveryStrategy heartbeatsRecoveryStrategy;
     @SuppressWarnings("deprecation")
@@ -442,6 +443,8 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
     private final List<ClusterMetricsConsumerExecutor> clusterConsumerExceutors;
     private final IGroupMappingServiceProvider groupMapper;
     private final IPrincipalToLocal principalToLocal;
+    private final StormMetricsRegistry metricsRegistry;
+    private final ResourceMetrics resourceMetrics;
     private MetricStore metricsStore;
     private IAuthorizer authorizationHandler;
     //Cached CuratorFramework, mainly used for BlobStore.
@@ -451,23 +454,72 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
     //May be null if worker tokens are not supported by the thrift transport.
     private WorkerTokenManager workerTokenManager;
 
-    public Nimbus(Map<String, Object> conf, INimbus inimbus) throws Exception {
-        this(conf, inimbus, null, null, null, null, null);
+    public Nimbus(Map<String, Object> conf, INimbus inimbus, StormMetricsRegistry metricsRegistry) throws Exception {
+        this(conf, inimbus, null, null, null, null, null, metricsRegistry);
     }
 
     public Nimbus(Map<String, Object> conf, INimbus inimbus, IStormClusterState stormClusterState, NimbusInfo hostPortInfo,
-                  BlobStore blobStore, ILeaderElector leaderElector, IGroupMappingServiceProvider groupMapper) throws Exception {
-        this(conf, inimbus, stormClusterState, hostPortInfo, blobStore, null, leaderElector, groupMapper);
+                  BlobStore blobStore, ILeaderElector leaderElector, IGroupMappingServiceProvider groupMapper,
+                  StormMetricsRegistry metricsRegistry) throws Exception {
+        this(conf, inimbus, stormClusterState, hostPortInfo, blobStore, null, leaderElector, groupMapper, metricsRegistry);
     }
 
     public Nimbus(Map<String, Object> conf, INimbus inimbus, IStormClusterState stormClusterState, NimbusInfo hostPortInfo,
-                  BlobStore blobStore, TopoCache topoCache, ILeaderElector leaderElector, IGroupMappingServiceProvider groupMapper)
+                  BlobStore blobStore, TopoCache topoCache, ILeaderElector leaderElector, IGroupMappingServiceProvider groupMapper,
+                  StormMetricsRegistry metricsRegistry)
         throws Exception {
         this.conf = conf;
+        this.metricsRegistry = metricsRegistry;
+        this.resourceMetrics = new ResourceMetrics(metricsRegistry);
+        this.submitTopologyWithOptsCalls = metricsRegistry.registerMeter("nimbus:num-submitTopologyWithOpts-calls");
+        this.submitTopologyCalls = metricsRegistry.registerMeter("nimbus:num-submitTopology-calls");
+        this.killTopologyWithOptsCalls = metricsRegistry.registerMeter("nimbus:num-killTopologyWithOpts-calls");
+        this.killTopologyCalls = metricsRegistry.registerMeter("nimbus:num-killTopology-calls");
+        this.rebalanceCalls = metricsRegistry.registerMeter("nimbus:num-rebalance-calls");
+        this.activateCalls = metricsRegistry.registerMeter("nimbus:num-activate-calls");
+        this.deactivateCalls = metricsRegistry.registerMeter("nimbus:num-deactivate-calls");
+        this.debugCalls = metricsRegistry.registerMeter("nimbus:num-debug-calls");
+        this.setWorkerProfilerCalls = metricsRegistry.registerMeter("nimbus:num-setWorkerProfiler-calls");
+        this.getComponentPendingProfileActionsCalls = metricsRegistry.registerMeter(
+            "nimbus:num-getComponentPendingProfileActions-calls");
+        this.setLogConfigCalls = metricsRegistry.registerMeter("nimbus:num-setLogConfig-calls");
+        this.uploadNewCredentialsCalls = metricsRegistry.registerMeter("nimbus:num-uploadNewCredentials-calls");
+        this.beginFileUploadCalls = metricsRegistry.registerMeter("nimbus:num-beginFileUpload-calls");
+        this.uploadChunkCalls = metricsRegistry.registerMeter("nimbus:num-uploadChunk-calls");
+        this.finishFileUploadCalls = metricsRegistry.registerMeter("nimbus:num-finishFileUpload-calls");
+        this.beginFileDownloadCalls = metricsRegistry.registerMeter("nimbus:num-beginFileDownload-calls");
+        this.downloadChunkCalls = metricsRegistry.registerMeter("nimbus:num-downloadChunk-calls");
+        this.getNimbusConfCalls = metricsRegistry.registerMeter("nimbus:num-getNimbusConf-calls");
+        this.getLogConfigCalls = metricsRegistry.registerMeter("nimbus:num-getLogConfig-calls");
+        this.getTopologyConfCalls = metricsRegistry.registerMeter("nimbus:num-getTopologyConf-calls");
+        this.getTopologyCalls = metricsRegistry.registerMeter("nimbus:num-getTopology-calls");
+        this.getUserTopologyCalls = metricsRegistry.registerMeter("nimbus:num-getUserTopology-calls");
+        this.getClusterInfoCalls = metricsRegistry.registerMeter("nimbus:num-getClusterInfo-calls");
+        this.getLeaderCalls = metricsRegistry.registerMeter("nimbus:num-getLeader-calls");
+        this.isTopologyNameAllowedCalls = metricsRegistry.registerMeter("nimbus:num-isTopologyNameAllowed-calls");
+        this.getTopologyInfoWithOptsCalls = metricsRegistry.registerMeter(
+            "nimbus:num-getTopologyInfoWithOpts-calls");
+        this.getTopologyInfoCalls = metricsRegistry.registerMeter("nimbus:num-getTopologyInfo-calls");
+        this.getTopologyPageInfoCalls = metricsRegistry.registerMeter("nimbus:num-getTopologyPageInfo-calls");
+        this.getSupervisorPageInfoCalls = metricsRegistry.registerMeter("nimbus:num-getSupervisorPageInfo-calls");
+        this.getComponentPageInfoCalls = metricsRegistry.registerMeter("nimbus:num-getComponentPageInfo-calls");
+        this.scheduleTopologyTimeMs = metricsRegistry.registerHistogram("nimbus:time-scheduleTopology-ms");
+        this.getOwnerResourceSummariesCalls = metricsRegistry.registerMeter(
+            "nimbus:num-getOwnerResourceSummaries-calls");
+        this.shutdownCalls = metricsRegistry.registerMeter("nimbus:num-shutdown-calls");
+        this.processWorkerMetricsCalls = metricsRegistry.registerMeter("nimbus:process-worker-metric-calls");
+        this.fileUploadDuration = metricsRegistry.registerTimer("nimbus:files-upload-duration-ms");
+        this.schedulingDuration = metricsRegistry.registerTimer("nimbus:topology-scheduling-duration-ms");
+        this.numAddedExecPerScheduling = metricsRegistry.registerHistogram("nimbus:num-added-executors-per-scheduling");
+        this.numAddedSlotPerScheduling = metricsRegistry.registerHistogram("nimbus:num-added-slots-per-scheduling");
+        this.numRemovedExecPerScheduling = metricsRegistry.registerHistogram("nimbus:num-removed-executors-per-scheduling");
+        this.numRemovedSlotPerScheduling = metricsRegistry.registerHistogram("nimbus:num-removed-slots-per-scheduling");
+        this.numNetExecIncreasePerScheduling = metricsRegistry.registerHistogram("nimbus:num-net-executors-increase-per-scheduling");
+        this.numNetSlotIncreasePerScheduling = metricsRegistry.registerHistogram("nimbus:num-net-slots-increase-per-scheduling");
 
         this.metricsStore = null;
         try {
-            this.metricsStore = MetricStoreConfig.configure(conf);
+            this.metricsStore = MetricStoreConfig.configure(conf, metricsRegistry);
         } catch (Exception e) {
             // the metrics store is not critical to the operation of the cluster, allow Nimbus to come up
             LOG.error("Failed to initialize metric store", e);
@@ -490,7 +542,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
             stormClusterState = makeStormClusterState(conf);
         }
         this.stormClusterState = stormClusterState;
-        this.heartbeatsCache = new AtomicReference<>(new HashMap<>());
+        this.heartbeatsCache = new HeartbeatCache();
         this.heartbeatsReadyFlag = new AtomicBoolean(false);
         this.heartbeatsRecoveryStrategy = WorkerHeartbeatsRecoveryStrategyFactory.getStrategy(conf);
         this.downloaders = fileCacheMap(conf);
@@ -506,7 +558,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
             Utils.exitProcess(20, "Error while processing event");
         });
         this.underlyingScheduler = makeScheduler(conf, inimbus);
-        this.scheduler = wrapAsBlacklistScheduler(conf, underlyingScheduler);
+        this.scheduler = wrapAsBlacklistScheduler(conf, underlyingScheduler, metricsRegistry);
         this.zkClient = makeZKClient(conf);
         this.idToExecutors = new AtomicReference<>(new HashMap<>());
 
@@ -519,7 +571,8 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
             topoCache = new TopoCache(blobStore, conf);
         }
         if (leaderElector == null) {
-            leaderElector = Zookeeper.zkLeaderElector(conf, zkClient, blobStore, topoCache, stormClusterState, getNimbusAcls(conf));
+            leaderElector = Zookeeper.zkLeaderElector(conf, zkClient, blobStore, topoCache, stormClusterState, getNimbusAcls(conf),
+                metricsRegistry);
         }
         this.leaderElector = leaderElector;
         this.blobStore.setLeaderElector(this.leaderElector);
@@ -578,8 +631,9 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
         return ret;
     }
 
-    private static IScheduler wrapAsBlacklistScheduler(Map<String, Object> conf, IScheduler scheduler) {
-        BlacklistScheduler blacklistWrappedScheduler = new BlacklistScheduler(scheduler);
+    private static IScheduler wrapAsBlacklistScheduler(Map<String, Object> conf, IScheduler scheduler,
+        StormMetricsRegistry metricsRegistry) {
+        BlacklistScheduler blacklistWrappedScheduler = new BlacklistScheduler(scheduler, metricsRegistry);
         blacklistWrappedScheduler.prepare(conf);
         return blacklistWrappedScheduler;
     }
@@ -763,7 +817,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                 LOG.info("Assign executors: {}", execToPort.keySet());
                 numAddedSlot += count;
                 numAddedExec += execToPort.size();
-            }
+                }
         } else if (newAssignments.isEmpty()) {
             for (Entry<String, Assignment> entry : existingAssignments.entrySet()) {
                 final Map<List<Long>, NodeInfo> execToPort = entry.getValue().get_executor_node_port();
@@ -772,7 +826,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                 LOG.info("Remove executors: {}", execToPort.keySet());
                 numRemovedSlot += count;
                 numRemovedExec += execToPort.size();
-            }
+                    }
         } else {
             MapDifference<String, Assignment> difference = Maps.difference(existingAssignments, newAssignments);
             if (anyChanged = !difference.areEqual()) {
@@ -806,8 +860,8 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                         if (execEntry.getValue().equals(oldExecToSlot.get(execEntry.getKey()))) {
                             commonExecCount++;
                             commonSlots.add(execEntry.getValue());
-                        }
-                    }
+                }
+            }
                     long commonSlotCount = commonSlots.size();
 
                     //Treat reassign as remove and add
@@ -815,7 +869,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                     numRemovedExec += oldExecToSlot.size() - commonExecCount;
                     numAddedSlot += slots.size() - commonSlotCount;
                     numAddedExec += execToSlot.size() - commonExecCount;
-                }
+        }
             }
             LOG.debug("{} assignments unchanged: {}", difference.entriesInCommon().size(), difference.entriesInCommon().keySet());
         }
@@ -1208,10 +1262,13 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
     private static Nimbus launchServer(Map<String, Object> conf, INimbus inimbus) throws Exception {
         StormCommon.validateDistributedMode(conf);
         validatePortAvailable(conf);
-        final Nimbus nimbus = new Nimbus(conf, inimbus);
+        StormMetricsRegistry metricsRegistry = new StormMetricsRegistry();
+        final Nimbus nimbus = new Nimbus(conf, inimbus, metricsRegistry);
         nimbus.launchServer();
         final ThriftServer server = new ThriftServer(conf, new Processor<>(nimbus), ThriftConnectionType.NIMBUS);
+        metricsRegistry.startMetricsReporters(conf);
         Utils.addShutdownHookWithDelayedForceKill(() -> {
+            metricsRegistry.stopMetricsReporters();
             nimbus.shutdown();
             server.stop();
         }, 10);
@@ -1408,7 +1465,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
     }
 
     @VisibleForTesting
-    public AtomicReference<Map<String, Map<List<Integer>, Map<String, Object>>>> getHeartbeatsCache() {
+    public HeartbeatCache getHeartbeatsCache() {
         return heartbeatsCache;
     }
 
@@ -1654,8 +1711,8 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
             executorsToComponent.put(execDetails, entry.getValue());
         }
 
-        return new TopologyDetails(topoId, topoConf, topo, base.get_num_workers(), executorsToComponent, base.get_launch_time_secs(),
-                                   base.get_owner());
+        return new TopologyDetails(topoId, topoConf, topo, base.get_num_workers(), executorsToComponent,
+            base.get_launch_time_secs(), base.get_owner());
     }
 
     private void updateHeartbeatsFromZkHeartbeat(String topoId, Set<List<Integer>> allExecutors, Assignment existingAssignment) {
@@ -1663,23 +1720,8 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
         IStormClusterState state = stormClusterState;
         Map<List<Integer>, Map<String, Object>> executorBeats =
             StatsUtil.convertExecutorBeats(state.executorBeats(topoId, existingAssignment.get_executor_node_port()));
-        Map<List<Integer>, Map<String, Object>> cache = StatsUtil.updateHeartbeatCacheFromZkHeartbeat(heartbeatsCache.get().get(topoId),
-                                                                                                      executorBeats, allExecutors,
-                                                                                                      ObjectReader.getInt(conf.get(
-                                                                                                          DaemonConfig
-                                                                                                              .NIMBUS_TASK_TIMEOUT_SECS)));
-        heartbeatsCache.getAndUpdate(new Assoc<>(topoId, cache));
-    }
-
-    private void updateHeartbeats(String topoId, Set<List<Integer>> allExecutors, Assignment existingAssignment) {
-        LOG.debug("Updating heartbeats for {} {}", topoId, allExecutors);
-        Map<List<Integer>, Map<String, Object>> cache = heartbeatsCache.get().get(topoId);
-        if (cache == null) {
-            cache = new HashMap<>();
-            heartbeatsCache.getAndUpdate(new Assoc<>(topoId, cache));
-        }
-        StatsUtil.updateHeartbeatCache(heartbeatsCache.get().get(topoId),
-                                       null, allExecutors, ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_TASK_TIMEOUT_SECS)));
+        heartbeatsCache.updateFromZkHeartbeat(topoId, executorBeats, allExecutors,
+            ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_TASK_TIMEOUT_SECS)));
     }
 
     /**
@@ -1695,27 +1737,14 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
             if (zkHeartbeatTopologies.contains(topoId)) {
                 updateHeartbeatsFromZkHeartbeat(topoId, topologyToExecutors.get(topoId), entry.getValue());
             } else {
-                updateHeartbeats(topoId, topologyToExecutors.get(topoId), entry.getValue());
+                LOG.debug("Timing out old heartbeats for {}", topoId);
+                heartbeatsCache.timeoutOldHeartbeats(topoId, ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_TASK_TIMEOUT_SECS)));
             }
         }
     }
 
     private void updateCachedHeartbeatsFromWorker(SupervisorWorkerHeartbeat workerHeartbeat) {
-        Map<List<Integer>, Map<String, Object>> executorBeats = StatsUtil.convertWorkerBeats(workerHeartbeat);
-        String topoId = workerHeartbeat.get_storm_id();
-        Map<List<Integer>, Map<String, Object>> cache = heartbeatsCache.get().get(topoId);
-        if (cache == null) {
-            cache = new HashMap<>();
-            heartbeatsCache.getAndUpdate(new Assoc<>(topoId, cache));
-        }
-        Set<List<Integer>> executors = new HashSet<>();
-        for (ExecutorInfo executorInfo : workerHeartbeat.get_executors()) {
-            executors.add(Arrays.asList(executorInfo.get_task_start(), executorInfo.get_task_end()));
-        }
-
-        StatsUtil.updateHeartbeatCache(heartbeatsCache.get().get(topoId), executorBeats, executors,
-                                       ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_TASK_TIMEOUT_SECS)));
-
+        heartbeatsCache.updateHeartbeat(workerHeartbeat, ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_TASK_TIMEOUT_SECS)));
     }
 
     private void updateCachedHeartbeatsFromSupervisor(SupervisorWorkerHeartbeats workerHeartbeats) {
@@ -1756,36 +1785,8 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
     }
 
     private Set<List<Integer>> aliveExecutors(String topoId, Set<List<Integer>> allExecutors, Assignment assignment) {
-        Map<List<Integer>, Map<String, Object>> hbCache = heartbeatsCache.get().get(topoId);
-        //in case that no workers report any heartbeats yet.
-        if (null == hbCache) {
-            hbCache = new HashMap<>();
-        }
-        LOG.debug("NEW  Computing alive executors for {}\nExecutors: {}\nAssignment: {}\nHeartbeat cache: {}",
-                  topoId, allExecutors, assignment, hbCache);
-
-        int taskLaunchSecs = ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_TASK_LAUNCH_SECS));
-        Set<List<Integer>> ret = new HashSet<>();
-        Map<List<Long>, Long> execToStartTimes = assignment.get_executor_start_time_secs();
-
-        for (List<Integer> exec : allExecutors) {
-            List<Long> longExec = new ArrayList<Long>(exec.size());
-            for (Integer num : exec) {
-                longExec.add(num.longValue());
-            }
-
-            Long startTime = execToStartTimes.get(longExec);
-            Map<String, Object> executorCache = hbCache.get(StatsUtil.convertExecutor(longExec));
-            //null isTimedOut means worker never reported any heartbeat
-            Boolean isTimedOut = executorCache == null ? null : (Boolean) executorCache.get("is-timed-out");
-            Integer delta = startTime == null ? null : Time.deltaSecs(startTime.intValue());
-            if (startTime != null && ((delta < taskLaunchSecs) || (isTimedOut != null && !isTimedOut))) {
-                ret.add(exec);
-            } else {
-                LOG.info("Executor {}:{} not alive", topoId, exec);
-            }
-        }
-        return ret;
+        return heartbeatsCache.getAliveExecutors(topoId, allExecutors, assignment,
+            ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_TASK_LAUNCH_SECS)));
     }
 
     private List<List<Integer>> computeExecutors(String topoId, StormBase base, Map<String, Object> topoConf,
@@ -2049,7 +2050,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
         }
         Map<String, SupervisorDetails> supervisors =
             readAllSupervisorDetails(supervisorToDeadPorts, topologies, missingAssignmentTopologies);
-        Cluster cluster = new Cluster(inimbus, supervisors, topoToSchedAssignment, topologies, conf);
+        Cluster cluster = new Cluster(inimbus, resourceMetrics, supervisors, topoToSchedAssignment, topologies, conf);
         cluster.setStatusMap(idToSchedStatus.get());
 
         schedulingStartTimeNs.set(Time.nanoTime());
@@ -2221,9 +2222,9 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                     execToNodePort = new HashMap<>();
                 }
                 Set<String> allNodes = new HashSet<>();
-                for (List<Object> nodePort : execToNodePort.values()) {
-                    allNodes.add((String) nodePort.get(0));
-                }
+                    for (List<Object> nodePort : execToNodePort.values()) {
+                        allNodes.add((String) nodePort.get(0));
+                    }
                 Map<String, String> allNodeHost = new HashMap<>();
                 Assignment existingAssignment = existingAssignments.get(topoId);
                 if (existingAssignment != null) {
@@ -2535,7 +2536,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                 rmDependencyJarsInTopology(topoId);
                 forceDeleteTopoDistDir(topoId);
                 rmTopologyKeys(topoId);
-                heartbeatsCache.getAndUpdate(new Dissoc<>(topoId));
+                heartbeatsCache.removeTopo(topoId);
                 idToExecutors.getAndUpdate(new Dissoc<>(topoId));
             }
         }
@@ -2867,26 +2868,22 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                                         }
                                     });
 
-            StormMetricsRegistry.registerGauge("nimbus:num-supervisors", () -> state.supervisors(null).size());
-            StormMetricsRegistry.registerGauge("nimbus:fragmented-memory", this::fragmentedMemory);
-            StormMetricsRegistry.registerGauge("nimbus:fragmented-cpu", this::fragmentedCpu);
-            StormMetricsRegistry.registerGauge("nimbus:available-memory", () -> nodeIdToResources.get().values()
-                .parallelStream()
+            metricsRegistry.registerGauge("nimbus:num-supervisors", () -> state.supervisors(null).size());
+            metricsRegistry.registerGauge("nimbus:fragmented-memory", this::fragmentedMemory);
+            metricsRegistry.registerGauge("nimbus:fragmented-cpu", this::fragmentedCpu);
+            metricsRegistry.registerGauge("nimbus:available-memory", () -> nodeIdToResources.get().values().parallelStream()
                 .mapToDouble(SupervisorResources::getAvailableMem)
                 .sum());
-            StormMetricsRegistry.registerGauge("nimbus:available-cpu", () -> nodeIdToResources.get().values()
-                .parallelStream()
+            metricsRegistry.registerGauge("nimbus:available-cpu", () -> nodeIdToResources.get().values().parallelStream()
                 .mapToDouble(SupervisorResources::getAvailableCpu)
                 .sum());
-            StormMetricsRegistry.registerGauge("nimbus:total-memory", () -> nodeIdToResources.get().values()
-                .parallelStream()
+            metricsRegistry.registerGauge("nimbus:total-memory", () -> nodeIdToResources.get().values().parallelStream()
                 .mapToDouble(SupervisorResources::getTotalMem)
                 .sum());
-            StormMetricsRegistry.registerGauge("nimbus:total-cpu", () -> nodeIdToResources.get().values()
-                .parallelStream()
+            metricsRegistry.registerGauge("nimbus:total-cpu", () -> nodeIdToResources.get().values().parallelStream()
                 .mapToDouble(SupervisorResources::getTotalCpu)
                 .sum());
-            StormMetricsRegistry.registerGauge("nimbus:longest-scheduling-time-ms", () -> {
+            metricsRegistry.registerGauge("nimbus:longest-scheduling-time-ms", () -> {
                 //We want to update longest scheduling time in real time in case scheduler get stuck
                 // Get current time before startTime to avoid potential race with scheduler's Timer
                 Long currTime = Time.nanoTime();
@@ -2894,19 +2891,18 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                 return TimeUnit.NANOSECONDS.toMillis(startTime == null ?
                         longestSchedulingTime.get() : Math.max(currTime - startTime, longestSchedulingTime.get()));
             });
-            StormMetricsRegistry.registerMeter("nimbus:num-launched").mark();
-            StormMetricsRegistry.startMetricsReporters(conf);
+            metricsRegistry.registerMeter("nimbus:num-launched").mark();
 
-            timer.scheduleRecurring(0, ObjectReader.getInt(conf.get(DaemonConfig.STORM_CLUSTER_METRICS_CONSUMER_PUBLISH_INTERVAL_SECS)),
-                                    () -> {
-                                        try {
-                                            if (isLeader()) {
-                                                sendClusterMetricsToExecutors();
+                timer.scheduleRecurring(0, ObjectReader.getInt(conf.get(DaemonConfig.STORM_CLUSTER_METRICS_CONSUMER_PUBLISH_INTERVAL_SECS)),
+                                        () -> {
+                                            try {
+                                                if (isLeader()) {
+                                                    sendClusterMetricsToExecutors();
+                                                }
+                                            } catch (Exception e) {
+                                                throw new RuntimeException(e);
                                             }
-                                        } catch (Exception e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    });
+                                        });
         } catch (Exception e) {
             if (Utils.exceptionCauseIsInstanceOf(InterruptedException.class, e)) {
                 throw e;
@@ -3906,7 +3902,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                     NodeInfo ni = entry.getValue();
                     ExecutorInfo execInfo = toExecInfo(entry.getKey());
                     Map<String, String> nodeToHost = common.assignment.get_node_host();
-                    Map<String, Object> heartbeat = common.beats.get(StatsUtil.convertExecutor(entry.getKey()));
+                    Map<String, Object> heartbeat = common.beats.get(ClientStatsUtil.convertExecutor(entry.getKey()));
                     if (heartbeat == null) {
                         heartbeat = Collections.emptyMap();
                     }

@@ -2,6 +2,7 @@ package com.yahoo.storm.yamasmetricstore;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.storm.metric.StormMetricsRegistry;
 import org.apache.storm.metricstore.MetricException;
 import org.junit.Test;
 
@@ -20,6 +21,6 @@ public class YamasStoreTest {
         config.put(YamasStore.YAMAS_STORE_PROXY_CONFIG, "httpproxy-res.blue.ygrid.yahoo.com");
         config.put(YamasStore.YAMAS_STORE_BOUNCER_USER_CONFIG, "hadoop_re");
         YamasStore store = new YamasStore();
-        store.prepare(config);
+        store.prepare(config, new StormMetricsRegistry());
     }
 }

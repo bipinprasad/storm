@@ -255,7 +255,8 @@ public class StormCommon {
         //conf.get(Config.TOPOLOGY_ACKER_EXECUTORS) can be a double value when we do rolling upgrade from 0.10 to 2.x,
         //because in some cases Config.TOPOLOGY_ACKER_EXECUTORS is set to the estimated worker count
         //and the corresponding clojure function in 0.10 returns a double value.
-        double ackerNumDouble = ObjectReader.getDouble(conf.get(Config.TOPOLOGY_ACKER_EXECUTORS), ObjectReader.getDouble(conf.get(Config.TOPOLOGY_WORKERS)));
+        double ackerNumDouble = ObjectReader.getDouble(conf.get(Config.TOPOLOGY_ACKER_EXECUTORS),
+            ObjectReader.getDouble(conf.get(Config.TOPOLOGY_WORKERS)));
         int ackerNum = (int) Math.ceil(ackerNumDouble);
 
         Map<GlobalStreamId, Grouping> inputs = ackerInputs(topology);

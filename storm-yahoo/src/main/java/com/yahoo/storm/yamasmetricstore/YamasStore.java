@@ -20,6 +20,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.message.BasicHeader;
+import org.apache.storm.metric.StormMetricsRegistry;
 import org.apache.storm.metricstore.AggLevel;
 import org.apache.storm.metricstore.FilterOptions;
 import org.apache.storm.metricstore.Metric;
@@ -66,7 +67,7 @@ public class YamasStore implements MetricStore, AutoCloseable {
      * @throws MetricException on preparation error
      */
     @Override
-    public void prepare(Map<String, Object> config) throws MetricException {
+    public void prepare(Map<String, Object> config, StormMetricsRegistry metricsRegistry) throws MetricException {
         stormCluster = ObjectReader.getString(config.get(YAMAS_STORE_STORM_CLUSTER_CONFIG));
         if (stormCluster == null) {
             throw new MetricException(YAMAS_STORE_STORM_CLUSTER_CONFIG + " configuration is not set");

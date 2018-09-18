@@ -23,4 +23,9 @@ public class YamasMetricProcessor extends YamasStore implements WorkerMetricsPro
             this.insert(metric);
         }
     }
+
+    @Override
+    public void prepare(Map<String, Object> config) throws MetricException {
+        //Noop
+    }
 }
