@@ -4827,7 +4827,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
         ClusterSummaryMetricSet(StormMetricsRegistry metricsRegistry) {
             this.metricsRegistry = metricsRegistry;
             //Break the code if out of sync to thrift protocol
-            assert ClusterSummary._Fields.values().length == 3
+            assert ClusterSummary._Fields.values().length == 4 //Modified because we pulled back in uptime for 0.10 compat
                 && ClusterSummary._Fields.findByName("supervisors") == ClusterSummary._Fields.SUPERVISORS
                 && ClusterSummary._Fields.findByName("topologies") == ClusterSummary._Fields.TOPOLOGIES
                 && ClusterSummary._Fields.findByName("nimbuses") == ClusterSummary._Fields.NIMBUSES;
