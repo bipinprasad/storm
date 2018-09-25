@@ -32,7 +32,7 @@
 To run the examples you must execute the following command:
  
  ```java
- STORM-HOME/bin/storm jar STORM-HOME/examples/storm-pmml-examples/storm-pmml-examples-2.0.0.y.jar 
+ STORM-HOME/bin/storm jar STORM-HOME/examples/storm-pmml-examples/storm-pmml-examples-2.0.1.y.jar 
  org.apache.storm.pmml.JpmmlRunnerTestTopology jpmmlTopology PMMLModel.xml RawInputData.csv
  ```
 
