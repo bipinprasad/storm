@@ -289,7 +289,7 @@
       <dependency>
           <groupId>yahoo.yinst.ystorm_contrib</groupId>
           <artifactId>yamas_dropwizard</artifactId>
-          <version>0.4.0.122</version>
+          <version>0.4.0.128</version>
       </dependency>
   </dependencies>
 </project>
