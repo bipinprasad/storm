@@ -193,7 +193,7 @@ worker.gc.childopts: ""
 # Unlocking commercial features requires a special license from Oracle.
 # See http://www.oracle.com/technetwork/java/javase/terms/products/index.html
 # For this reason, profiler features are disabled by default.
-worker.profiler.enabled: false
+worker.profiler.enabled: true
 worker.profiler.childopts: "-XX:+UnlockCommercialFeatures -XX:+FlightRecorder"
 worker.profiler.command: "flight.bash"
 worker.heartbeat.frequency.secs: 1
