@@ -32,7 +32,7 @@ cat <<XML
     <RollingFile name="A1"
         fileName="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}"
         filePattern="\${sys:workers.artifacts}/\${sys:storm.id}/\${sys:worker.port}/\${sys:logfile.name}.%d{yyyy-MM-dd-HH-mm-ss}.gz">
-        <PatternLayout>
+        <PatternLayout charset="UTF-8">
             <pattern>\${pattern}</pattern>
         </PatternLayout>
         <Policies>
