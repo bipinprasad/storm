@@ -6,6 +6,7 @@ MVN_FULL_VERSION=`cat yahoo-build/RELEASE`
 MVN_MAKE_OPTS=--batch-mode
 MVN=LD_LIBRARY_PATH=/home/y/lib64 STORM_TEST_TIMEOUT_MS=20000 MAVEN_OPTS="-Xmx1024M" /home/y/bin/mvn
 EXEC_CONF_DIR?=/home/y/conf/storm/
+DATE=`date +%s`
 
 all: build
 
@@ -56,7 +57,14 @@ define find-tracked-pom-xml
 git ls-files 'pom.xml' '**/pom.xml'
 endef
 
-testpkg: RELEASE BASE_VERSION build
+DATE:
+	echo ${DATE} > DATE
+
+copy_webapp: DATE
+	rsync -razv ../storm-webapp/src/main/java/org/apache/storm/daemon/ui/WEB-INF/ ./WEB-INF/
+	find ./WEB-INF/ -type f | xargs sed -i.back -e 's/$${packageTimestamp}/'`cat DATE`'/g'
+
+testpkg: RELEASE BASE_VERSION build copy_webapp
 	$(setup-versions)
 	yinst_create --buildtype test ystorm.yicf && $(revert-versions) || ( $(revert-versions) && false )
 
@@ -65,7 +73,7 @@ ignore-pom-changes:
 	
 # This target is called from screwdriver build and leaves the poms changed for its
 # publish phase
-package-sd: RELEASE build
+package-sd: RELEASE build copy_webapp
 	$(setup-versions)
 	cd .. && $(find-tracked-pom-xml)| xargs git update-index --assume-unchanged
 	yinst_create --buildtype release ystorm.yicf
@@ -82,4 +90,4 @@ rhel6_build.state: rhel6_build.yidf rhel6_build.yml
 clean:
 	cd .. && $(MVN) -Pyahoo -Pexternals,examples clean ${MVN_MAKE_OPTS}
 	$(revert-versions)
-	rm -rf *_build.ruleset ystorm*.tgz BASE_VERSION RELEASE BASE_VERSION_UNDERSCORE
+	rm -rf *_build.ruleset ystorm*.tgz BASE_VERSION RELEASE BASE_VERSION_UNDERSCORE WEB-INF DATE
