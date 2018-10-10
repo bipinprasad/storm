@@ -38,7 +38,7 @@ YINST set daemon_max_rolled_logs          9
 
 # Bouncer UI Filter Configuration
 #YINST set ui_filter                yjava.servlet.filter.BouncerFilter
-YINST set ui_filter_params bouncer_cookie_timeout,480,bouncer_url,https://by.bouncer.login.yahoo.com/login/
+#YINST set ui_filter_params bouncer_cookie_timeout,480,bouncer_url,https://by.bouncer.login.yahoo.com/login/
 
 # DRPC HTTP Filter Configuration
 #YINST set drpc_http_filter yjava.servlet.filter.YCAFilter
