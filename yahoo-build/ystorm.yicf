@@ -194,58 +194,22 @@ file 444 - - lib64/jars/multilang-python.jar ../storm-multilang/python/target/mu
 file 444 - - lib64/jars/multilang-python.pom ../storm-multilang/python/pom.xml
 file 444 - - lib64/jars/multilang-ruby.jar ../storm-multilang/ruby/target/multilang-ruby-$(BASE_VERSION).jar
 file 444 - - lib64/jars/multilang-ruby.pom ../storm-multilang/ruby/pom.xml
+
 # examples
-file 444 - - lib64/jars/storm-elasticsearch-examples.jar ../examples/storm-elasticsearch-examples/target/storm-elasticsearch-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-elasticsearch-examples.pom ../examples/storm-elasticsearch-examples/pom.xml
-file 444 - - lib64/jars/storm-hbase-examples.jar ../examples/storm-hbase-examples/target/storm-hbase-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-hbase-examples.pom ../examples/storm-hbase-examples/pom.xml
-file 444 - - lib64/jars/storm-hdfs-examples.jar ../examples/storm-hdfs-examples/target/storm-hdfs-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-hdfs-examples.pom ../examples/storm-hdfs-examples/pom.xml
-file 444 - - lib64/jars/storm-hive-examples.jar ../examples/storm-hive-examples/target/storm-hive-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-hive-examples.pom ../examples/storm-hive-examples/pom.xml
-file 444 - - lib64/jars/storm-jdbc-examples.jar ../examples/storm-jdbc-examples/target/storm-jdbc-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-jdbc-examples.pom ../examples/storm-jdbc-examples/pom.xml
-file 444 - - lib64/jars/storm-jms-examples.jar ../examples/storm-jms-examples/target/storm-jms-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-jms-examples.pom ../examples/storm-jms-examples/pom.xml
-file 444 - - lib64/jars/storm-kafka-client-examples.jar ../examples/storm-kafka-client-examples/target/storm-kafka-client-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-kafka-client-examples.pom ../examples/storm-kafka-client-examples/pom.xml
-file 444 - - lib64/jars/storm-loadgen.jar ../examples/storm-loadgen/target/storm-loadgen-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-loadgen.pom ../examples/storm-loadgen/pom.xml
-file 444 - - lib64/jars/storm-mongodb-examples.jar ../examples/storm-mongodb-examples/target/storm-mongodb-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-mongodb-examples.pom ../examples/storm-mongodb-examples/pom.xml
-file 444 - - lib64/jars/storm-mqtt-examples.jar ../examples/storm-mqtt-examples/target/storm-mqtt-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-mqtt-examples.pom ../examples/storm-mqtt-examples/pom.xml
-file 444 - - lib64/jars/storm-opentsdb-examples.jar ../examples/storm-opentsdb-examples/target/storm-opentsdb-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-opentsdb-examples.pom ../examples/storm-opentsdb-examples/pom.xml
-file 444 - - lib64/jars/storm-perf.jar ../examples/storm-perf/target/storm-perf-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-perf.pom ../examples/storm-perf/pom.xml
-file 444 - - lib64/jars/storm-pmml-examples.jar ../examples/storm-pmml-examples/target/storm-pmml-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-pmml-examples.pom ../examples/storm-pmml-examples/pom.xml
-file 444 - - lib64/jars/storm-redis-examples.jar ../examples/storm-redis-examples/target/storm-redis-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-redis-examples.pom ../examples/storm-redis-examples/pom.xml
-file 444 - - lib64/jars/storm-rocketmq-examples.jar ../examples/storm-rocketmq-examples/target/storm-rocketmq-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-rocketmq-examples.pom ../examples/storm-rocketmq-examples/pom.xml
-file 444 - - lib64/jars/storm-solr-examples.jar ../examples/storm-solr-examples/target/storm-solr-examples-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-solr-examples.pom ../examples/storm-solr-examples/pom.xml
 file 444 - - lib64/jars/storm-starter.jar ../examples/storm-starter/target/storm-starter-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-starter.pom ../examples/storm-starter/pom.xml
 file 444 - - lib64/jars/yahoo_examples.jar ../examples/yahoo-examples/target/yahoo_examples-$(BASE_VERSION)-jar-with-dependencies.jar
 file 444 - - lib64/jars/yahoo_examples.pom ../examples/yahoo-examples/pom.xml
+
 # external
 file 444 - - lib64/jars/storm-autocreds.jar ../external/storm-autocreds/target/storm-autocreds-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-autocreds.pom ../external/storm-autocreds/pom.xml
-file 444 - - lib64/jars/storm-cassandra.jar ../external/storm-cassandra/target/storm-cassandra-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-cassandra.pom ../external/storm-cassandra/pom.xml
-file 444 - - lib64/jars/storm-elasticsearch.jar ../external/storm-elasticsearch/target/storm-elasticsearch-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-elasticsearch.pom ../external/storm-elasticsearch/pom.xml
 file 444 - - lib64/jars/storm-eventhubs.jar ../external/storm-eventhubs/target/storm-eventhubs-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-eventhubs.pom ../external/storm-eventhubs/pom.xml
 file 444 - - lib64/jars/storm-hbase.jar ../external/storm-hbase/target/storm-hbase-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-hbase.pom ../external/storm-hbase/pom.xml
 file 444 - - lib64/jars/storm-hdfs.jar ../external/storm-hdfs/target/storm-hdfs-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-hdfs.pom ../external/storm-hdfs/pom.xml
-file 444 - - lib64/jars/storm-hive.jar ../external/storm-hive/target/storm-hive-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-hive.pom ../external/storm-hive/pom.xml
 file 444 - - lib64/jars/storm-jdbc.jar ../external/storm-jdbc/target/storm-jdbc-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-jdbc.pom ../external/storm-jdbc/pom.xml
 file 444 - - lib64/jars/storm-jms.jar ../external/storm-jms/target/storm-jms-$(BASE_VERSION).jar
@@ -254,24 +218,12 @@ file 444 - - lib64/jars/storm-kafka-client.jar ../external/storm-kafka-client/ta
 file 444 - - lib64/jars/storm-kafka-client.pom ../external/storm-kafka-client/pom.xml
 file 444 - - lib64/jars/storm-kafka-monitor.jar ../external/storm-kafka-monitor/target/storm-kafka-monitor-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-kafka-monitor.pom ../external/storm-kafka-monitor/pom.xml
-file 444 - - lib64/jars/storm-kinesis.jar ../external/storm-kinesis/target/storm-kinesis-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-kinesis.pom ../external/storm-kinesis/pom.xml
 file 444 - - lib64/jars/storm-metrics.jar ../external/storm-metrics/target/storm-metrics-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-metrics.pom ../external/storm-metrics/pom.xml
-file 444 - - lib64/jars/storm-mongodb.jar ../external/storm-mongodb/target/storm-mongodb-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-mongodb.pom ../external/storm-mongodb/pom.xml
-file 444 - - lib64/jars/storm-mqtt.jar ../external/storm-mqtt/target/storm-mqtt-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-mqtt.pom ../external/storm-mqtt/pom.xml
 file 444 - - lib64/jars/storm-opentsdb.jar ../external/storm-opentsdb/target/storm-opentsdb-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-opentsdb.pom ../external/storm-opentsdb/pom.xml
-file 444 - - lib64/jars/storm-pmml.jar ../external/storm-pmml/target/storm-pmml-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-pmml.pom ../external/storm-pmml/pom.xml
 file 444 - - lib64/jars/storm-redis.jar ../external/storm-redis/target/storm-redis-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-redis.pom ../external/storm-redis/pom.xml
-file 444 - - lib64/jars/storm-rocketmq.jar ../external/storm-rocketmq/target/storm-rocketmq-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-rocketmq.pom ../external/storm-rocketmq/pom.xml
-file 444 - - lib64/jars/storm-solr.jar ../external/storm-solr/target/storm-solr-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-solr.pom ../external/storm-solr/pom.xml
 # flux
 file 444 - - lib64/jars/flux-core.jar ../flux/flux-core/target/flux-core-$(BASE_VERSION).jar
 file 444 - - lib64/jars/flux-core.pom ../flux/flux-core/pom.xml
@@ -289,8 +241,6 @@ file 444 - - lib64/jars/storm-sql-hdfs.jar ../sql/storm-sql-external/storm-sql-h
 file 444 - - lib64/jars/storm-sql-hdfs.pom ../sql/storm-sql-external/storm-sql-hdfs/pom.xml
 file 444 - - lib64/jars/storm-sql-kafka.jar ../sql/storm-sql-external/storm-sql-kafka/target/storm-sql-kafka-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-sql-kafka.pom ../sql/storm-sql-external/storm-sql-kafka/pom.xml
-file 444 - - lib64/jars/storm-sql-mongodb.jar ../sql/storm-sql-external/storm-sql-mongodb/target/storm-sql-mongodb-$(BASE_VERSION).jar
-file 444 - - lib64/jars/storm-sql-mongodb.pom ../sql/storm-sql-external/storm-sql-mongodb/pom.xml
 file 444 - - lib64/jars/storm-sql-redis.jar ../sql/storm-sql-external/storm-sql-redis/target/storm-sql-redis-$(BASE_VERSION).jar
 file 444 - - lib64/jars/storm-sql-redis.pom ../sql/storm-sql-external/storm-sql-redis/pom.xml
 
