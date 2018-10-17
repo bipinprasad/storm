@@ -856,7 +856,7 @@ public class BasicContainer extends Container {
 
         String workerDir = ConfigUtils.workerRoot(_conf, _workerId);
 
-        resourceIsolationManager.launchWorkerProcess(user, _workerId, commandList, topEnvironment,
+        resourceIsolationManager.launchWorkerProcess(user, _topologyId, _port, _workerId, commandList, topEnvironment,
             logPrefix, processExitCallback, new File(workerDir));
     }
 
