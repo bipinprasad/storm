@@ -7,9 +7,6 @@ shared:
     notifications:
         email: "storm-devel@oath.com"
     steps:
-        dist_force_push:
-            description: Push packages to dist
-            command: gmake dist_force_push
         git_tag:
             description: Git tag after successful release
             command: gmake git_tag
@@ -25,6 +22,6 @@ shared:
 
 jobs:
   component:
-    order: [environment, install-rpms, init, build, test, package, dist_force_push, git_tag]
+    order: [environment, install-rpms, init, build, test, package, publish, git_tag]
   pull-request:
     order: [environment, install-rpms, init, build, test, package]
