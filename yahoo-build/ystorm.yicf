@@ -114,7 +114,7 @@ file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/hadoop-auth-2.7.2.7.16042
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/hadoop-common-2.7.2.7.1604210306.jar ../external/storm-hdfs-blobstore/target/dependency/hadoop-common-2.7.2.7.1604210306.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/hadoop-hdfs-2.7.2.7.1604210306.jar ../external/storm-hdfs-blobstore/target/dependency/hadoop-hdfs-2.7.2.7.1604210306.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/htrace-core-3.1.0-incubating.jar ../external/storm-hdfs-blobstore/target/dependency/htrace-core-3.1.0-incubating.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/httpclient-4.3.3.jar ../external/storm-hdfs-blobstore/target/dependency/httpclient-4.3.3.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/httpclient-4.5.6.jar ../external/storm-hdfs-blobstore/target/dependency/httpclient-4.5.6.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/httpcore-4.1.2.jar ../external/storm-hdfs-blobstore/target/dependency/httpcore-4.1.2.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/jackson-core-asl-1.9.13.jar ../external/storm-hdfs-blobstore/target/dependency/jackson-core-asl-1.9.13.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/jackson-mapper-asl-1.9.13.jar ../external/storm-hdfs-blobstore/target/dependency/jackson-mapper-asl-1.9.13.jar
