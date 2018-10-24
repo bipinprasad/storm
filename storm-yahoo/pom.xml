@@ -203,18 +203,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.storm</groupId>
-      <artifactId>storm-core</artifactId>
-      <version>2.0.1.y</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>javax.servlet</groupId>
-          <artifactId>servlet-api</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>yahoo.yinst.yjava_jetty_core</groupId>
       <artifactId>yjava_jetty</artifactId>
       <version>9.2.1.v20140609_127</version>
@@ -285,6 +273,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
+      <version>4.3.3</version>
     </dependency>
       <dependency>
           <groupId>yahoo.yinst.ystorm_contrib</groupId>
