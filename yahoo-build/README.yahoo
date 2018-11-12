@@ -9,7 +9,7 @@ For example
 
 yinst set ystorm.nimbus_host host.corp.yahoo.com
 
-whould add the following line to storm.yaml
+would add the following line to storm.yaml
 
 nimbus.host: host.corp.yahoo.com
 
@@ -21,7 +21,7 @@ NOTE ABOUT SUPPORT:
 The ystorm yinst packages, ystorm and
 ystorm_{nimbus,drpc,supervisor,ui,logviewer,registry}, are intended primarily
 to be used by the storm team itself for running a hosted storm service inside
-of Yahoo, and as a maven dependency for teams that want to compile storm
+of Oath, and as a maven dependency for teams that want to compile storm
 topologies that run on this hosted service.  If you want to use ystorm for
 testing your code using ystorm_onabox, that is fine, but we do not officially
 support those setups.  We are generally nice people and if you are in a bind we
@@ -36,8 +36,8 @@ Be aware that by default the ystorm packages are NOT secure. This is to help
 facilitate testing, but please do NOT run any financial or PII data through a
 cluster you setup yourself.  The paranoids would not like it.  If you want
 information about how to secure your own clusters please look at
-http://twiki.corp.yahoo.com/view/Grid/MultiTenantStormSetup and
-http://twiki.corp.yahoo.com/view/Grid/StormRegistryService.  But just like with
+https://git.ouroath.com/pages/hadoop/docs/storm/security/index.html and
+https://git.ouroath.com/pages/hadoop/docs/storm/registry_service_api/index.html.  But just like with
 other clusters we do NOT officially support these setups and do not guarantee
 that we will announce when we push new security fixes, or be willing to back
 port them to older releases.

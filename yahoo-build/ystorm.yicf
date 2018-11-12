@@ -12,7 +12,7 @@ NO_AUTO_REQUIRES = yes
 
 SRCDIRS = ../
 
-CUSTODIAN = yahoo-storm-team@yahoo-inc.com http://twiki.corp.yahoo.com/view/Grid/StormDocumentation
+CUSTODIAN = storm-devel@oath.com https://git.ouroath.com/pages/hadoop/docs/storm/index.html
 YINST bug-product jira-ystorm
 
 YINST requires pkg python27              2.7.10.41   2.7.999999.999999
