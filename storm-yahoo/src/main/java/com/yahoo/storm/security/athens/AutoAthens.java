@@ -8,14 +8,16 @@ import javax.security.auth.Subject;
 
 import com.yahoo.auth.zts.ZTSClient;
 import com.yahoo.auth.zts.ZTSClientTokenCacher;
-
+import org.apache.storm.Config;
+import org.apache.storm.metric.api.IMetricsRegistrant;
+import org.apache.storm.task.TopologyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Automatically push Athens RoleTokens to worker processes.
  */
-public class AutoAthens implements IAutoCredentials {
+public class AutoAthens implements IAutoCredentials, IMetricsRegistrant {
     public static final String DEFAULT_TENANT_DOMAIN_CONF = "yahoo.athens.tenant.domain";
     public static final String DEFAULT_TENANT_SERVICE_CONF = "yahoo.athens.tenant.service";
     public static final String ROLES_CONF = "yahoo.athens.roles";
@@ -28,8 +30,10 @@ public class AutoAthens implements IAutoCredentials {
     private static final String ATHENS_TOKEN_PREFIX = "yahoo-athens_token_";
     private static final String ATHENS_ROLE_PREFIX = "yahoo-athens_role_";
     private static final String ATHENS_TRUST_PREFIX = "yahoo-athens_trust_";
+    private static final String ATHENS_EXPIRATION_PREFIX = "yahoo-athens_expiration_";
     private static final Logger LOG = LoggerFactory.getLogger(AutoAthens.class);
     private Map conf;
+    Map<String, String> credentials;
 
     @Override
     public void prepare(Map conf) {
@@ -38,6 +42,10 @@ public class AutoAthens implements IAutoCredentials {
 
     private static String asTokenKey(int num) {
         return ATHENS_TOKEN_PREFIX + num;
+    }
+
+    private static String asTokenExpirationKey(int num) {
+        return ATHENS_EXPIRATION_PREFIX + num;
     }
 
     private static String asRoleKey(int num) {
@@ -72,9 +80,11 @@ public class AutoAthens implements IAutoCredentials {
         }
 
         try (ZTSClient client = new ZTSClient(td, ts)) {
+            Long expirationTime = System.currentTimeMillis() + ONE_DAY_SECS * 1000L;
             String roleToken = client.getRoleToken(roleDomain, roleSuffix, trustDomain, ONE_DAY_SECS - 1, ONE_DAY_SECS, false).getToken();
             LOG.info("Fetched Athens RoleToken {}", roleToken);
             credentials.put(asTokenKey(confNum), roleToken);
+            credentials.put(asTokenExpirationKey(confNum), expirationTime.toString());
             if (roleSuffix != null) {
                 credentials.put(asRoleKey(confNum), roleSuffix);
             }
@@ -102,6 +112,7 @@ public class AutoAthens implements IAutoCredentials {
  
     @Override
     public void populateCredentials(Map<String, String> credentials) {
+        this.credentials = credentials;
         int confNum = 1;
         String defaultTenantDomain = (String)conf.get(DEFAULT_TENANT_DOMAIN_CONF);
         String defaultTenantService = (String)conf.get(DEFAULT_TENANT_SERVICE_CONF);
@@ -122,6 +133,7 @@ public class AutoAthens implements IAutoCredentials {
 
     @Override
     public void updateSubject(Subject subject, Map<String, String> credentials) {
+        this.credentials = credentials;
         populateSubject(subject, credentials);
     }
 
@@ -135,15 +147,48 @@ public class AutoAthens implements IAutoCredentials {
 
     @Override
     public void populateSubject(Subject subject, Map<String, String> credentials) {
-        for (Map.Entry<String, String> entry: credentials.entrySet()) {
-            String key = entry.getKey();
-            if (isAthensTokenKey(key)) {
-                int num = getAthensTokenKeyNum(key);
-                String roleName = credentials.get(asRoleKey(num)); //can be null
-                String trustDomain = credentials.get(asTrustKey(num)); //can be null
-                ZTSClientTokenCacher.setRoleToken(entry.getValue(), roleName, trustDomain);
+        if (credentials != null) {
+            this.credentials = credentials;
+            for (Map.Entry<String, String> entry: credentials.entrySet()) {
+                String key = entry.getKey();
+                if (isAthensTokenKey(key)) {
+                    int num = getAthensTokenKeyNum(key);
+                    String roleName = credentials.get(asRoleKey(num)); //can be null
+                    String trustDomain = credentials.get(asTrustKey(num)); //can be null
+                    ZTSClientTokenCacher.setRoleToken(entry.getValue(), roleName, trustDomain);
+                }
             }
         }
+    }
+
+    private static boolean isAthensExpirationKey(String key) {
+        return key.startsWith(ATHENS_EXPIRATION_PREFIX);
+    }
+
+    private Long getMsecsUntilExpiration() {
+        if (this.credentials == null) {
+            return null;
+        }
+        Long shortestExpirationTime = null;
+        for (Map.Entry<String, String> entry: credentials.entrySet()) {
+            if (isAthensExpirationKey(entry.getKey())) {
+                String expirationString = entry.getValue();
+                Long expirationTime = Long.parseLong(expirationString);
+                if (shortestExpirationTime == null || expirationTime < shortestExpirationTime) {
+                    shortestExpirationTime = expirationTime;
+                }
+            }
+        }
+        if (shortestExpirationTime != null) {
+            return shortestExpirationTime - System.currentTimeMillis();
+        }
+        return null;
+    }
+
+    @Override
+    public void registerMetrics(TopologyContext topoContext, Map<String, Object> topoConf) {
+        int bucketSize = ((Number) topoConf.get(Config.TOPOLOGY_BUILTIN_METRICS_BUCKET_SIZE_SECS)).intValue();
+        topoContext.registerMetric("Athens-TimeToExpiryMsecs", () -> getMsecsUntilExpiration(), bucketSize);
     }
 
     public static void main(String[] args) throws Exception {
