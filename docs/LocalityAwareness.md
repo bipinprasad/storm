@@ -23,7 +23,7 @@ The four scopes are:
 * `EVERYTHING`: every downstream executor of the executor`E`
 
 It starts with sending tuples to the downstream executors in the scope of `WORKER_LOCAL`. 
-The downstream executors in the scope are chosen randomly every time.
+The downstream executors in the scope are chosen based on their load. Executors with lower load are more likely to be chosen.
 Once the average load of these `WORKER_LOCAL` executors reaches `topology.localityaware.higher.bound` (defaults to 0.8), 
 it switches to the higher scope which is `HOST_LOCAL` and starts sending tuples in that scope. 
 And if the average load is still higher than the `higher bound`, it switches to a higher scope.
