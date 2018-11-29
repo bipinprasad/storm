@@ -17,9 +17,9 @@ It can also avoid serialization/deserialization overhead if the traffic happens 
 An executor (say `E`) which has LoadAwareShuffleGrouping to downstream executors views them in four `scopes` based on their locations relative to the executor `E` it self. 
 The four scopes are:
 
-* `WORKER_LOCAL`: every downstream executor that locates on the same worker as this executor `E`
-* `HOST_LOCAL`: every downstream executor that locates on the same host as this executor `E`
-* `RACK_LOCAL`: every downstream executor that locates on the same rack as this executor `E`
+* `WORKER_LOCAL`: every downstream executor located on the same worker as this executor `E`
+* `HOST_LOCAL`: every downstream executor located on the same host as this executor `E`
+* `RACK_LOCAL`: every downstream executor located on the same rack as this executor `E`
 * `EVERYTHING`: every downstream executor of the executor`E`
 
 It starts with sending tuples to the downstream executors in the scope of `WORKER_LOCAL`. 
@@ -40,7 +40,7 @@ The load of an downstream executor is the maximum of the following two:
 
 `pendingMessages`: The upstream executor `E` sends messages to the downstream executor through Netty and the `pendingMessages` is the number of messages that haven't got through to the server.
 
-If the downstream executor locates at the same worker as the executor `E`, the load of that downstream executor is:
+If the downstream executor located on the same worker as the executor `E`, the load of that downstream executor is:
 * The population percentage of the receive queue
 
 ### Relationship between Load and Capacity
@@ -68,7 +68,7 @@ The `Capacity` is not related to the `Load`:
 
 ### Troubleshooting
 
-#### I am seeing high capacity (close to 1.0) on some executors and low capacity (close to 0) on other executors?
+#### I am seeing high capacity (close to 1.0) on some executors and low capacity (close to 0) on other executors
 
 1. It could mean that you could reduce parallelism. Your executors are able to keep up and the load never gets to a very high point.
 
