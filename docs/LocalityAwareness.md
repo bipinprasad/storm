@@ -17,18 +17,18 @@ It can also avoid serialization/deserialization overhead if the traffic happens 
 An executor (say `E`) which has LoadAwareShuffleGrouping to downstream executors views them in four `scopes` based on their locations relative to the executor `E` it self. 
 The four scopes are:
 
-* `WORKER_LOCAL`: every downstream executor that locates at the same worker as this executor `E`
-* `HOST_LOCAL`: every downstream executor that locates at the same host as this executor `E`
-* `RACK_LOCAL`: every downstream executor that locates at the same rack as this executor `E`
+* `WORKER_LOCAL`: every downstream executor that locates on the same worker as this executor `E`
+* `HOST_LOCAL`: every downstream executor that locates on the same host as this executor `E`
+* `RACK_LOCAL`: every downstream executor that locates on the same rack as this executor `E`
 * `EVERYTHING`: every downstream executor of the executor`E`
 
 It starts with sending tuples to the downstream executors in the scope of `WORKER_LOCAL`. 
 The downstream executors in the scope are chosen based on their load. Executors with lower load are more likely to be chosen.
-Once the average load of these `WORKER_LOCAL` executors reaches `topology.localityaware.higher.bound` (defaults to 0.8), 
+Once the average load of these `WORKER_LOCAL` executors reaches `topology.localityaware.higher.bound`, 
 it switches to the higher scope which is `HOST_LOCAL` and starts sending tuples in that scope. 
 And if the average load is still higher than the `higher bound`, it switches to a higher scope.
 
-On the other hand, it switches to a lower scope if the average load of the current scope is lower than `topology.localityaware.lower.bound` (defaults to 0.2). 
+On the other hand, it switches to a lower scope if the average load of the current scope is lower than `topology.localityaware.lower.bound`. 
 
 
 ### How is Load calculated
@@ -38,7 +38,7 @@ The load of an downstream executor is the maximum of the following two:
 * The population percentage of the receive queue
 * Math.min(pendingMessages, 1024) / 1024. 
 
-`pendingMessages`: The upstream executor `E` sends messages to the downstream executor through Netty and the `pendingMessages` is the size of messages that haven't got through to the server.
+`pendingMessages`: The upstream executor `E` sends messages to the downstream executor through Netty and the `pendingMessages` is the number of messages that haven't got through to the server.
 
 If the downstream executor locates at the same worker as the executor `E`, the load of that downstream executor is:
 * The population percentage of the receive queue
@@ -53,34 +53,32 @@ It basically means how busy this executor is. If this is around 1.0, the corresp
 The `Capacity` is not related to the `Load`:
 
 * If the `Load` of the executor `E1` is high, 
-    * the `Capacity` of `E1` could be high: population of the receive queue of `E1` can be high and it means the executor `E` has more work to do.
-    * but it could also be low: `pendingMessage` can be high because other executors share the netty connection between the two workers and they are sending too many messages.
-    But the actual population of the receive queue of `E1` might be low.
+    * the `Capacity` of `E1` could be high: population of the receive queue of `E1` could be high and it means the executor `E` has more work to do.
+    * the `Capacity` could also be low: `pendingMessage` could be high because other executors share the netty connection between the two workers and they are sending too many messages. But the actual population of the receive queue of `E1` might be low.
 * If the `Load` is low,
     * the `Capacity` could be low: lower `Load` means less work to do. 
-    * but it could also be high: because the tuples could come into the receive queue at the similar speed in average as the executor executing the tuples.
+    * the `Capacity` could also be high: because the executor could be receiving tuples and executing tuples at the similar average rate.
 * If the `Capacity` is high,
-    * the `Load` could be high: high `Capacity` means the executor is busy. It could be because it's receiving too many tuples
-    * but it could also be low: because the tuples could come into the receive queue at the similar speed in average as the executor executing the tuples.
+    * the `Load` could be high: high `Capacity` means the executor is busy. It could be because it's receiving too many tuples.
+    * the `Load` could also be low: because the executor could be receiving tuples and executing tuples at the similar average rate.
 * If the `Capacity` is low,
     * the `Load` could be low: if the `pendingMessage` is low
-    * but it could also be high: because the `pendingMessage` might be very high
+    * the `Load` could also be high: because the `pendingMessage` might be very high.
 
 
-### Trouble Shooting
+### Troubleshooting
 
 #### I am seeing high capacity (close to 1.0) on some executors and low capacity (close to 0) on other executors?
 
-1. It could mean that you don't need that many parallelisms. Your executors are able to keep up and the load never gets to a very high point.
+1. It could mean that you could reduce parallelism. Your executors are able to keep up and the load never gets to a very high point.
 
 2. If an executor `E` has a few downstream executors at `WORKER_LOCAL` and a lot of downstream executors outside of the worker (e.g. `HOST_LOCAL`), 
 it's possible for it to switch between `WORKER_LOCAL` and `HOST_LOCAL` back and forth because the average load of `HOST_LOCAL` could be very small 
 while the average load of `WORKER_LOCAL` is high. This scenario applies to higher scopes too. In this case, you can try
-    * lower both `topology.localityaware.higher.bound` and `topology.localityaware.lower.bound` so the executors tend more to switch to
-a higher scope and less likely to fall back to a lower scope.
+    * lower both `topology.localityaware.higher.bound` and `topology.localityaware.lower.bound` so the executors tend more to switch to a higher scope and less likely to fall back to a lower scope.
     * set `experimental.topology.ras.order.executors.by.proximity.needs` to `true` (available since `ystorm-2.0.1.y.50`). 
 We are testing the feature that scheduling executors differently than the current implementation so that executors of upstream and downstream components are more likely to be scheduled together.
-This will help mitigate the above issue generally. Once it's verified in practice, it will be used by default and this config will be removed.
+This will help mitigate the above issue generally. Once it's verified in practice, it will be used by default and this config will be removed ([YSTORM-5697](https://jira.ouroath.com/browse/YSTORM-5697)). 
 
 
 #### I just want the capacity on every downstream executor to be even
