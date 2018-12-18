@@ -43,13 +43,13 @@ RELEASE: BASE_VERSION_UNDERSCORE
 	fi
 
 define setup-versions
-cd .. && ${MVN} -q -Pyahoo -Pexternals,examples versions:set -DnewVersion=$(MVN_FULL_VERSION) ${MVN_MAKE_OPTS} && \
+cd .. && ${MVN} -q -Pyahoo -Pexternals,examples -Pinclude-shaded-deps versions:set -DnewVersion=$(MVN_FULL_VERSION) ${MVN_MAKE_OPTS} && \
 	${MVN} -q -Pyahoo -Pexternals,examples versions:update-child-modules ${MVN_MAKE_OPTS}
 if [ -e ../storm-core/dependency-reduced-pom.xml ]; then sed -e 's/'"$(BASE_VERSION)"'/'"$(FULL_VERSION)"'/g' ../storm-core/dependency-reduced-pom.xml > storm-core-dependency-reduced-pom.xml; fi
 endef
 
 define revert-versions
-cd .. && ${MVN} -q -Pyahoo -Pexternals,examples versions:revert ${MVN_MAKE_OPTS} && \
+cd .. && ${MVN} -q -Pyahoo -Pexternals,examples -Pinclude-shaded-deps versions:revert ${MVN_MAKE_OPTS} && \
 	${MVN} -q -Pyahoo -Pexternals,examples versions:update-child-modules ${MVN_MAKE_OPTS}
 endef
 
