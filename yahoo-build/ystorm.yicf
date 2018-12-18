@@ -125,7 +125,7 @@ file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/jsr305-3.0.0.jar ../exter
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/leveldbjni-all-1.8.jar ../external/storm-hdfs-blobstore/target/dependency/leveldbjni-all-1.8.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/libthrift-0.11.0.jar ../external/storm-hdfs-blobstore/target/dependency/libthrift-0.11.0.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/netty-3.6.2.Final.jar ../external/storm-hdfs-blobstore/target/dependency/netty-3.6.2.Final.jar
-file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/netty-all-4.1.25.Final.jar ../external/storm-hdfs-blobstore/target/dependency/netty-all-4.1.25.Final.jar
+file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/netty-all-4.1.30.Final.jar ../external/storm-hdfs-blobstore/target/dependency/netty-all-4.1.30.Final.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/objenesis-2.1.jar ../external/storm-hdfs-blobstore/target/dependency/objenesis-2.1.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/paranamer-2.3.jar ../external/storm-hdfs-blobstore/target/dependency/paranamer-2.3.jar
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/protobuf-java-2.5.0.jar ../external/storm-hdfs-blobstore/target/dependency/protobuf-java-2.5.0.jar
