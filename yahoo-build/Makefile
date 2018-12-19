@@ -75,6 +75,7 @@ ignore-pom-changes:
 # publish phase
 package-sd: RELEASE build copy_webapp
 	$(setup-versions)
+	cd ../shaded-deps && $(MVN) install -DskipTests
 	cd .. && $(find-tracked-pom-xml)| xargs git update-index --assume-unchanged
 	yinst_create --buildtype release ystorm.yicf
 	cd .. && $(find-tracked-pom-xml) | xargs git update-index --no-assume-unchanged
