@@ -621,7 +621,8 @@ public class BasicContainer extends Container {
         if (numaId != null) {
             if (isOnLinux()) {
                 commandList.add(0, "numactl");
-                commandList.add(1, "--i=" + numaId);
+                commandList.add(1, "--cpunodebind=" + numaId);
+                commandList.add(2, "--membind=" + numaId);
                 return;
             } else {
                 // TODO : Add support for pinning on Windows host
