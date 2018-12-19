@@ -455,7 +455,8 @@ public class BasicContainerTest {
                     mc.workerCmds.clear();
                     assertListEquals(Arrays.asList(
                             "numactl",
-                            "--i=0",
+                            "--cpunodebind=0",
+                            "--membind=0",
                             "java",
                             "-cp",
                             "FRAMEWORK_CP:" + stormjar.getAbsolutePath(),
