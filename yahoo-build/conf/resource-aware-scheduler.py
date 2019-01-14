@@ -8,32 +8,32 @@ import os
 import json
 import types
 
-print """
+print("""
 # This configuration file is controlled by yinst set variables.
 # This is for the resource-aware-scheduler
 
-"""
+""")
 
 def to_yaml(data, indent):
     dt = type(data)
-    if dt is types.NoneType:
+    if dt is type(None):
         ret = "null"
-    elif dt is types.BooleanType:
+    elif dt is bool:
         if data:
             ret = "true"
         else:
             ret = "false"
-    elif dt in [types.IntType, types.LongType, types.FloatType]:
+    elif dt in [int, float]:
         ret = str(data)
-    elif dt in [types.StringType, types.UnicodeType]:
+    elif dt in [bytes, str]:
         ret = "\"" + data.replace("\\","\\\\").replace("\"","\\\"") + "\""
-    elif dt in [types.TupleType, types.ListType]:
+    elif dt in [tuple, list]:
         ret = "\n"
         for part in data:
             ret += "    " * indent + "- " + to_yaml(part, indent+1)+"\n"
-    elif dt is types.DictType:
+    elif dt is dict:
         ret = "\n"
-        for k in sorted(data.iterkeys()):
+        for k in sorted(data.keys()):
             v = data[k]
             ret += "    " * indent + k + ": "+ to_yaml(v, indent+1)+"\n"
     else:
@@ -42,7 +42,7 @@ def to_yaml(data, indent):
 
 user_resource_pool_key = "resource.aware.scheduler.user.pools"
 
-config = {k[8:].replace("_", ".") : v for k, v in os.environ.items() if k.startswith("ystorm__")}
+config = {k[8:].replace("_", ".") : v for k, v in list(os.environ.items()) if k.startswith("ystorm__")}
 
 resource_pool_json = config.get(user_resource_pool_key)
 if resource_pool_json:
@@ -50,13 +50,13 @@ if resource_pool_json:
     try:
         resource_pool = {user_resource_pool_key: json.loads(resource_pool_json)}
     except:
-        print "Error occurred in parsing config json!"
+        print("Error occurred in parsing config json!")
         raise
 
     yml = "";
     try:
         yml = to_yaml(resource_pool, 0)
     except:
-        print "Error occurred in converting to YAML!"
+        print("Error occurred in converting to YAML!")
         raise
     print (yml)

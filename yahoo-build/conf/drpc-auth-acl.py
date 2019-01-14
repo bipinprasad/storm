@@ -8,10 +8,10 @@
 import os
 import re
 
-print """
+print("""
 # This configuration file is controlled by yinst set variables.
 # This is for the DRPCSimpleAclAuthorizer
-"""
+""")
 
 CLIENT_KEY='client.users'
 INV_KEY='invocation.user'
@@ -20,7 +20,7 @@ drpc_acl_re = re.compile("^drpc.auth.acl.([^. ]+).")
 clients_re = re.compile("^drpc.auth.acl.[^. ]+."+CLIENT_KEY)
 invocation_re = re.compile("^drpc.auth.acl.[^. ]+."+INV_KEY)
 
-config = dict((k[8:].replace("_", "."), v) for k, v in os.environ.items() \
+config = dict((k[8:].replace("_", "."), v) for k, v in list(os.environ.items()) \
         if k.startswith("ystorm__drpc_auth_acl_"))
 
 qq_string = re.compile("^\".*\"$")
@@ -42,12 +42,12 @@ def handleClientsKey(v,norm_fn):
 
 def groupSettingsByFunction(config):
     toRet = {}
-    for k, v in config.items():
+    for k, v in list(config.items()):
         function = get_function_from_key(k)
         if not function:
             continue
 
-        if function not in toRet.keys():
+        if function not in list(toRet.keys()):
             toRet[function] = {}
         if clients_re.match(k):
             toRet[function][CLIENT_KEY] = \
@@ -55,21 +55,21 @@ def groupSettingsByFunction(config):
         elif invocation_re.match(k):
             toRet[function][INV_KEY] = double_quote_if_needed(v)
         else:
-            print "# SKIPPED unknown key %s=%s"%(k,v)
+            print("# SKIPPED unknown key %s=%s"%(k,v))
 
     return toRet
 
 def printConfig(map):
-    print 'drpc.authorizer.acl:'
-    for func in map.keys():
+    print('drpc.authorizer.acl:')
+    for func in list(map.keys()):
         if CLIENT_KEY in map[func] or INV_KEY in map[func]:
-            print '  %s:'%func
+            print('  %s:'%func)
             if CLIENT_KEY in map[func]:
-                print '    %s:'%CLIENT_KEY
+                print('    %s:'%CLIENT_KEY)
                 for user in map[func][CLIENT_KEY]:
-                    print '      -', user
+                    print('      -', user)
             if INV_KEY in map[func]:
-                print '    %s:'%INV_KEY, map[func][INV_KEY]
+                print('    %s:'%INV_KEY, map[func][INV_KEY])
 
 map = groupSettingsByFunction(config)
 printConfig(map)
