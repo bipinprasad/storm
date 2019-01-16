@@ -453,16 +453,18 @@ public class BasicContainerTest {
 
         LocalState ls = mock(LocalState.class);
 
+        MockResourceIsolationManager iso = new MockResourceIsolationManager();
+
         checkpoint(() -> {
                     MockBasicContainer mc = new MockBasicContainer(ContainerType.LAUNCH, superConf,
-                            "SUPERVISOR", supervisorPort, port, la, null, ls, workerId, new StormMetricsRegistry(),
+                            "SUPERVISOR", supervisorPort, port, la, iso, ls, workerId, new StormMetricsRegistry(),
                             new HashMap<>(), ops, "profile");
 
                     mc.launch();
 
-                    assertEquals(1, mc.workerCmds.size());
-                    CommandRun cmd = mc.workerCmds.get(0);
-                    mc.workerCmds.clear();
+                    assertEquals(1, iso.workerCmds.size());
+                    CommandRun cmd = iso.workerCmds.get(0);
+                    iso.workerCmds.clear();
                     assertListEquals(Arrays.asList(
                             "numactl",
                             "--cpunodebind=0",
