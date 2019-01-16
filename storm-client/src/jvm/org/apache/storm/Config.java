@@ -1067,7 +1067,7 @@ public class Config extends HashMap<String, Object> {
      *  "0": { "numa.memory.mb": 122880, "numa.cores": [ 0, 12, 1, 13, 2, 14, 3, 15, 4, 16, 5, 17],
      *      "numa.ports": [6700, 6701]},
      *  "1" : {"numa.memory.mb": 122880, "numa.cores": [ 6, 18, 7, 19, 8, 20, 9, 21, 10, 22, 11, 23],
-     *      "numa.ports": [6702, 6703]}
+     *      "numa.ports": [6702, 6703], "numa.generic.resources.map": {"gpu.count" : 1}}
      *  }
      */
     @isMapEntryCustom(

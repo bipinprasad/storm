@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +34,7 @@ import org.apache.storm.validation.ConfigValidationAnnotations.ValidatorParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.storm.utils.Utils.NUMA_GENERIC_RESOURCES_MAP;
 import static org.apache.storm.utils.Utils.NUMA_PORTS;
 import static org.apache.storm.utils.Utils.NUMA_CORES;
 import static org.apache.storm.utils.Utils.NUMA_MEMORY_IN_MB;
@@ -442,7 +444,13 @@ public class ConfigValidation {
                         "Duplicate cores in NUMA config"
                 );
             }
-
+            try {
+                Map<String, Double> numaGenericResources = (Map<String, Double>) numa.getOrDefault(NUMA_GENERIC_RESOURCES_MAP, Collections.EMPTY_MAP);
+            } catch (Exception e) {
+                throw new IllegalArgumentException(
+                        "Invalid generic resources in NUMA config"
+                );
+            }
         }
     }
 

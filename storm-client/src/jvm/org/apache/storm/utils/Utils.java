@@ -125,6 +125,7 @@ public class Utils {
     public static final String NUMA_MEMORY_IN_MB = "numa.memory.mb";
     public static final String NUMA_CORES = "numa.cores";
     public static final String NUMA_PORTS = "numa.ports";
+    public static final String NUMA_GENERIC_RESOURCES_MAP = "numa.generic.resources.map";
 
     static {
         localConf = readStormConfig();

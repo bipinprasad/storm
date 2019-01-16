@@ -106,7 +106,7 @@ public class SupervisorHeartbeat implements Runnable {
             }
         }
 
-        if (!totalSupervisorNormalizedResources.areAnyZeroOrLess() && !allPortList.isEmpty()) {
+        if (totalSupervisorNormalizedResources.getTotalCpu() > 0 && totalSupervisorNormalizedResources.getTotalMemoryMb() > 0 && !allPortList.isEmpty()) {
             SupervisorInfo supervisorInfo = new SupervisorInfo();
             supervisorInfo.set_time_secs(Time.currentTimeSecs());
             supervisorInfo.set_hostname(supervisor.getHostName());
@@ -133,6 +133,7 @@ public class SupervisorHeartbeat implements Runnable {
                 Config.SUPERVISOR_MEMORY_CAPACITY_MB,
                 Double.valueOf((Integer) numaMap.get(Utils.NUMA_MEMORY_IN_MB))
         );
+        ret.putAll((Map<String, Double>) numaMap.getOrDefault(Utils.NUMA_GENERIC_RESOURCES_MAP, Collections.emptyMap()));
         return NormalizedResources.RESOURCE_NAME_NORMALIZER.normalizedResourceMap(ret);
     }
 
