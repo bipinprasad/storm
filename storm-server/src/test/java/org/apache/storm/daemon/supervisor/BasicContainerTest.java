@@ -429,6 +429,9 @@ public class BasicContainerTest {
         numaNode.put(Utils.NUMA_CORES, Collections.singletonList("0"));
         numaNode.put(Utils.NUMA_PORTS, Collections.singletonList(8080));
         numaNode.put(Utils.NUMA_MEMORY_IN_MB, 2048);
+        Map<String, Double> numaGenericResources = new HashMap();
+        numaGenericResources.put("gpu.count", 1.0);
+        numaNode.put(Utils.NUMA_GENERIC_RESOURCES_MAP, numaGenericResources);
         Map numaMap = new HashMap();
         numaMap.put("0", numaNode);
 
