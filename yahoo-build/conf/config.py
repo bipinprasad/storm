@@ -10,7 +10,7 @@ import re
 import json
 import types
 
-print """
+print("""
 # This configuration file is controlled by yinst set variables.
 # Example:
 # $ yinst set ystorm.storm_zookeeper_servers=server1,server2
@@ -36,7 +36,7 @@ print """
 #     - "server2"
 #
 
-"""
+""")
 
 remappedKeys = {"storm.messaging.netty.buffer.size":"storm.messaging.netty.buffer_size",
                 "storm.messaging.netty.max.retries":"storm.messaging.netty.max_retries",
@@ -69,30 +69,30 @@ allStringKeys = set(["ui.filter.params", "logviewer.filter.params","drpc.http.fi
 ignoredKeys = set(["min.user.pid", "storm.zookeeper.auth.payload", "storm.cluster.user", "worker.launcher.group",
  "multitenant.scheduler.user.pools", "resource.aware.scheduler.user.pools"])
 
-config = dict((k[8:].replace("_", "."), v) for k, v in os.environ.items() \
+config = dict((k[8:].replace("_", "."), v) for k, v in list(os.environ.items()) \
         if k.startswith("ystorm__") \
         and not k.startswith("ystorm__drpc_auth_acl"))
 
 def toYml(data, indent):
     dt = type(data)
-    if dt is types.NoneType:
+    if dt is type(None):
         ret = "null"
-    elif dt is types.BooleanType:
+    elif dt is bool:
         if data:
             ret = "true"
         else:
             ret = "false"
-    elif dt is types.IntType or dt is types.LongType or dt is types.FloatType:
+    elif dt is int or dt is float:
         ret = str(data)
-    elif dt is types.StringType or dt is types.UnicodeType:
+    elif dt is bytes or dt is str:
         ret = "\"" + data.replace("\\","\\\\").replace("\"","\\\"") + "\""
-    elif dt is types.TupleType or dt is types.ListType:
+    elif dt is tuple or dt is list:
         ret = "\n"
         for part in data:
             ret += "    " * indent + "- " + toYml(part, indent+1)+"\n"
-    elif dt is types.DictType:
+    elif dt is dict:
         ret = "\n"
-        for k in sorted(data.iterkeys()):
+        for k in sorted(data.keys()):
             v = data[k]
             ret += "    " * indent + k + ": "+ toYml(v, indent+1)+"\n"
     else:
@@ -116,7 +116,7 @@ def splitListValue(v):
     return re.split("[,\s]", v)
 
 result = {}
-for k, v in config.items():
+for k, v in list(config.items()):
     if k in ignoredKeys:
         continue
 
@@ -129,16 +129,16 @@ for k, v in config.items():
 for listKey in listKeys: 
     if listKey in result:
         val = result[listKey]
-        if type(val) in types.StringTypes:
+        if type(val) == str:
             val = splitListValue(val)
             if not listKey in allStringKeys:
-                val = map(parseValue, val)
+                val = list(map(parseValue, val))
             result[listKey] = val
 
 for mapKey in mapKeys:
     if mapKey in result:
         val = result[mapKey]
-        if type(val) in types.StringTypes:
+        if type(val) == str:
             items = splitListValue(val)
             val = {}
             for subkey,subval in zip(items[0::2], items[1::2]):
@@ -157,4 +157,4 @@ if "java.library.path" not in result:
     elif "yjava_jdk__platform" in os.environ:
         result["java.library.path"] = getJavaLibPath(os.environ["yjava_jdk__platform"])
 
-print toYml(result, 0)
+print(toYml(result, 0))

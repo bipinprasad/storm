@@ -8,11 +8,11 @@
 import os
 import re
 
-print """
+print("""
 # This configuration file is controlled by yinst set variables.
 # This is for the multitenant-scheduler 
 
-"""
+""")
 whitelistKeys = set(["multitenant.scheduler.user.pools"])
 
 remappedKeys = {}
@@ -22,7 +22,7 @@ mapKeys = set(["multitenant.scheduler.user.pools"])
 
 allStringKeys = set([])
 
-config = dict((k[8:].replace("_", "."), v) for k, v in os.environ.items() if k.startswith("ystorm__"))
+config = dict((k[8:].replace("_", "."), v) for k, v in list(os.environ.items()) if k.startswith("ystorm__"))
 
 qq_string = re.compile("^\".*\"$")
 numeric = re.compile("^[0-9\.]+$")
@@ -48,32 +48,32 @@ def splitListValue(v):
 def handleListKey(k,v,norm_fn):
     if k == "supervisor.slots.ports":
 #        print "in elif 1"
-        print k + ":"
+        print(k + ":")
         numPorts = os.environ["ystorm__supervisor_slots_ports"]
 #        print "***** got numPorts", numPorts
         for num in range(0, int(numPorts)):
             portValue = 6700 + num
-            print "    -", portValue
+            print("    -", portValue)
 
     elif k == "worker.childopts":
 #        print "in elif 2"
         v_without_quotes = norm_fn(v)
-        print k + ":", "\"", v, "\""
+        print(k + ":", "\"", v, "\"")
 
     else:
 #        print "in else"
-        print k + ":"
+        print(k + ":")
         for item in splitListValue(v):
-            print "    -", norm_fn(item)
+            print("    -", norm_fn(item))
 
 def handleMapKey(k,v,norm_fn):
-    print k + ":"
+    print(k + ":")
     items = splitListValue(v)
     for subkey,subval in zip(items[0::2],items[1::2]):
-        print "    %s: %s" % (norm_fn(subkey),norm_fn(subval))
+        print("    %s: %s" % (norm_fn(subkey),norm_fn(subval)))
 
 
-for k, v in config.items():
+for k, v in list(config.items()):
 #    print "___________Processing: ", k,v
     if not k in whitelistKeys:
         continue
@@ -87,7 +87,7 @@ for k, v in config.items():
 
     if k not in listKeys and k not in mapKeys:
 #        print "k not in listkeys"
-        print k + ":", my_normalize(v)
+        print(k + ":", my_normalize(v))
     if k in listKeys:
         handleListKey(k,v,my_normalize)
     elif k in mapKeys:
