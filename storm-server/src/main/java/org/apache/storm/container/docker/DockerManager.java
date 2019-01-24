@@ -433,6 +433,7 @@ public class DockerManager implements ResourceIsolationInterface {
         try (BufferedWriter out = new BufferedWriter(new FileWriter(scriptPath))) {
             out.write(command);
         }
+        LOG.debug("command : {}; location: {}", command, scriptPath);
         return scriptPath;
     }
 
