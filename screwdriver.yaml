@@ -26,5 +26,11 @@ shared:
 jobs:
   component:
     order: [environment, install-rpms, init, build, test, package, dist_force_push, git_tag]
+    plugins:
+      resource:
+        high
   pull-request:
     order: [environment, install-rpms, init, build, test, package]
+    plugins:
+      resource:
+        high
