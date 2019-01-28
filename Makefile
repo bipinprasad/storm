@@ -41,7 +41,7 @@ package-release:
 	cp yahoo-build/*tgz ${AUTO_PUBLISH_DIR}
 
 dist_force_push:
-    for packages in ${AUTO_PUBLISH_DIR}/*.tgz; do \
+	for packages in ${AUTO_PUBLISH_DIR}/*.tgz; do \
 		/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-6.x $$packages; \
 		/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-7.x $$packages; \
 	done
