@@ -1153,13 +1153,6 @@ public class DaemonConfig implements Validated {
     public static String STORM_DOCKER_READONLY_BINDMOUNTS = "storm.docker.readonly.bindmounts";
 
     /**
-     * The root of cgroup for docker to use. On RHEL7, it should be "/sys/fs/cgroup".
-     */
-    @isString
-    @NotNull
-    public static String STORM_DOCKER_CGROUP_ROOT = "storm.docker.cgroup.root";
-
-    /**
      * --cgroup-parent config for docker command. Must follow the constraints of the docker command.
      * Additionally, '-' is not allowed in the name since it makes the cgroup hierarchy unnecessarily complicated.
      */

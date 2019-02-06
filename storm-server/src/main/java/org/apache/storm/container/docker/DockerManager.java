@@ -109,7 +109,7 @@ public class DockerManager implements ResourceIsolationInterface {
             throw new IllegalArgumentException(DaemonConfig.STORM_DOCKER_CGROUP_PARENT + " cannot contain any '-' symbol");
         }
 
-        cgroupRootPath = ObjectReader.getString(conf.get(DaemonConfig.STORM_DOCKER_CGROUP_ROOT));
+        cgroupRootPath = ObjectReader.getString(conf.get(Config.STORM_DOCKER_CGROUP_ROOT));
         cgroupSubPathTemplate = ObjectReader.getString(conf.get(DaemonConfig.STORM_DOCKER_CGROUP_SUB_PATH_TEMPLATE));
 
         int lastIndex = cgroupSubPathTemplate.lastIndexOf(File.separator);
