@@ -40,7 +40,7 @@ run --name=06f8ddbd-88d8-454a-acf1-f9d1f3e6baec \
 -v /home/y/var/storm/workers-users/06f8ddbd-88d8-454a-acf1-f9d1f3e6baec:/home/y/var/storm/workers-users/06f8ddbd-88d8-454a-acf1-f9d1f3e6baec \
 -v /var/run/nscd:/var/run/nscd \
 -v /home/y/var/storm/supervisor/stormdist/wc-1-1539979318/shared_by_topology/tmp:/tmp \
---cgroup-parent=storm.slice \
+--cgroup-parent=/storm \
 --group-add 1003 \
 --workdir=/home/y/var/storm/workers/06f8ddbd-88d8-454a-acf1-f9d1f3e6baec \
 --cidfile=/home/y/var/storm/workers/06f8ddbd-88d8-454a-acf1-f9d1f3e6baec/container.cid \
@@ -66,13 +66,14 @@ To make supervisor work with docker, you need to configure related settings corr
 | `storm.docker.image`                      | The default docker image to be used if user doesn't specify which image to use. And it must belong to the `storm.docker.allowed.images` 
 | `supervisor.worker.launcher`              | Full path to the worker-launcher executable. Details explained at [How to set up worker-launcher](#how-to-set-up-worker-launcher)
 | `storm.docker.cgroup.root`                | The root path of cgroup for docker to use. On RHEL7, it should be "/sys/fs/cgroup".
-| `storm.docker.cgroup.parent`              | --cgroup-parent config for docker command. It must follow the constraints of docker commands. Additionally, '-' is not allowed in the name since it makes the cgroup hierarchy unnecessarily complicated.
-| `storm.docker.cgroup.sub.path.template`   | The template for cgroup sub path. Details explained at [How to configure cgroup related settings](#how-to-configure-cgroup-related-settings)
+| `storm.docker.cgroup.parent`              | --cgroup-parent config for docker command. It must follow the constraints of docker commands. The path will be made as absolute path if it's a relative path because we saw some weird bugs when a relative path is used.
 | `storm.docker.readonly.bindmounts`        | A list of read only bind mounted directories.
 | `storm.docker.nscd.dir`                   | The directory of nscd (name service cache daemon), e.g. "/var/run/nscd/". nscd must be running so that profiling can work properly.
 | `storm.docker.seccomp.profile`            | White listed syscalls seccomp Json file to be used as a seccomp filter
 | `storm.local.dir`                         | This is not a new config and it's not specific to docker support. But it must not be under `STORM_HOME` directory because of the way how we bind mount directories. 
 | `storm.workers.artifacts.dir`             | This is not a new config and it's not specific to docker support. But it must not be under `STORM_HOME` directory because of the way how we bind mount directories. 
+
+Note that we only support cgroupfs cgroup driver because of some issues with `systemd` cgroup driver; restricting to `cgroupfs` also makes cgroup paths simpler. Please make sure to use `cgroupfs` before setting up docker support.
 
 ### How to set up worker-launcher
 
@@ -95,29 +96,3 @@ nsenter.binary=/usr/bin/nsenter
 and you don't need to set them in the worker-launcher.cfg unless you need to change them.
 
 
-### How to configure cgroup related settings
-
-We let docker handle cgroup by itself. But we need to know the cgroup path for memory (or maybe other subsystems in the future) so that we can inspect the memory usage of the worker and the memory limit of the system. 
-Depending on whether `docker` or `podman` is used as the binary, whether `cgroupfs` or `systemd` is used as the `cgroupdriver` (`cgroup_manager` in podman), whether the `--cgroup-parent` is an absolute or relative path, 
-the cgroup path for memory (or other subsytems) is different. You need to configure `storm.docker.cgroup.sub.path.template` properly. Here are some possible cases and it's up to storm admins to configure correct template for cgroup path.
-
-|binary | cgroupdriver     |cgroup-parent path    |template                                     |
-|-------|------------------|----------------------|---------------------------------------------|
-|docker | cgroupfs         |absolute              |  "/%CG-PARENT%/docker-%CONTAINER-ID%.scope" |
-|docker | cgroupfs         |relative              |  "/%CG-PARENT%/%CONTAINER-ID%"              |
-|podman | systemd          |absolute or relative  |  "/%CG-PARENT%/libpod-%CONTAINER-ID%.scope" |
-|podman | cgroupfs         |absolute or relative  |  "/%CG-PARENT%/libpod-%CONTAINER-ID%"       |
-
-`%CG-PARENT%` will be replaced with the value of `storm.docker.cgroup.parent`.
-`%CONTAINER-ID%` will be replaced with the container id; and it must be in and only in the deepest level of this sub-path.
-
-You also need to configure `storm.docker.cgroup.root` and `storm.docker.cgroup.parent` properly. So the full cgroup path for memory would be like:
-`{storm.docker.cgroup.root}`/memory/`{storm.docker.cgroup.sub.path.template}` with values being replaced;
-and the full cgroup path for cpu would be like:
-`{storm.docker.cgroup.root}`/cpu/`{storm.docker.cgroup.sub.path.template}` with values being replaced.
-
-
-## Podman
-Podman implements almost all the Docker CLI commands. Technically they are interchangeable and replacing `docker` with `podman` in the commands will just work. 
-To use podman instead of docker, set `docker.binary` in `worker-launcher.cfg` to the full path of podman executable.
-However, we haven't really tested it in storm so please use it with caution. Or better not to use it until it's fully tested.

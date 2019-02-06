@@ -58,8 +58,6 @@ public class DockerManager implements ResourceIsolationInterface {
     private String cgroupParent;
     private String memoryCgroupRootPath;
     private String cgroupRootPath;
-    private String cgroupSubPathTemplate;
-    private String cgroupChildDirTemplate;
     private String nscdPath;
     private Map<String, Object> conf;
     private Map<String, Integer> workerToCpu = new HashMap<>();
@@ -70,9 +68,6 @@ public class DockerManager implements ResourceIsolationInterface {
     private String stormHome;
     private static final String TMP_DIR = File.separator + "tmp";
     private List<String> readonlyBindmounts;
-
-    private static final String CONTAINER_ID_TEMPLATE = "%CONTAINER-ID%";
-    private static final String CG_PARENT_TEMPLATE = "%CG-PARENT%";
 
     @Override
     public void prepare(Map<String, Object> conf) throws IOException {
@@ -105,24 +100,14 @@ public class DockerManager implements ResourceIsolationInterface {
 
         seccompJsonFile = (String) conf.get(DaemonConfig.STORM_DOCKER_SECCOMP_PROFILE);
         cgroupParent = ObjectReader.getString(conf.get(DaemonConfig.STORM_DOCKER_CGROUP_PARENT));
-        if (cgroupParent.contains("-")) {
-            throw new IllegalArgumentException(DaemonConfig.STORM_DOCKER_CGROUP_PARENT + " cannot contain any '-' symbol");
+
+        if (!cgroupParent.startsWith(File.separator)) {
+            cgroupParent = File.separator + cgroupParent;
+            LOG.warn("{} is not an absolute path. Changing it to be absolute: {}", DaemonConfig.STORM_DOCKER_CGROUP_PARENT, cgroupParent);
         }
 
         cgroupRootPath = ObjectReader.getString(conf.get(Config.STORM_DOCKER_CGROUP_ROOT));
-        cgroupSubPathTemplate = ObjectReader.getString(conf.get(DaemonConfig.STORM_DOCKER_CGROUP_SUB_PATH_TEMPLATE));
-
-        int lastIndex = cgroupSubPathTemplate.lastIndexOf(File.separator);
-        if (lastIndex <= 0) {
-            throw new IllegalArgumentException(DaemonConfig.STORM_DOCKER_CGROUP_SUB_PATH_TEMPLATE + " is not configured properly");
-        }
-        memoryCgroupRootPath = cgroupRootPath + File.separator + "memory" + File.separator
-            + cgroupSubPathTemplate.substring(0, lastIndex).replace(CG_PARENT_TEMPLATE, cgroupParent);
-        cgroupChildDirTemplate = cgroupSubPathTemplate.substring(lastIndex);
-        if (!cgroupChildDirTemplate.contains(CONTAINER_ID_TEMPLATE)) {
-            throw new IllegalArgumentException(DaemonConfig.STORM_DOCKER_CGROUP_SUB_PATH_TEMPLATE + " is not configured properly");
-        }
-
+        memoryCgroupRootPath = cgroupRootPath + File.separator + "memory" + File.separator + cgroupParent;
         memoryCoreAtRoot = new MemoryCore(memoryCgroupRootPath);
 
         nscdPath = ObjectReader.getString(conf.get(DaemonConfig.STORM_DOCKER_NSCD_DIR));
@@ -316,7 +301,7 @@ public class DockerManager implements ResourceIsolationInterface {
 
     @Override
     public long getMemoryUsage(String user, String workerId) throws IOException {
-        String memoryCgroupPath = containerCgroupPath(memoryCgroupRootPath, getCID(workerId));
+        String memoryCgroupPath = memoryCgroupRootPath + File.separator + getCID(workerId);
         MemoryCore memoryCore = new MemoryCore(memoryCgroupPath);
         return memoryCore.getPhysicalUsage();
     }
@@ -435,14 +420,6 @@ public class DockerManager implements ResourceIsolationInterface {
         }
         LOG.debug("command : {}; location: {}", command, scriptPath);
         return scriptPath;
-    }
-
-    private Map<String, String> cidToChidDir = new HashMap<>();
-    private String containerCgroupPath(String dir, String cid) {
-        if (!cidToChidDir.containsKey(cid)) {
-            cidToChidDir.put(cid, cgroupChildDirTemplate.replace(CONTAINER_ID_TEMPLATE, cid));
-        }
-        return dir + cidToChidDir.get(cid);
     }
 
     /**
