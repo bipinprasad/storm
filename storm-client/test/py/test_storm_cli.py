@@ -16,8 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest import TestCase, main as test_main
-import mock
+from unittest import TestCase, main as test_main, mock
 import sys
 import os
 
