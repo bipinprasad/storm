@@ -8,9 +8,10 @@ documentation: true
 
 This page describes how storm supervisor launches the worker in a docker container. 
 
-### Motivation
+## Motivation
 
-This is mostly about security. With workers running inside of docker containers, we isolate running user code from each other and from the hosted machine so that the whole system is less vulnerable to attack.
+This is mostly about security and portability. With workers running inside of docker containers, we isolate running user code from each other and from the hosted machine so that the whole system is less vulnerable to attack. 
+It also allows users to run their topologies on different os versions using different docker images.
 
 ## Implementation
 
@@ -21,7 +22,7 @@ One container Id is mapped to one worker Id conceptually. When the worker proces
 For security, when the supervisor launches the docker container, it makes the whole container read-only except some explicit bind mount locations.
 It also drops all the kernel capabilities and disables container processes from gaining new privileges. 
 
-Because of no new privileges is obtainable, `jstack` and other java debugging tools cannot be used directly in the container. 
+Because no new privileges are obtainable, `jstack` and other java debugging tools cannot be used directly in the container. 
 We need to install `nscd` and have it running in the system. Storm will bind mount nscd directory when it launches the container. 
 And `nsenter` will be used to enter the docker container to run the standard JVM debugging tools. This functionality is also implemented in `worker-launcher` executable.
 
@@ -39,6 +40,7 @@ run --name=06f8ddbd-88d8-454a-acf1-f9d1f3e6baec \
 -v /home/y/var/storm/workers-artifacts/wc-1-1539979318/6700:/home/y/var/storm/workers-artifacts/wc-1-1539979318/6700 \
 -v /home/y/var/storm/workers-users/06f8ddbd-88d8-454a-acf1-f9d1f3e6baec:/home/y/var/storm/workers-users/06f8ddbd-88d8-454a-acf1-f9d1f3e6baec \
 -v /var/run/nscd:/var/run/nscd \
+-v /etc:/etc:ro \
 -v /home/y/var/storm/supervisor/stormdist/wc-1-1539979318/shared_by_topology/tmp:/tmp \
 --cgroup-parent=/storm \
 --group-add 1003 \
@@ -64,7 +66,6 @@ To make supervisor work with docker, you need to configure related settings corr
 | `storm.resource.isolation.plugin`         | set to `"org.apache.storm.container.docker.DockerManager"` to enable docker support                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `storm.docker.allowed.images`             | A whitelist of docker images that can be used. Users can only choose a docker image from the list.
 | `storm.docker.image`                      | The default docker image to be used if user doesn't specify which image to use. And it must belong to the `storm.docker.allowed.images` 
-| `supervisor.worker.launcher`              | Full path to the worker-launcher executable. Details explained at [How to set up worker-launcher](#how-to-set-up-worker-launcher)
 | `storm.docker.cgroup.root`                | The root path of cgroup for docker to use. On RHEL7, it should be "/sys/fs/cgroup".
 | `storm.docker.cgroup.parent`              | --cgroup-parent config for docker command. It must follow the constraints of docker commands. The path will be made as absolute path if it's a relative path because we saw some weird bugs ((the cgroup memory directory disappears after a while) when a relative path is used.
 | `storm.docker.readonly.bindmounts`        | A list of read only bind mounted directories.
@@ -72,8 +73,28 @@ To make supervisor work with docker, you need to configure related settings corr
 | `storm.docker.seccomp.profile`            | White listed syscalls seccomp Json file to be used as a seccomp filter
 | `storm.local.dir`                         | This is not a new config and it's not specific to docker support. But it must not be under `STORM_HOME` directory because of the way how we bind mount directories. 
 | `storm.workers.artifacts.dir`             | This is not a new config and it's not specific to docker support. But it must not be under `STORM_HOME` directory because of the way how we bind mount directories. 
+| `supervisor.worker.launcher`              | Full path to the worker-launcher executable. Details explained at [How to set up worker-launcher](#how-to-set-up-worker-launcher)
 
 Note that we only support cgroupfs cgroup driver because of some issues with `systemd` cgroup driver; restricting to `cgroupfs` also makes cgroup paths simpler. Please make sure to use `cgroupfs` before setting up docker support.
+
+#### Example
+
+Below is a simple configuration example for storm on Rhel7. In this example, storm is deployed at `/usr/share/apache-storm-2.0.0`.
+
+```bash
+storm.resource.isolation.plugin.enable: true
+storm.resource.isolation.plugin: "org.apache.storm.container.docker.DockerManager"
+storm.docker.allowed.images: ["xxx.xxx.com:8080/storm/docker_images/rhel6:latest"]
+storm.docker.image: "xxx.xxx.com:8080/storm/docker_images/rhel6:latest"
+storm.docker.cgroup.parent: "/storm"
+storm.docker.cgroup.parent: "/sys/fs/cgroup/"
+storm.docker.readonly.bindmounts:
+    - "/etc"
+storm.docker.nscd.dir: "/var/run/nscd"
+storm.local.dir: "/home/y/var/storm"
+storm.workers.artifacts.dir: "/home/y/var/storm/workers-artifacts"
+supervisor.worker.launcher: "/usr/share/apache-storm-2.0.0/bin/worker-launcher"
+```
 
 ### How to set up worker-launcher
 
@@ -95,4 +116,18 @@ nsenter.binary=/usr/bin/nsenter
 ```
 and you don't need to set them in the worker-launcher.cfg unless you need to change them.
 
+## Monitoring
 
+You can use docker commands like `docker inspect`, `docker ps`, etc to monitor the docker containers. 
+
+Also in the `storm.yaml` file, you can add the following configs
+
+```bash
+worker.metrics:
+   "CGroupMemory": "org.apache.storm.metric.docker.DockerMemoryUsage"
+   "CGroupMemoryLimit": "org.apache.storm.metric.docker.DockerMemoryLimit"
+   "CGroupCpu": "org.apache.storm.metric.docker.DockerCpu"
+   "CGroupCpuGuarantee": "org.apache.storm.metric.docker.DockerCpuGuarantee"
+```
+
+so that the cpu/memory metrics per worker will be reported.
