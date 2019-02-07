@@ -66,7 +66,7 @@ To make supervisor work with docker, you need to configure related settings corr
 | `storm.docker.image`                      | The default docker image to be used if user doesn't specify which image to use. And it must belong to the `storm.docker.allowed.images` 
 | `supervisor.worker.launcher`              | Full path to the worker-launcher executable. Details explained at [How to set up worker-launcher](#how-to-set-up-worker-launcher)
 | `storm.docker.cgroup.root`                | The root path of cgroup for docker to use. On RHEL7, it should be "/sys/fs/cgroup".
-| `storm.docker.cgroup.parent`              | --cgroup-parent config for docker command. It must follow the constraints of docker commands. The path will be made as absolute path if it's a relative path because we saw some weird bugs when a relative path is used.
+| `storm.docker.cgroup.parent`              | --cgroup-parent config for docker command. It must follow the constraints of docker commands. The path will be made as absolute path if it's a relative path because we saw some weird bugs ((the cgroup memory directory disappears after a while) when a relative path is used.
 | `storm.docker.readonly.bindmounts`        | A list of read only bind mounted directories.
 | `storm.docker.nscd.dir`                   | The directory of nscd (name service cache daemon), e.g. "/var/run/nscd/". nscd must be running so that profiling can work properly.
 | `storm.docker.seccomp.profile`            | White listed syscalls seccomp Json file to be used as a seccomp filter

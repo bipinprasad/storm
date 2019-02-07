@@ -1154,7 +1154,8 @@ public class DaemonConfig implements Validated {
 
     /**
      * --cgroup-parent config for docker command. Must follow the constraints of the docker command.
-     * The path will be made as absolute path if it's a relative path because we saw some weird bugs when a relative path is used.
+     * The path will be made as absolute path if it's a relative path
+     * because we saw some weird bugs (the cgroup memory directory disappears after a while) when a relative path is used.
      * Note that we only support cgroupfs cgroup driver because of some issues with systemd; restricting to `cgroupfs`
      * also makes cgroup paths simple.
      */
