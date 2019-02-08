@@ -3,4 +3,4 @@ add yinst package yjava_jdk            	1.8.0_131.262
 add yinst package yjava_maven           3.0.5_105
 add yinst package yjava_yca             
 add yinst package ynodejs10_core        0.10.42.0.28
-
+add yinst package python36
