@@ -837,6 +837,8 @@ char* sanitize_docker_command(const char *line) {
     {"format", required_argument, 0, 'f' }, //belongs to docker-inspect command
     {"force", no_argument, 0, 'F' }, //belongs to docker-rm command
     {"time", required_argument, 0, 'T' }, //belongs to docker-stop command
+    {"filter", required_argument, 0, 'l'}, //belongs to docker-ps command
+    {"quiet", required_argument, 0, 'q'}, //belongs to docker-ps command
     {0, 0, 0, 0}
   };
 
@@ -983,6 +985,16 @@ char* sanitize_docker_command(const char *line) {
         break;
       case 'T':
         strcat(output, "--time=");
+        strcat(output, optarg);
+        strcat(output, " ");
+        break;
+      case 'l':
+        strcat(output, "--filter=");
+        strcat(output, optarg);
+        strcat(output, " ");
+        break;
+      case 'q':
+        strcat(output, "--quiet=");
         strcat(output, optarg);
         strcat(output, " ");
         break;

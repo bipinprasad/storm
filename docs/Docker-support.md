@@ -16,8 +16,8 @@ It also allows users to run their topologies on different os versions using diff
 ## Implementation
 
 The implementation is pretty easy to understand. Essentially, `DockerManager` composes a docker-run command and uses `worker-launcher` executable to execute the command 
-to launch a container. The `storm-worker-script.sh` script to run when executing the container is the actual command to launch the worker process and logviewer in the container.
-One container Id is mapped to one worker Id conceptually. When the worker process dies, the container exits. 
+to launch a container. The `storm-worker-script.sh` script is the actual command to launch the worker process and logviewer in the container.
+One container ID is mapped to one worker ID conceptually. When the worker process dies, the container exits. 
 
 For security, when the supervisor launches the docker container, it makes the whole container read-only except some explicit bind mount locations.
 It also drops all the kernel capabilities and disables container processes from gaining new privileges. 
@@ -34,6 +34,7 @@ run --name=06f8ddbd-88d8-454a-acf1-f9d1f3e6baec \
 --net=host \
 --read-only \
 -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+-v /home/y:/home/y:ro \
 -v /usr/share/apache-storm-2.0.0:/usr/share/apache-storm-2.0.0:ro \
 -v /home/y/var/storm/supervisor:/home/y/var/storm/supervisor:ro \
 -v /home/y/var/storm/workers/06f8ddbd-88d8-454a-acf1-f9d1f3e6baec:/home/y/var/storm/workers/06f8ddbd-88d8-454a-acf1-f9d1f3e6baec \
@@ -88,6 +89,7 @@ storm.docker.cgroup.root: "/storm"
 storm.docker.cgroup.parent: "/sys/fs/cgroup"
 storm.docker.readonly.bindmounts:
     - "/etc"
+    - "/home/y"
 storm.docker.nscd.dir: "/var/run/nscd"
 supervisor.worker.launcher: "/usr/share/apache-storm-2.0.0/bin/worker-launcher"
 ```

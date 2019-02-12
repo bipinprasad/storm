@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.storm.Config;
 import org.apache.storm.DaemonConfig;
@@ -332,8 +333,8 @@ public class DockerManager implements ResourceIsolationInterface {
 
     /**
      * Currently it only checks if the container is alive.
-     * If the worker process inside the container die, the container will exit.
-     * So we only need to check if the container is alive to know if the worker process is still alive.
+     * If the worker process inside the container dies, the container will exit.
+     * So we only need to check if the container is running to know if the worker process is still alive.
      *
      * @param user     the user of the processes
      * @param workerId the id of the worker to kill
@@ -343,12 +344,44 @@ public class DockerManager implements ResourceIsolationInterface {
     @Override
     public boolean areAllProcessesDead(String user, String workerId) throws IOException {
         String workerDir = ConfigUtils.workerRoot(conf, workerId);
-        DockerInspectCommand dockerInspectCommand = new DockerInspectCommand(workerId);
-        dockerInspectCommand.withGettingContainerStatus();
+        DockerPsCommand dockerPsCommand = new DockerPsCommand();
+        dockerPsCommand.withNameFilter(workerId);
+        dockerPsCommand.withQuietOption();
 
-        int exitCode = runDockerCommandWaitFor(conf, user, CmdType.RUN_DOCKER_CMD, dockerInspectCommand.getCommandWithArguments(),
+        String command = dockerPsCommand.getCommandWithArguments();
+
+        Process p = runDockerCommand(conf, user, CmdType.RUN_DOCKER_CMD, command,
             null, null, null, new File(workerDir));
-        return exitCode != 0;
+
+        try {
+            p.waitFor();
+        } catch (InterruptedException e) {
+            LOG.error("running docker command is interrupted", e);
+        }
+
+        if (p.exitValue() != 0) {
+            String errorMessage = "The exitValue of the docker command [" + command + "] is non-zero: " + p.exitValue();
+            LOG.error(errorMessage);
+            throw new IOException(errorMessage);
+        }
+
+        String output = IOUtils.toString(p.getInputStream(), Charset.forName("UTF-8"));
+        LOG.debug("The output of the docker command [{}] is: [{}]; the exitValue is {}", command, output, p.exitValue());
+        //The output might include some things else
+        //The real output of the docker-ps command is either empty or the container's short ID
+        output = output.trim();
+        String[] lines = output.split("\n");
+        if (lines.length == 0) {
+            //output is empty, the container is not running
+            return true;
+        }
+        String lastLine = lines[lines.length - 1].trim();
+        if (lastLine.isEmpty()) {
+            return true;
+        }
+
+        String containerId = getCID(workerId);
+        return !containerId.startsWith(lastLine);
     }
 
     @Override
@@ -365,9 +398,9 @@ public class DockerManager implements ResourceIsolationInterface {
      * @param env the environment to run the command
      * @param logPrefix the prefix to include in the logs
      * @param targetDir the working directory to run the command in
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
+     * @return true if the command succeeds, false otherwise.
+     * @throws IOException on I/O exception
+     * @throws InterruptedException if interrupted
      */
     @Override
     public boolean runProfilingCommand(String user, String workerId, List<String> command, Map<String, String> env,
