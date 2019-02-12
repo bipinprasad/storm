@@ -213,7 +213,7 @@ public class StormApiResource {
     }
 
     /**
-     * /api/v1/supervisor/summary -> topo history.
+     * /api/v1/supervisor/summary -> supervisor summary.
      */
     @GET
     @Path("/supervisor/summary")
@@ -225,6 +225,27 @@ public class StormApiResource {
         try (NimbusClient nimbusClient = NimbusClient.getConfiguredClient(config)) {
             return UIHelpers.makeStandardResponse(
                     UIHelpers.getSupervisorSummary(
+                            nimbusClient.getClient().getClusterInfo().get_supervisors(),
+                            securityContext, config
+                    ),
+                    callback
+            );
+        }
+    }
+
+    /**
+     * /api/v1/host/summary -> host summary.
+     */
+    @GET
+    @Path("/host/summary")
+    @AuthNimbusOp("getClusterInfo")
+    @Produces("application/json")
+    public Response getHostSummary(@Context SecurityContext securityContext,
+                                         @QueryParam(callbackParameterName) String callback) throws TException {
+        supervisorSummaryRequestMeter.mark();
+        try (NimbusClient nimbusClient = NimbusClient.getConfiguredClient(config)) {
+            return UIHelpers.makeStandardResponse(
+                    UIHelpers.getHostsSummary(
                             nimbusClient.getClient().getClusterInfo().get_supervisors(),
                             securityContext, config
                     ),

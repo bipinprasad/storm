@@ -25,6 +25,11 @@
       </th>
       <th>
         <span data-toggle="tooltip" data-placement="top" title="The number of nodes in the cluster currently.">
+          Hosts
+        </span>
+      </th>
+      <th>
+        <span data-toggle="tooltip" data-placement="top" title="The number of nodes in the cluster currently.">
           Supervisors
         </span>
       </th>
@@ -79,6 +84,7 @@
           </div>
           {{/alternativeWorkerVersions}}
       </td>
+      <td>{{hosts}}</td>
       <td>{{supervisors}}</td>
       <td>{{slotsUsed}}</td>
       <td>{{slotsFree}}</td>
@@ -356,11 +362,6 @@
         </span>
       </th>
       <th>
-        <span data-toggle="tooltip" data-placement="top" title="A unique identifier given to a Supervisor when it joins the cluster.">
-          Id
-        </span>
-      </th>
-      <th>
         <span data-toggle="tooltip" data-placement="top" title="The length of time a Supervisor has been registered to the cluster.">
           Uptime
         </span>
@@ -422,10 +423,9 @@
     </tr>
   </thead>
   <tbody>
-    {{#supervisors}}
+    {{#hosts}}
     <tr>
       <td><a href="/supervisor.html?host={{host}}">{{host}}</a> (<a href="{{logLink}}" title="View log">log</a>)</td>
-      <td><a href="/supervisor.html?id={{id}}">{{id}}</a></td>
       <td>{{uptime}}</td>
       <td>{{slotsTotal}}</td>
       <td>{{slotsUsed}}</td>
@@ -442,7 +442,7 @@
       {{/schedulerDisplayResource}}
       <td>{{version}}</td>
     </tr>
-    {{/supervisors}}
+    {{/hosts}}
   </tbody>
 </table>
 </script>
