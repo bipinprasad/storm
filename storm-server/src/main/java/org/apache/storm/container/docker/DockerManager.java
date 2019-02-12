@@ -114,35 +114,6 @@ public class DockerManager implements ResourceIsolationInterface {
         readonlyBindmounts = ObjectReader.getStrings(conf.get(DaemonConfig.STORM_DOCKER_READONLY_BINDMOUNTS));
 
         stormHome = System.getProperty(ConfigUtils.STORM_HOME);
-        // Since we are bind mounting STORM_HOME as readonly, read-write bind mounts can't be under STORM_HOME
-        if (isSubDirectory(ConfigUtils.workerRoot(conf), stormHome)
-            || isSubDirectory(ConfigUtils.workerArtifactsRoot(conf), stormHome)
-            || isSubDirectory(ConfigUtils.workerUserRoot(conf), stormHome)) {
-            throw new IllegalArgumentException(Config.STORM_LOCAL_DIR
-                + " or " + Config.STORM_WORKERS_ARTIFACTS_DIR
-                + " can't be a subdirectory of " + ConfigUtils.STORM_HOME);
-        }
-
-        //TMP_DIR will be bindmounted as readwrite. stormHome will be bindmounted as read-only
-        //So stormHome shouldn't be a subdirectory of TMP_DIR
-        if (isSubDirectory(stormHome, TMP_DIR)) {
-            throw new IllegalArgumentException(ConfigUtils.STORM_HOME
-                + " can't be a subdirectory of " + TMP_DIR);
-        }
-    }
-
-    //check if childDir is a subdirectory of baseDir
-    private boolean isSubDirectory(String childDir, String baseDir) throws IOException {
-        File child = new File(childDir).getCanonicalFile();
-        File base = new File(baseDir).getCanonicalFile();
-        File parentFile = child;
-        while (parentFile != null) {
-            if (base.equals(parentFile)) {
-                return true;
-            }
-            parentFile = parentFile.getParentFile();
-        }
-        return false;
     }
 
     @Override
