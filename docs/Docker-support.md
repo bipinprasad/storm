@@ -71,8 +71,6 @@ To make supervisor work with docker, you need to configure related settings corr
 | `storm.docker.readonly.bindmounts`        | A list of read only bind mounted directories.
 | `storm.docker.nscd.dir`                   | The directory of nscd (name service cache daemon), e.g. "/var/run/nscd/". nscd must be running so that profiling can work properly.
 | `storm.docker.seccomp.profile`            | White listed syscalls seccomp Json file to be used as a seccomp filter
-| `storm.local.dir`                         | This is not a new config and it's not specific to docker support. But it must not be under `STORM_HOME` directory because of the way how we bind mount directories. 
-| `storm.workers.artifacts.dir`             | This is not a new config and it's not specific to docker support. But it must not be under `STORM_HOME` directory because of the way how we bind mount directories. 
 | `supervisor.worker.launcher`              | Full path to the worker-launcher executable. Details explained at [How to set up worker-launcher](#how-to-set-up-worker-launcher)
 
 Note that we only support cgroupfs cgroup driver because of some issues with `systemd` cgroup driver; restricting to `cgroupfs` also makes cgroup paths simpler. Please make sure to use `cgroupfs` before setting up docker support.
@@ -86,13 +84,11 @@ storm.resource.isolation.plugin.enable: true
 storm.resource.isolation.plugin: "org.apache.storm.container.docker.DockerManager"
 storm.docker.allowed.images: ["xxx.xxx.com:8080/storm/docker_images/rhel6:latest"]
 storm.docker.image: "xxx.xxx.com:8080/storm/docker_images/rhel6:latest"
-storm.docker.cgroup.parent: "/storm"
-storm.docker.cgroup.parent: "/sys/fs/cgroup/"
+storm.docker.cgroup.root: "/storm"
+storm.docker.cgroup.parent: "/sys/fs/cgroup"
 storm.docker.readonly.bindmounts:
     - "/etc"
 storm.docker.nscd.dir: "/var/run/nscd"
-storm.local.dir: "/home/y/var/storm"
-storm.workers.artifacts.dir: "/home/y/var/storm/workers-artifacts"
 supervisor.worker.launcher: "/usr/share/apache-storm-2.0.0/bin/worker-launcher"
 ```
 
