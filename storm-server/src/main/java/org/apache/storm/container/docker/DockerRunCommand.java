@@ -294,7 +294,7 @@ public class DockerRunCommand extends DockerCommand {
      */
     public DockerRunCommand setCpuShares(int cpuShares) {
         // Zero sets to default of 1024.  2 is the minimum value otherwise
-        if (cpuShares < 2) {
+        if (cpuShares > 0 && cpuShares < 2) {
             cpuShares = 2;
         }
         super.addCommandArguments("--cpu-shares=" + String.valueOf(cpuShares));
