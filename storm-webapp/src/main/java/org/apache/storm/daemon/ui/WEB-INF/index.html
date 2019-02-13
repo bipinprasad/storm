@@ -74,7 +74,7 @@
   </div>
   <div class="row">
     <div class="col-md-12">
-      <h2>Supervisor Summary</h2>
+      <h2>Host Summary</h2>
       <div id="supervisor-summary"></div>
     </div>
   </div>
@@ -207,7 +207,7 @@ $(document).ready(function() {
                 });
             });
 
-            $.getJSON("/api/v1/supervisor/summary",function(response,status,jqXHR) {
+            $.getJSON("/api/v1/host/summary",function(response,status,jqXHR) {
                 jsError(function() {
                     supervisorSummary.append(Mustache.render($(indexTemplate).filter("#supervisor-summary-template").html(),response));
                     //id, host, uptime, slots, used slots

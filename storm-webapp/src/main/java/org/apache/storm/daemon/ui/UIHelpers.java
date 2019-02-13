@@ -557,7 +557,9 @@ public class UIHelpers {
         int totalSlots =
             supervisorSummaries.stream().mapToInt(
                 SupervisorSummary::get_num_workers).sum();
-
+        Set<String> hosts = supervisorSummaries.stream().map(
+                SupervisorSummary::get_host
+        ).collect(Collectors.toSet());
         int totalTasks =
             topologySummaries.stream().mapToInt(
                 TopologySummary::get_num_tasks).sum();
@@ -603,6 +605,7 @@ public class UIHelpers {
         result.put("stormVersion", VersionInfo.getVersion());
         result.put("stormVersionInfo", MEMORIZED_FULL_VERSION.get());
         result.put("supervisors", supervisorSummaries.size());
+        result.put("hosts", hosts.size());
         result.put("topologies", clusterSummary.get_topologies_size());
         result.put("slotsUsed", usedSlots);
         result.put("slotsTotal", totalSlots);
@@ -620,8 +623,10 @@ public class UIHelpers {
         double supervisorUsedCpu =
             supervisorSummaries.stream().mapToDouble(SupervisorSummary::get_used_cpu).sum();
         result.put("availCpu", supervisorTotalCpu - supervisorUsedCpu);
-        result.put("fragmentedMem", supervisorSummaries.stream().mapToDouble(SupervisorSummary::get_fragmented_mem).sum());
-        result.put("fragmentedCpu", supervisorSummaries.stream().mapToDouble(SupervisorSummary::get_fragmented_cpu).sum());
+        result.put("fragmentedMem",
+                supervisorSummaries.stream().mapToDouble(SupervisorSummary::get_fragmented_mem).sum());
+        result.put("fragmentedCpu",
+                supervisorSummaries.stream().mapToDouble(SupervisorSummary::get_fragmented_cpu).sum());
         result.put("schedulerDisplayResource",
                 conf.get(DaemonConfig.SCHEDULER_DISPLAY_RESOURCE));
         result.put("memAssignedPercentUtil", supervisorTotalMemory > 0
@@ -1011,6 +1016,27 @@ public class UIHelpers {
     }
 
     /**
+     * getHostsSummary.
+     * @param supervisors supervisor summary list.
+     * @param securityContext security context injected.
+     * @param config Storm config.
+     * @return Prettified JSON.
+     */
+    public static Map<String, Object> getHostsSummary(
+            List<SupervisorSummary> supervisors,
+            SecurityContext securityContext, Map<String, Object> config) {
+        Map<String, Object> result = new HashMap();
+        addLogviewerInfo(config, result);
+        List<Map> supervisorMaps = getHostsMap(supervisors, config);
+        result.put("hosts", supervisorMaps);
+        result.put("schedulerDisplayResource",
+                config.get(DaemonConfig.SCHEDULER_DISPLAY_RESOURCE)
+        );
+
+        return result;
+    }
+
+    /**
      * getSupervisorsMap.
      * @param supervisors supervisors
      * @param config config
@@ -1023,6 +1049,77 @@ public class UIHelpers {
             supervisorMaps.add(getPrettifiedSupervisorMap(supervisorSummary, config));
         }
         return supervisorMaps;
+    }
+
+    private static void addSupervisorMapTo(Map totalSupervisorMap,
+                                           Map otherSupervisor) {
+        totalSupervisorMap.put(
+                "slotsTotal",
+                (Integer) totalSupervisorMap.get("slotsTotal") + (Integer) otherSupervisor.get("slotsTotal")
+        );
+
+        totalSupervisorMap.put(
+                "slotsUsed",
+                (Integer) totalSupervisorMap.get("slotsUsed") + (Integer) otherSupervisor.get("slotsUsed")
+        );
+
+        totalSupervisorMap.put(
+                "slotsFree",
+                (Integer) totalSupervisorMap.get("slotsFree") + (Integer) otherSupervisor.get("slotsFree")
+        );
+
+        totalSupervisorMap.put(
+                "totalMem",
+                (Double) totalSupervisorMap.get("totalMem") + (Double) otherSupervisor.get("totalMem")
+        );
+
+        totalSupervisorMap.put(
+                "totalCpu",
+                (Double) totalSupervisorMap.get("totalCpu") + (Double) otherSupervisor.get("totalCpu")
+        );
+
+        totalSupervisorMap.put(
+                "usedMem",
+                (Double) totalSupervisorMap.get("usedMem") + (Double) otherSupervisor.get("usedMem")
+        );
+
+        totalSupervisorMap.put(
+                "usedCpu",
+                (Double) totalSupervisorMap.get("usedCpu") + (Double) otherSupervisor.get("usedCpu")
+        );
+
+        totalSupervisorMap.put(
+                "availMem",
+                (Double) totalSupervisorMap.get("availMem") + (Double) otherSupervisor.get("availMem")
+        );
+
+        totalSupervisorMap.put(
+                "availCpu",
+                (Double) totalSupervisorMap.get("availCpu") + (Double) otherSupervisor.get("availCpu")
+        );
+    }
+
+    /**
+     * getHostsMap.
+     * @param supervisors supervisors
+     * @param config config
+     * @return getHostsMap
+     */
+    private static List<Map> getHostsMap(List<SupervisorSummary> supervisors,
+                                         Map<String, Object> config) {
+        Map<String, Object> hostsMap = new HashMap();
+        for (SupervisorSummary supervisorSummary : supervisors) {
+            Map<String, Object> supervisorMap = getPrettifiedSupervisorMap(supervisorSummary, config);
+            if (hostsMap.containsKey(supervisorMap.get("host"))) {
+                Map existingSupervisorMap =
+                        (Map<String, Object>) hostsMap.get(supervisorMap.get("host"));
+                addSupervisorMapTo(existingSupervisorMap, supervisorMap);
+                hostsMap.put((String) supervisorMap.get("host"), existingSupervisorMap);
+            } else {
+                hostsMap.put((String) supervisorMap.get("host"), supervisorMap);
+            }
+        }
+        return new ArrayList(hostsMap.values());
     }
 
     /**
@@ -1105,7 +1202,8 @@ public class UIHelpers {
      * @return getTopologySummary
      */
     public static Map<String, Object> getTopologySummary(TopologyPageInfo topologyPageInfo,
-                                                         String window, Map<String, Object> config, String remoteUser) {
+                                                         String window, Map<String, Object> config,
+                                                         String remoteUser) {
         Map<String, Object> result = new HashMap();
         Map<String, Object> topologyConf = (Map<String, Object>) JSONValue.parse(topologyPageInfo.get_topology_conf());
         long messageTimeout = (long) topologyConf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS);
@@ -1510,7 +1608,8 @@ public class UIHelpers {
      * @param config config
      * @return unpackTopologyInfo
      */
-    private static Map<String,Object> unpackTopologyInfo(TopologyPageInfo topologyPageInfo, String window, Map<String,Object> config) {
+    private static Map<String,Object> unpackTopologyInfo(TopologyPageInfo topologyPageInfo,
+                                                         String window, Map<String,Object> config) {
         Map<String, Object> result = new HashMap();
         result.put("id", topologyPageInfo.get_id());
         result.put("encodedId", URLEncoder.encode(topologyPageInfo.get_id()));
@@ -1616,7 +1715,8 @@ public class UIHelpers {
      * @param config config
      * @return getTopologyLag.
      */
-    public static Map<String, Map<String, Object>> getTopologyLag(StormTopology userTopology, Map<String,Object> config) {
+    public static Map<String, Map<String, Object>> getTopologyLag(StormTopology userTopology,
+                                                                  Map<String,Object> config) {
         return TopologySpoutLag.lag(userTopology, config);
     }
 
@@ -1633,7 +1733,8 @@ public class UIHelpers {
         for (ExecutorSummary executorSummary : executorSummaries) {
             if (StatsUtil.componentType(stormTopology, executorSummary.get_component_id()).equals("bolt")
                     && (sys || !Utils.isSystemId(executorSummary.get_component_id()))) {
-                List<ExecutorSummary> executorSummaryList = result.getOrDefault(executorSummary.get_component_id(), new ArrayList());
+                List<ExecutorSummary> executorSummaryList =
+                        result.getOrDefault(executorSummary.get_component_id(), new ArrayList());
                 executorSummaryList.add(executorSummary);
                 result.put(executorSummary.get_component_id(), executorSummaryList);
             }
@@ -1652,7 +1753,8 @@ public class UIHelpers {
         Map<String, List<ExecutorSummary>> result = new HashMap();
         for (ExecutorSummary executorSummary : executorSummaries) {
             if (StatsUtil.componentType(stormTopology, executorSummary.get_component_id()).equals("spout")) {
-                List<ExecutorSummary> executorSummaryList = result.getOrDefault(executorSummary.get_component_id(), new ArrayList());
+                List<ExecutorSummary> executorSummaryList =
+                        result.getOrDefault(executorSummary.get_component_id(), new ArrayList());
                 executorSummaryList.add(executorSummary);
                 result.put(executorSummary.get_component_id(), executorSummaryList);
             }
@@ -1741,8 +1843,10 @@ public class UIHelpers {
         getInfoOptions.set_num_err_choice(NumErrorsChoice.ONE);
         TopologyInfo topologyInfo = client.getTopologyInfoWithOpts(topoId, getInfoOptions);
         StormTopology stormTopology = client.getTopology(topoId);
-        Map<String, List<ExecutorSummary>> boltSummaries = getBoltExecutors(topologyInfo.get_executors(), stormTopology, sys);
-        Map<String, List<ExecutorSummary>> spoutSummaries = getSpoutExecutors(topologyInfo.get_executors(), stormTopology);
+        Map<String, List<ExecutorSummary>> boltSummaries =
+                getBoltExecutors(topologyInfo.get_executors(), stormTopology, sys);
+        Map<String, List<ExecutorSummary>> spoutSummaries =
+                getSpoutExecutors(topologyInfo.get_executors(), stormTopology);
 
         Map<String, SpoutSpec> spoutSpecs = stormTopology.get_spouts();
         Map<String, Bolt> boltSpecs = stormTopology.get_bolts();
@@ -1833,7 +1937,8 @@ public class UIHelpers {
             throws TException {
         Map<String, Object> result = new HashMap();
         Map<String, Object> visualizationData = getVisualizationData(client, window, id, sys);
-        List<Map> streamBoxes = visualizationData.entrySet().stream().map(UIHelpers::getStreamBox).collect(Collectors.toList());
+        List<Map> streamBoxes =
+                visualizationData.entrySet().stream().map(UIHelpers::getStreamBox).collect(Collectors.toList());
         result.put("visualizationTable", Lists.partition(streamBoxes, 4));
         return result;
     }
@@ -1867,10 +1972,13 @@ public class UIHelpers {
      * @return getActiveProfileActions
      * @throws TException TException
      */
-    public static List getActiveProfileActions(Nimbus.Iface client, String id, String component, Map config) throws TException {
+    public static List getActiveProfileActions(Nimbus.Iface client,
+                                               String id, String component, Map config) throws TException {
         List<ProfileRequest> profileRequests =
                 client.getComponentPendingProfileActions(id, component, ProfileAction.JPROFILE_STOP);
-        return profileRequests.stream().map(x -> UIHelpers.getActiveAction(x, config, id)).collect(Collectors.toList());
+        return profileRequests.stream().map(
+                x -> UIHelpers.getActiveAction(x, config, id)).collect(Collectors.toList()
+        );
     }
 
     /**
@@ -2023,7 +2131,9 @@ public class UIHelpers {
         result.put("window", window);
         result.put("componentType", componentPageInfo.get_component_type().toString().toLowerCase());
         result.put("windowHint", getWindowHint(window));
-        result.put("debug", componentPageInfo.is_set_debug_options() && componentPageInfo.get_debug_options().is_enable());
+        result.put(
+                "debug", componentPageInfo.is_set_debug_options() && componentPageInfo.get_debug_options().is_enable()
+        );
         double samplingPct = 10;
         if (componentPageInfo.is_set_debug_options()) {
             samplingPct = componentPageInfo.get_debug_options().get_samplingpct();
@@ -2155,7 +2265,8 @@ public class UIHelpers {
      * @return putTopologyKill
      * @throws TException TException
      */
-    public static Map<String, Object> putTopologyKill(Nimbus.Iface client, String id, String waitTime) throws TException {
+    public static Map<String, Object> putTopologyKill(Nimbus.Iface client,
+                                                      String id, String waitTime) throws TException {
         GetInfoOptions getInfoOptions = new GetInfoOptions();
         getInfoOptions.set_num_err_choice(NumErrorsChoice.NONE);
         TopologyInfo topologyInfo = client.getTopologyInfoWithOpts(id, getInfoOptions);
@@ -2326,7 +2437,8 @@ public class UIHelpers {
      * @throws TException TException
      */
     public static Map<String, Object> putTopologyLogLevel(Nimbus.Iface client,
-                                                          Map<String, Map> namedLogLevel, String id) throws TException {
+                                                          Map<String, Map> namedLogLevel,
+                                                          String id) throws TException {
         Map<String, Map> namedLoggerlevels = namedLogLevel;
         for (Map.Entry<String, Map> entry : namedLoggerlevels.entrySet()) {
             String loggerNMame = entry.getKey();
