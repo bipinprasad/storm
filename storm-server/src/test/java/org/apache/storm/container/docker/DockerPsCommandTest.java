@@ -23,7 +23,7 @@ public class DockerPsCommandTest {
     public void getCommandWithArguments() {
         dockerPsCommand.withNameFilter("container_name");
         dockerPsCommand.withQuietOption();
-        assertEquals("ps --filter=\"name=container_name\" --quiet=true",
+        assertEquals("ps --filter=name=container_name --quiet=true",
             dockerPsCommand.getCommandWithArguments());
     }
 }
