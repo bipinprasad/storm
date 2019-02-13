@@ -300,6 +300,11 @@ char ** get_values(const char * key) {
 
 /**
  * Extracts array of values from the delim separated list of values.
+ * A sequence of two or more contiguous delimiter bytes in the parsed string
+ * is considered to be a single delimiter, and that delimiter bytes at the
+ * start or end of the string are ignored.
+ * For example, extract_values_delim("aaa;;bbb,", ";,") would
+ * return the strings "aaa" and "bbb", and then a NULL pointer.
  */
 char ** extract_values_delim(char *value, const char *delim) {
   char ** toPass = NULL;
