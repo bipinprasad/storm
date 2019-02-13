@@ -27,7 +27,7 @@ public class DockerRunCommand extends DockerCommand {
     private static final Logger LOG = LoggerFactory.getLogger(DockerRunCommand.class);
     private static final String RUN_COMMAND = "run";
     private final String image;
-    private List<String> overrrideCommandWithArgs;
+    private List<String> overrideCommandWithArgs;
 
     /**
      * The Construction function.
@@ -255,7 +255,7 @@ public class DockerRunCommand extends DockerCommand {
      */
     public DockerRunCommand setOverrideCommandWithArgs(
         List<String> overrideCommandWithArgs) {
-        this.overrrideCommandWithArgs = overrideCommandWithArgs;
+        this.overrideCommandWithArgs = overrideCommandWithArgs;
         return this;
     }
 
@@ -342,8 +342,8 @@ public class DockerRunCommand extends DockerCommand {
         argList.add(super.getCommandWithArguments());
         argList.add(image);
 
-        if (overrrideCommandWithArgs != null) {
-            argList.addAll(overrrideCommandWithArgs);
+        if (overrideCommandWithArgs != null) {
+            argList.addAll(overrideCommandWithArgs);
         }
 
         return StringUtils.join(argList, " ");
