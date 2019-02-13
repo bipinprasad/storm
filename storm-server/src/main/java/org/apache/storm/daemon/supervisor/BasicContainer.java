@@ -158,10 +158,10 @@ public class BasicContainer extends Container {
         }
 
         if (resourceIsolationManager instanceof DockerManager) {
-            //When we use DockerManager, we will only use the profiler configured in worker-launcher.cfg for security
-            LOG.warn("Supervisor is using DockerManager as the ResourceIsolationInterface. "
+            //When we use DockerManager, we will only use the profiler configured in worker-launcher.cfg due to security reasons
+            LOG.debug("Supervisor is using {} as the {}."
                 + "The profiler set at worker.profiler.script.path in worker-launcher.cfg is the only profiler to be used. "
-                + "Please make sure it is configured properly");
+                + "Please make sure it is configured properly", DockerManager.class.getName(), ResourceIsolationInterface.class.getName());
             _profileCmd = "";
         } else {
             if (profileCmd == null) {

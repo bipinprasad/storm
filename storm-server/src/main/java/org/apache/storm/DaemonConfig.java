@@ -21,6 +21,7 @@ package org.apache.storm;
 import java.util.ArrayList;
 import java.util.Map;
 import org.apache.storm.container.ResourceIsolationInterface;
+import org.apache.storm.container.docker.DockerManager;
 import org.apache.storm.nimbus.ITopologyActionNotifierPlugin;
 import org.apache.storm.scheduler.blacklist.reporters.IReporter;
 import org.apache.storm.scheduler.blacklist.strategies.IBlacklistStrategy;
@@ -821,6 +822,7 @@ public class DaemonConfig implements Validated {
     /**
      * The command launched supervisor with worker arguments pid, action and [target_directory] Where action is - start profile, stop
      * profile, jstack, heapdump and kill against pid.
+     * When {@link DockerManager} is used, we will only use the profiler configured in worker-launcher.cfg due to security reasons
      */
     @isString
     public static final String WORKER_PROFILER_COMMAND = "worker.profiler.command";
