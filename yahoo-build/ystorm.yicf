@@ -30,6 +30,7 @@ YINST set ui_header_buffer_bytes          8192
 YINST set storm_cluster_user              nobody
 YINST set worker_launcher_group           nobody
 YINST set min_user_id                     500
+YINST set profiler_script_path            /home/y/lib64/storm/current/bin/flight.bash
 YINST set storm_messaging_transport       org.apache.storm.messaging.netty.Context
 YINST set logviewer_cleanup_interval_secs 1440
 YINST set drpc_http_port                  -1

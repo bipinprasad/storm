@@ -102,7 +102,7 @@ For this to work, `worker-launcher` needs to be owned by root, but with the grou
 ```
 storm.worker-launcher.group=$(worker_launcher_group)
 min.user.id=$(min_user_id)
-worker.profiler.script.path=$(path_to_profiler_script)
+worker.profiler.script.path=$(profiler_script_path)
 ```
 where `storm.worker-launcher.group` is the same group the supervisor user is a part of, and `min.user.id` is set to the first real user id on the system. This config file also needs to be owned by root and not have world nor group write permissions. 
 `worker.profiler.script.path` points to the profiler script. For security, the script should be only writable by root. Note that it's the only profiler script that will be used and `DaemonConfig.WORKER_PROFILER_COMMAND` will be ignored.
