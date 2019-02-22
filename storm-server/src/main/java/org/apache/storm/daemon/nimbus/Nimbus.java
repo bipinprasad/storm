@@ -4614,6 +4614,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
             blobDownloaders.cleanup();
             blobUploaders.cleanup();
             blobListers.cleanup();
+            scheduler.cleanup();
             blobStore.shutdown();
             leaderElector.close();
             assignmentsDistributer.close();
