@@ -38,6 +38,7 @@ import org.apache.storm.Config;
 import org.apache.storm.Constants;
 import org.apache.storm.DaemonConfig;
 import org.apache.storm.container.ResourceIsolationInterface;
+import org.apache.storm.container.docker.DockerManager;
 import org.apache.storm.generated.LocalAssignment;
 import org.apache.storm.generated.ProfileAction;
 import org.apache.storm.generated.ProfileRequest;
@@ -71,7 +72,7 @@ public class BasicContainer extends Container {
     private static final FilenameFilter jarFilter = (dir, name) -> name.endsWith(".jar");
     private static final Joiner CPJ =
         Joiner.on(File.pathSeparator).skipNulls();
-    protected final LocalState _localState;
+    protected final LocalState localState;
     protected final String _profileCmd;
     protected final String _stormHome = System.getProperty(ConfigUtils.STORM_HOME);
     protected final double hardMemoryLimitMultiplier;
@@ -134,14 +135,15 @@ public class BasicContainer extends Container {
         super(type, conf, supervisorId, supervisorPort, port, assignment,
             resourceIsolationManager, workerId, topoConf, ops, metricsRegistry, containerMemoryTracker);
         assert (localState != null);
-        _localState = localState;
+        assert (resourceIsolationManager != null);
+        this.localState = localState;
 
         if (type.isRecovery() && !type.isOnlyKillable()) {
-            synchronized (localState) {
+            synchronized (this.localState) {
                 String wid = null;
-                Map<String, Integer> workerToPort = localState.getApprovedWorkers();
+                Map<String, Integer> workerToPort = this.localState.getApprovedWorkers();
                 for (Map.Entry<String, Integer> entry : workerToPort.entrySet()) {
-                    if (port == entry.getValue().intValue()) {
+                    if (port == entry.getValue()) {
                         wid = entry.getKey();
                     }
                 }
@@ -155,11 +157,19 @@ public class BasicContainer extends Container {
             createNewWorkerId();
         }
 
-        if (profileCmd == null) {
-            profileCmd = _stormHome + File.separator + "bin" + File.separator
-                         + conf.get(DaemonConfig.WORKER_PROFILER_COMMAND);
+        if (resourceIsolationManager instanceof DockerManager) {
+            //When we use DockerManager, we will only use the profiler configured in worker-launcher.cfg due to security reasons
+            LOG.debug("Supervisor is using {} as the {}."
+                + "The profiler set at worker.profiler.script.path in worker-launcher.cfg is the only profiler to be used. "
+                + "Please make sure it is configured properly", DockerManager.class.getName(), ResourceIsolationInterface.class.getName());
+            _profileCmd = "";
+        } else {
+            if (profileCmd == null) {
+                profileCmd = _stormHome + File.separator + "bin" + File.separator
+                    + conf.get(DaemonConfig.WORKER_PROFILER_COMMAND);
+            }
+            _profileCmd = profileCmd;
         }
-        _profileCmd = profileCmd;
 
         hardMemoryLimitMultiplier =
             ObjectReader.getDouble(conf.get(DaemonConfig.STORM_SUPERVISOR_HARD_MEMORY_LIMIT_MULTIPLIER), 2.0);
@@ -177,10 +187,10 @@ public class BasicContainer extends Container {
         }
     }
 
-    private static void removeWorkersOn(Map<String, Integer> workerToPort, int _port) {
+    private static void removeWorkersOn(Map<String, Integer> workerToPort, int port) {
         for (Iterator<Entry<String, Integer>> i = workerToPort.entrySet().iterator(); i.hasNext(); ) {
             Entry<String, Integer> found = i.next();
-            if (_port == found.getValue().intValue()) {
+            if (port == found.getValue()) {
                 LOG.warn("Deleting worker {} from state", found.getKey());
                 i.remove();
             }
@@ -204,15 +214,15 @@ public class BasicContainer extends Container {
     protected void createNewWorkerId() {
         _type.assertFull();
         assert (_workerId == null);
-        synchronized (_localState) {
+        synchronized (localState) {
             _workerId = Utils.uuid();
-            Map<String, Integer> workerToPort = _localState.getApprovedWorkers();
+            Map<String, Integer> workerToPort = localState.getApprovedWorkers();
             if (workerToPort == null) {
                 workerToPort = new HashMap<>(1);
             }
             removeWorkersOn(workerToPort, _port);
             workerToPort.put(_workerId, _port);
-            _localState.setApprovedWorkers(workerToPort);
+            localState.setApprovedWorkers(workerToPort);
             LOG.info("Created Worker ID {}", _workerId);
         }
     }
@@ -221,12 +231,12 @@ public class BasicContainer extends Container {
     public void cleanUpForRestart() throws IOException {
         String origWorkerId = _workerId;
         super.cleanUpForRestart();
-        synchronized (_localState) {
-            Map<String, Integer> workersToPort = _localState.getApprovedWorkers();
+        synchronized (localState) {
+            Map<String, Integer> workersToPort = localState.getApprovedWorkers();
             if (workersToPort != null) {
                 workersToPort.remove(origWorkerId);
                 removeWorkersOn(workersToPort, _port);
-                _localState.setApprovedWorkers(workersToPort);
+                localState.setApprovedWorkers(workersToPort);
                 LOG.info("Removed Worker ID {}", origWorkerId);
             } else {
                 LOG.warn("No approved workers exists");
@@ -247,26 +257,6 @@ public class BasicContainer extends Container {
     @Override
     public boolean didMainProcessExit() {
         return _exitedEarly;
-    }
-
-    /**
-     * Run the given command for profiling.
-     *
-     * @param command   the command to run
-     * @param env       the environment to run the command
-     * @param logPrefix the prefix to include in the logs
-     * @param targetDir the working directory to run the command in
-     * @return true if it ran successfully, else false
-     *
-     * @throws IOException          on any error
-     * @throws InterruptedException if interrupted wile waiting for the process to exit.
-     */
-    protected boolean runProfilingCommand(List<String> command, Map<String, String> env, String logPrefix,
-                                          File targetDir) throws IOException, InterruptedException {
-        _type.assertFull();
-        Process p = ClientSupervisorUtils.launchProcess(command, env, logPrefix, null, targetDir);
-        int ret = p.waitFor();
-        return ret == 0;
     }
 
     @Override
@@ -292,7 +282,8 @@ public class BasicContainer extends Container {
 
         File targetFile = new File(targetDir);
         if (command.size() > 0) {
-            return runProfilingCommand(command, env, logPrefix, targetFile);
+            _type.assertFull();
+            return resourceIsolationManager.runProfilingCommand(getWorkerUser(), _workerId, command, env, logPrefix, targetFile);
         }
         LOG.warn("PROFILING REQUEST NOT SUPPORTED {} IGNORED...", request);
         return true;
@@ -382,8 +373,8 @@ public class BasicContainer extends Container {
     protected List<String> frameworkClasspath(SimpleVersion topoVersion) {
         File stormWorkerLibDir = new File(_stormHome, "lib-worker");
         String topoConfDir =
-            System.getenv("STORM_CONF_DIR") != null ?
-                System.getenv("STORM_CONF_DIR") :
+            System.getenv("STORM_CONF_DIR") != null
+                ? System.getenv("STORM_CONF_DIR") :
                 new File(_stormHome, "conf").getAbsolutePath();
         File stormExtlibDir = new File(_stormHome, "extlib");
         String extcp = System.getenv("STORM_EXT_CLASSPATH");
@@ -493,26 +484,6 @@ public class BasicContainer extends Container {
             }
         }
         return rets;
-    }
-
-    /**
-     * Launch the worker process (non-blocking).
-     *
-     * @param command             the command to run
-     * @param env                 the environment to run the command
-     * @param processExitCallback a callback for when the process exits
-     * @param logPrefix           the prefix to include in the logs
-     * @param targetDir           the working directory to run the command in
-     * @return true if it ran successfully, else false
-     *
-     * @throws IOException on any error
-     */
-    protected void launchWorkerProcess(List<String> command, Map<String, String> env, String logPrefix,
-                                       ExitCodeCallback processExitCallback, File targetDir) throws IOException {
-        if (_resourceIsolationManager != null) {
-            command = _resourceIsolationManager.getLaunchCommand(_workerId, command);
-        }
-        ClientSupervisorUtils.launchProcess(command, env, logPrefix, processExitCallback, targetDir);
     }
 
     private String getWorkerLoggingConfigFile() {
@@ -717,7 +688,7 @@ public class BasicContainer extends Container {
         if (super.isMemoryLimitViolated(withUpdatedLimits)) {
             return true;
         }
-        if (_resourceIsolationManager != null) {
+        if (resourceIsolationManager.isResourceManaged()) {
             // In the short term the goal is to not shoot anyone unless we really need to.
             // The on heap should limit the memory usage in most cases to a reasonable amount
             // If someone is using way more than they requested this is a bug and we should
@@ -764,7 +735,7 @@ public class BasicContainer extends Container {
                 // to be use. If we cannot calculate it assume that it is bad
                 long systemFreeMemoryMb = 0;
                 try {
-                    systemFreeMemoryMb = _resourceIsolationManager.getSystemFreeMemoryMb();
+                    systemFreeMemoryMb = resourceIsolationManager.getSystemFreeMemoryMb();
                 } catch (IOException e) {
                     LOG.warn("Error trying to calculate free memory on the system {}", e);
                 }
@@ -813,8 +784,8 @@ public class BasicContainer extends Container {
     public long getMemoryUsageMb() {
         try {
             long ret = 0;
-            if (_resourceIsolationManager != null) {
-                long usageBytes = _resourceIsolationManager.getMemoryUsage(_workerId);
+            if (resourceIsolationManager.isResourceManaged()) {
+                long usageBytes = resourceIsolationManager.getMemoryUsage(getWorkerUser(), _workerId);
                 if (usageBytes >= 0) {
                     ret = usageBytes / 1024 / 1024;
                 }
@@ -833,7 +804,7 @@ public class BasicContainer extends Container {
 
     private long calculateMemoryLimit(final WorkerResources resources, final int memOnHeap) {
         long ret = memOnHeap;
-        if (_resourceIsolationManager != null) {
+        if (resourceIsolationManager.isResourceManaged()) {
             final int memoffheap = (int) Math.ceil(resources.get_mem_off_heap());
             final int extraMem =
                 (int)
@@ -882,10 +853,10 @@ public class BasicContainer extends Container {
 
         topEnvironment.put("LD_LIBRARY_PATH", jlp);
 
-        if (_resourceIsolationManager != null) {
+        if (resourceIsolationManager.isResourceManaged()) {
             final int cpu = (int) Math.ceil(resources.get_cpu());
             //Save the memory limit so we can enforce it less strictly
-            _resourceIsolationManager.reserveResourcesForWorker(_workerId, (int) memoryLimitMB, cpu);
+            resourceIsolationManager.reserveResourcesForWorker(_workerId, (int) memoryLimitMB, cpu);
         }
 
         List<String> commandList = mkLaunchCommand(memOnHeap, stormRoot, jlp, numaId);
@@ -894,7 +865,8 @@ public class BasicContainer extends Container {
 
         String workerDir = ConfigUtils.workerRoot(_conf, _workerId);
 
-        launchWorkerProcess(commandList, topEnvironment, logPrefix, processExitCallback, new File(workerDir));
+        resourceIsolationManager.launchWorkerProcess(getWorkerUser(), _topologyId, _port, _workerId, commandList, topEnvironment,
+            logPrefix, processExitCallback, new File(workerDir));
     }
 
     private static class TopologyMetaData {

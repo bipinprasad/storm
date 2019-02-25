@@ -21,6 +21,7 @@ package org.apache.storm;
 import java.util.ArrayList;
 import java.util.Map;
 import org.apache.storm.container.ResourceIsolationInterface;
+import org.apache.storm.container.docker.DockerManager;
 import org.apache.storm.nimbus.ITopologyActionNotifierPlugin;
 import org.apache.storm.scheduler.blacklist.reporters.IReporter;
 import org.apache.storm.scheduler.blacklist.strategies.IBlacklistStrategy;
@@ -828,6 +829,7 @@ public class DaemonConfig implements Validated {
     /**
      * The command launched supervisor with worker arguments pid, action and [target_directory] Where action is - start profile, stop
      * profile, jstack, heapdump and kill against pid.
+     * When {@link DockerManager} is used, we will only use the profiler configured in worker-launcher.cfg due to security reasons
      */
     @isString
     public static final String WORKER_PROFILER_COMMAND = "worker.profiler.command";
@@ -1144,6 +1146,49 @@ public class DaemonConfig implements Validated {
      */
     @isPositiveNumber
     public static String STORM_WORKER_TOKEN_LIFE_TIME_HOURS = "storm.worker.token.life.time.hours";
+
+    /**
+     * The directory of nscd - name service cache daemon, e.g. "/var/run/nscd/".
+     * nscd must be running so that profiling can work properly.
+     */
+    @isString
+    @NotNull
+    public static String STORM_DOCKER_NSCD_DIR = "storm.docker.nscd.dir";
+
+    /**
+     * A list of read only bind mounted directories.
+     */
+    @isStringList
+    public static String STORM_DOCKER_READONLY_BINDMOUNTS = "storm.docker.readonly.bindmounts";
+
+    /**
+     * --cgroup-parent config for docker command. Must follow the constraints of the docker command.
+     * The path will be made as absolute path if it's a relative path
+     * because we saw some weird bugs (the cgroup memory directory disappears after a while) when a relative path is used.
+     * Note that we only support cgroupfs cgroup driver because of some issues with systemd; restricting to `cgroupfs`
+     * also makes cgroup paths simple.
+     */
+    @isString
+    @NotNull
+    public static String STORM_DOCKER_CGROUP_PARENT = "storm.docker.cgroup.parent";
+
+    /**
+     * Default docker image to use if the topology doesn't specify which docker image to use.
+     */
+    @isString
+    public static String STORM_DOCKER_IMAGE = "storm.docker.image";
+
+    /**
+     * A list of docker image that are allowed.
+     */
+    @isStringList
+    public static String STORM_DOCKER_ALLOWED_IMAGES = "storm.docker.allowed.images";
+
+    /**
+     * White listed syscalls seccomp Json file to be used as a seccomp filter.
+     */
+    @isString
+    public static String STORM_DOCKER_SECCOMP_PROFILE = "storm.docker.seccomp.profile";
 
     public static String getCgroupRootDir(Map<String, Object> conf) {
         return (String) conf.get(STORM_SUPERVISOR_CGROUP_ROOTDIR);
