@@ -949,7 +949,8 @@ public class DaemonConfig implements Validated {
     /**
      * The plugin to be used for resource isolation.
      */
-    @isImplementationOfClass(implementsClass = ResourceIsolationInterface.class)
+    //Temporarily skip this validation so the 0.10 worker can still work.
+    //@isImplementationOfClass(implementsClass = ResourceIsolationInterface.class)
     public static final String STORM_RESOURCE_ISOLATION_PLUGIN = "storm.resource.isolation.plugin";
 
     /**
