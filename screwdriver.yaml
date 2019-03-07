@@ -1,36 +1,32 @@
-platform: cpp
+jobs:
+  pull-request:
+    requires: [~pr]
+    steps:
+      - print_env: set
+      - build: gmake ${SD_SETTING_MAKE_ARGS} platforms
+      - test: gmake ${SD_SETTING_MAKE_ARGS} testcoverageplatforms
+      - package: gmake ${SD_SETTING_MAKE_ARGS} package-release
+      - teardown-copy-artifacts: rsync -u --files-from=<(git clean -dnx | cut -d" " -f3) .  "$SD_ARTIFACTS_DIR"/storm/ || true
+      
+  merge:
+    requires: [~commit]
+    steps:
+      - print_env: set
+      - build: gmake ${SD_SETTING_MAKE_ARGS} platforms
+      - test: gmake ${SD_SETTING_MAKE_ARGS} testcoverageplatforms
+      - package: gmake ${SD_SETTING_MAKE_ARGS} package-release
+      - dist_force_push: gmake dist_force_push
+      - git_tag: gmake git_tag
+      - teardown-copy-artifacts: rsync -u --files-from=<(git clean -dnx | cut -d" " -f3) .  "$SD_ARTIFACTS_DIR"/storm/ || true
 
 shared:
-    settings:
-        env.MVN_MAKE_OPTS: --batch-mode
+  image: docker-registry.ops.yahoo.com:4443/storm/storm-ci-docker-image:latest
+  annotations:
+    screwdriver.cd/cpu: HIGH
+    screwdriver.cd/ram: HIGH
+  environment:
+    USER_SHELL_BIN: bash
 
-    notifications:
-        email: "storm-devel@oath.com"
-    steps:
-        dist_force_push:
-            description: Push packages to dist
-            command: gmake dist_force_push
-        git_tag:
-            description: Git tag after successful release
-            command: gmake git_tag
-    triggers:
-        - sd@1007419
-    plugins:
-        coverage:
-            enabled: false
-        test_results:
-            type: junit
-            parameters:
-                path: "my_test_results"
-
-jobs:
-  component:
-    order: [environment, install-rpms, init, build, test, package, dist_force_push, git_tag]
-    plugins:
-      resource:
-        high
-  pull-request:
-    order: [environment, install-rpms, init, build, test, package]
-    plugins:
-      resource:
-        high
+# Caching of maven repository is disabled due to SCREWDRV-8174.
+# cache:
+#   pipeline: [~/.m2]

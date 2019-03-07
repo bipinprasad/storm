@@ -28,11 +28,6 @@ public class AutoYCATest {
     }
 
     @Test
-    public void testGetV1Cert() throws Exception {
-        assertNull(AutoYCA.getYcaV1Cert("bogus.app.id"));
-    }
-
-    @Test
     public void testPopulateEmptyCreds() throws Exception {
         AutoYCA test = new AutoYCA();
         Map conf = new HashMap();
