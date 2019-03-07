@@ -9,15 +9,14 @@ export AUTO_CREATE_RELEASE_TAG = 1
 export UPDATE_DIST_TAG_WITH_MASTER_PKG = 1
 
 internal:
-	git clone ${GIT_REPO} internal
-	(cd internal && git checkout ${GIT_SCRIPTS_BRANCH})
+	git clone --depth=1 --branch ${GIT_SCRIPTS_BRANCH} ${GIT_REPO} internal
 
 copy_test_files:
-	mkdir ${SRC_DIR}/my_test_results
-	for dir in `find ${SRC_DIR} -type d \( -name test-reports -or -name surefire-reports \)` ; do \
+	mkdir ${SD_SOURCE_DIR}/my_test_results
+	for dir in `find ${SD_SOURCE_DIR} -type d \( -name test-reports -or -name surefire-reports \)` ; do \
 		if [ -d $$dir ] ;\
 		then \
-			cp $$dir/*.xml ${SRC_DIR}/my_test_results || true;\
+			cp $$dir/*.xml ${SD_SOURCE_DIR}/my_test_results || true;\
 		fi ;\
 	done
 
@@ -38,15 +37,15 @@ testcoverageplatforms:
 
 package-release:
 	$(MAKE) -C yahoo-build package-sd
-	cp yahoo-build/*tgz ${AUTO_PUBLISH_DIR}
+	cp yahoo-build/*tgz ${SD_ARTIFACTS_DIR}/publish
 
 dist_force_push:
-	for packages in ${AUTO_PUBLISH_DIR}/*.tgz; do \
-		/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-6.x $$packages; \
-		/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-7.x $$packages; \
+	for packages in ${SD_ARTIFACTS_DIR}/publish/*.tgz; do \
+		/home/y/bin/dist_install -branch quarantine -headless -group=hadoopqa -batch -nomail -os rhel-6.x $$packages; \
+		/home/y/bin/dist_install -branch quarantine -headless -group=hadoopqa -batch -nomail -os rhel-7.x $$packages; \
 	done
 
 git_tag:
-	git tag -f -a `cat ${SRC_DIR}/yahoo-build/RELEASE` -m "yahoo version `cat ${SRC_DIR}/yahoo-build/RELEASE`"
-	git push origin `cat ${SRC_DIR}/yahoo-build/RELEASE`
-	${SRC_DIR}/internal/QATools/storm_tag_master_launcher
+	git tag -f -a `cat ${SD_SOURCE_DIR}/yahoo-build/RELEASE` -m "yahoo version `cat ${SD_SOURCE_DIR}/yahoo-build/RELEASE`"
+	git push origin `cat ${SD_SOURCE_DIR}/yahoo-build/RELEASE`
+	${SD_SOURCE_DIR}/internal/QATools/storm_tag_master_launcher
