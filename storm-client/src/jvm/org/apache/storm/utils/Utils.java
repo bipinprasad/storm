@@ -33,6 +33,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.net.InetAddress;
@@ -110,9 +111,8 @@ import org.slf4j.LoggerFactory;
 public class Utils {
     public static final Logger LOG = LoggerFactory.getLogger(Utils.class);
     public static final String DEFAULT_STREAM_ID = "default";
-    private static final Set<Class> defaultAllowedExceptions = new HashSet<>();
-    private static final List<String> LOCALHOST_ADDRESSES =
-            Lists.newArrayList("localhost", "127.0.0.1", "0:0:0:0:0:0:0:1");
+    private static final Set<Class<?>> defaultAllowedExceptions = Collections.emptySet();
+    private static final List<String> LOCALHOST_ADDRESSES = Lists.newArrayList("localhost", "127.0.0.1", "0:0:0:0:0:0:0:1");
     static SerializationDelegate serializationDelegate;
     private static ThreadLocal<TSerializer> threadSer = new ThreadLocal<TSerializer>();
     private static ThreadLocal<TDeserializer> threadDes = new ThreadLocal<TDeserializer>();
@@ -668,7 +668,7 @@ public class Utils {
         handleUncaughtException(t, defaultAllowedExceptions);
     }
 
-    public static void handleUncaughtException(Throwable t, Set<Class> allowedExceptions) {
+    public static void handleUncaughtException(Throwable t, Set<Class<?>> allowedExceptions) {
         if (t != null) {
             if (t instanceof OutOfMemoryError) {
                 try {
@@ -1018,17 +1018,19 @@ public class Utils {
         return m;
     }
 
-    public static void setupDefaultUncaughtExceptionHandler() {
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread thread, Throwable thrown) {
-                try {
-                    handleUncaughtException(thrown);
-                } catch (Error err) {
-                    LOG.error("Received error in main thread.. terminating server...", err);
-                    Runtime.getRuntime().exit(-2);
-                }
+    public static UncaughtExceptionHandler createDefaultUncaughtExceptionHandler() {
+        return (thread, thrown) -> {
+            try {
+                handleUncaughtException(thrown);
+            } catch (Error err) {
+                LOG.error("Received error in thread {}.. terminating server...", thread.getName(), err);
+                Runtime.getRuntime().exit(-2);
             }
-        });
+        };
+    }
+    
+    public static void setupDefaultUncaughtExceptionHandler() {
+        Thread.setDefaultUncaughtExceptionHandler(createDefaultUncaughtExceptionHandler());
     }
 
     public static Map<String, Object> findAndReadConfigFile(String name) {
