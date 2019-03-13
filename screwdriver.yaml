@@ -27,6 +27,5 @@ shared:
   environment:
     USER_SHELL_BIN: bash
 
-# Caching of maven repository is disabled due to SCREWDRV-8174.
-# cache:
-#   pipeline: [~/.m2]
+cache:
+  pipeline: [~/.m2]
