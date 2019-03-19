@@ -4,7 +4,7 @@ FULL_VERSION=`cat RELEASE`
 BASE_VERSION_UNDERSCORE=`cat BASE_VERSION_UNDERSCORE`
 MVN_FULL_VERSION=`cat yahoo-build/RELEASE`
 MVN_MAKE_OPTS=--batch-mode
-MVN=LD_LIBRARY_PATH=/home/y/lib64 STORM_TEST_TIMEOUT_MS=20000 MAVEN_OPTS="-Xmx1024M" /home/y/bin/mvn
+MVN=LD_LIBRARY_PATH=/home/y/lib64 STORM_TEST_TIMEOUT_MS=20000 MAVEN_OPTS="-Xmx1024M -XX:+TieredCompilation -XX:TieredStopAtLevel=1"  /home/y/bin/mvn -T 1C
 EXEC_CONF_DIR?=/home/y/conf/storm/
 DATE=`date +%s`
 
