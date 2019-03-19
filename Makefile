@@ -37,13 +37,11 @@ testcoverageplatforms:
 
 package-release:
 	$(MAKE) -C yahoo-build package-sd
-	cp yahoo-build/*tgz ${SD_ARTIFACTS_DIR}/publish
+	cp -rv yahoo-build/packages "${SD_ARTIFACTS_DIR}/"
 
 dist_force_push:
-	for packages in ${SD_ARTIFACTS_DIR}/publish/*.tgz; do \
-		/home/y/bin/dist_install -branch quarantine -headless -group=hadoopqa -batch -nomail -os rhel-6.x $$packages; \
-		/home/y/bin/dist_install -branch quarantine -headless -group=hadoopqa -batch -nomail -os rhel-7.x $$packages; \
-	done
+	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-6.x ${SD_ARTIFACTS_DIR}/packages/rhel-6.x/*.tgz && \
+	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-7.x ${SD_ARTIFACTS_DIR}/packages/rhel-7.x/*.tgz
 
 git_tag:
 	git tag -f -a `cat ${SD_SOURCE_DIR}/yahoo-build/RELEASE` -m "yahoo version `cat ${SD_SOURCE_DIR}/yahoo-build/RELEASE`"
