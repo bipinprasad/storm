@@ -362,6 +362,10 @@
         </span>
       </th>
       <th>
+        <span data-toggle="tooltip" data-placement="top" title="A unique identifier given to a Supervisor when it joins the cluster.">
+          Id
+        </span>
+      <th>
         <span data-toggle="tooltip" data-placement="top" title="The length of time a Supervisor has been registered to the cluster.">
           Uptime
         </span>
@@ -423,9 +427,10 @@
     </tr>
   </thead>
   <tbody>
-    {{#hosts}}
+    {{#supervisors}}
     <tr>
       <td><a href="/supervisor.html?host={{host}}">{{host}}</a> (<a href="{{logLink}}" title="View log">log</a>)</td>
+      <td><a href="/supervisor.html?id={{id}}">{{id}}</a></td>
       <td>{{uptime}}</td>
       <td>{{slotsTotal}}</td>
       <td>{{slotsUsed}}</td>
@@ -442,7 +447,7 @@
       {{/schedulerDisplayResource}}
       <td>{{version}}</td>
     </tr>
-    {{/hosts}}
+    {{/supervisors}}
   </tbody>
 </table>
 </script>
