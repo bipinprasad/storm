@@ -24,3 +24,7 @@ shared:
     screwdriver.cd/ram: HIGH
   environment:
     USER_SHELL_BIN: bash
+  settings:
+    email:
+      addresses: [ storm-devel@verizonmedia.com ]
+      statuses: [ FAILURE ]
