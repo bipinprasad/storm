@@ -1164,7 +1164,7 @@ int run_nsenter(const char * user, const char * worker_id, const char * working_
     fflush(LOGFILE);
 
     FILE *fp = popen(nsenter_command_with_binary, "w");
-    fprintf(fp, "sudo -u %s %s %s\nexit\n", user, profiler_path, line);
+    fprintf(fp, "umask 0027; sudo -u %s %s %s\nexit\n", user, profiler_path, line);
     pclose(fp);
 
     free(nsenter_binary);

@@ -238,7 +238,7 @@ public class DockerManager implements ResourceIsolationInterface {
             dockerRunCommand.setMemoryMb(workerToMemoryMb.get(workerId));
         }
 
-        dockerRunCommand.setOverrideCommandWithArgs(Arrays.asList("bash", ServerUtils.writeScript(workerDir, command, env)));
+        dockerRunCommand.setOverrideCommandWithArgs(Arrays.asList("bash", ServerUtils.writeScript(workerDir, command, env, "0027")));
 
         //run docker-run command and launch container in background (-d option).
         runDockerCommandWaitFor(conf, user, CmdType.LAUNCH_DOCKER_CONTAINER,
