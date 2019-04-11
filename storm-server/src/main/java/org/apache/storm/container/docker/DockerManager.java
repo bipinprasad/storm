@@ -279,7 +279,7 @@ public class DockerManager implements ResourceIsolationInterface {
 
             if (cid == null) {
                 LOG.error("Couldn't get container id of the worker {}", workerId);
-                throw new IllegalStateException("Couldn't get container id of the worker " + workerId);
+                throw new IOException("Couldn't get container id of the worker " + workerId);
             } else {
                 workerToCid.put(workerId, cid);
             }
@@ -383,8 +383,8 @@ public class DockerManager implements ResourceIsolationInterface {
         try {
             String containerId = getCID(workerId);
             return !containerId.startsWith(lastLine);
-        } catch (IllegalStateException e) {
-            LOG.error("Failed to find CID for {}, assuming dead", workerId, e);
+        } catch (IOException e) {
+            LOG.error("Failed to find Container ID for {}, assuming dead", workerId, e);
             return true;
         }
     }
