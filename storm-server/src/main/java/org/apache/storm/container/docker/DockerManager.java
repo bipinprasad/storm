@@ -380,8 +380,13 @@ public class DockerManager implements ResourceIsolationInterface {
             return true;
         }
 
-        String containerId = getCID(workerId);
-        return !containerId.startsWith(lastLine);
+        try {
+            String containerId = getCID(workerId);
+            return !containerId.startsWith(lastLine);
+        } catch (IllegalStateException e) {
+            LOG.error("Failed to find CID for {}, assuming dead", workerId, e);
+            return true;
+        }
     }
 
     @Override
