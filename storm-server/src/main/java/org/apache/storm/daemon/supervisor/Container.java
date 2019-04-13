@@ -232,7 +232,7 @@ public abstract class Container implements Killable {
         if (resourceIsolationManager != null) {
             allDead = resourceIsolationManager.areAllProcessesDead(getWorkerUser(), _workerId);
         }
-
+        
         if (allDead && shutdownTimer != null) {
             shutdownTimer.stop();
             shutdownTimer = null;
