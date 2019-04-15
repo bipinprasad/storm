@@ -29,6 +29,7 @@ import org.apache.storm.metric.IEventLogger;
 import org.apache.storm.policy.IWaitStrategy;
 import org.apache.storm.serialization.IKryoDecorator;
 import org.apache.storm.serialization.IKryoFactory;
+import org.apache.storm.utils.IHdfsLoginPlugin;
 import org.apache.storm.utils.Utils;
 import org.apache.storm.validation.ConfigValidation;
 import org.apache.storm.validation.ConfigValidation.EventLoggerRegistryValidator;
@@ -52,6 +53,8 @@ import org.apache.storm.validation.ConfigValidationAnnotations.isString;
 import org.apache.storm.validation.ConfigValidationAnnotations.isStringList;
 import org.apache.storm.validation.ConfigValidationAnnotations.isStringOrStringList;
 import org.apache.storm.validation.ConfigValidationAnnotations.isType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Topology configs are specified as a plain old map. This class provides a convenient way to create a topology config map by providing
@@ -65,6 +68,8 @@ import org.apache.storm.validation.ConfigValidationAnnotations.isType;
  * are free to make use of them by reading them in the prepare method of Bolts or the open method of Spouts.
  */
 public class Config extends HashMap<String, Object> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Config.class);
 
     /**
      * The serializer class for ListDelegate (tuple payload). The default serializer will be ListDelegateSerializer
@@ -1132,6 +1137,7 @@ public class Config extends HashMap<String, Object> {
      */
     @isBoolean
     public static final String BLOBSTORE_CLEANUP_ENABLE = "blobstore.cleanup.enable";
+
     /**
      * principal for nimbus/supervisor to use to access secure hdfs for the blobstore.
      * If there is an instance of the string "HOSTNAME" within the principal, it will
@@ -1139,21 +1145,54 @@ public class Config extends HashMap<String, Object> {
      * This functionality is deprecated, instead please use the following.
      * The format is generally "primary/instance@REALM", where "instance" field is optional.
      * If the instance field of the principal is the string "_HOST", it will
-     + be replaced with the host name of the server the daemon is running on (by calling {@link #getBlobstoreHDFSPrincipal(Map conf)} method).
+     * be replaced with the host name of the server the daemon is running on
+     * (by calling {@link #getBlobstoreHDFSPrincipal(Map conf)} method).
+     * @Deprecated Use {@link Config#STORM_HDFS_LOGIN_PRINCIPAL} instead.
      */
+    @Deprecated
     @isString
     public static final String BLOBSTORE_HDFS_PRINCIPAL = "blobstore.hdfs.principal";
+
     /**
      * keytab for nimbus/supervisor to use to access secure hdfs for the blobstore.
+     * @Deprecated Use {@link Config#STORM_HDFS_LOGIN_KEYTAB} instead.
      */
+    @Deprecated
     @isString
     public static final String BLOBSTORE_HDFS_KEYTAB = "blobstore.hdfs.keytab";
+
     /**
      * Set replication factor for a blob in HDFS Blobstore Implementation
      */
     @isPositiveNumber
     @isInteger
     public static final String STORM_BLOBSTORE_REPLICATION_FACTOR = "storm.blobstore.replication.factor";
+
+    /**
+     * The principal for nimbus/supervisor to use to access secure hdfs.
+     * If there is an instance of the string "HOSTNAME" within the principal, it will
+     * be replaced with the host name of the server the daemon is running on.
+     * This functionality is deprecated, instead please use the following.
+     * The format is generally "primary/instance@REALM", where "instance" field is optional.
+     * If the instance field of the principal is the string "_HOST", it will
+     * be replaced with the host name of the server the daemon is running on
+     * (by calling {@link #getHdfsPrincipal} method).
+     */
+    @isString
+    public static final String STORM_HDFS_LOGIN_PRINCIPAL = "storm.hdfs.login.principal";
+
+    /**
+     * The keytab for nimbus/supervisor to use to access secure hdfs.
+     */
+    @isString
+    public static final String STORM_HDFS_LOGIN_KEYTAB = "storm.hdfs.login.keytab";
+
+    /**
+     * The plugin for use to login to hdfs.
+     */
+    @isImplementationOfClass(implementsClass = IHdfsLoginPlugin.class)
+    public static final String STORM_HDFS_LOGIN_PLUGIN = "storm.hdfs.login.plugin";
+
     /**
      * The hostname the supervisors/workers should report to nimbus. If unset, Storm will get the hostname to report by calling
      * <code>InetAddress.getLocalHost().getCanonicalHostName()</code>.
@@ -1943,8 +1982,7 @@ public class Config extends HashMap<String, Object> {
 
     private static final String HOSTNAME_PATTERN = "_HOST";
 
-    public static String getBlobstoreHDFSPrincipal(Map conf) throws UnknownHostException {
-        String principal = (String)conf.get(Config.BLOBSTORE_HDFS_PRINCIPAL);
+    private static String substituteHostnameInPrincipal(String principal) throws UnknownHostException {
         if (principal != null) {
             principal = principal.replace("HOSTNAME", Utils.localHostname());
             String[] components = principal.split("[/@]");
@@ -1954,4 +1992,65 @@ public class Config extends HashMap<String, Object> {
         }
         return principal;
     }
+
+    @Deprecated
+    public static String getBlobstoreHDFSPrincipal(Map conf) throws UnknownHostException {
+        return getHdfsPrincipal(conf);
+    }
+
+    /**
+     * Get the hostname substituted hdfs principal.
+     * @param conf the storm Configuration
+     * @return the principal
+     * @throws UnknownHostException on UnknowHostException
+     */
+    public static String getHdfsPrincipal(Map<String, Object> conf) throws UnknownHostException {
+        String ret;
+
+        String blobstorePrincipal = (String) conf.get(Config.BLOBSTORE_HDFS_PRINCIPAL);
+        String hdfsPrincipal = (String) conf.get(Config.STORM_HDFS_LOGIN_PRINCIPAL);
+        if (blobstorePrincipal == null && hdfsPrincipal == null) {
+            return null;
+        } else if (blobstorePrincipal == null) {
+            ret = hdfsPrincipal;
+        } else if (hdfsPrincipal == null) {
+            LOG.warn("{} is used as the hdfs principal. Please use {} instead",
+                Config.BLOBSTORE_HDFS_PRINCIPAL, Config.STORM_HDFS_LOGIN_PRINCIPAL);
+            ret = blobstorePrincipal;
+        } else {
+            //both not null;
+            LOG.warn("Both {} and {} are set. Use {} only.",
+                Config.BLOBSTORE_HDFS_PRINCIPAL, Config.STORM_HDFS_LOGIN_PRINCIPAL, Config.STORM_HDFS_LOGIN_PRINCIPAL);
+            ret = hdfsPrincipal;
+        }
+        return substituteHostnameInPrincipal(ret);
+    }
+
+    /**
+     * Get the hdfs keytab.
+     * @param conf the storm Configuration
+     * @return the keytab
+     */
+    public static String getHdfsKeytab(Map<String, Object> conf) {
+        String ret;
+
+        String blobstoreKeyTab = (String) conf.get(Config.BLOBSTORE_HDFS_KEYTAB);
+        String hdfsKeyTab = (String) conf.get(Config.STORM_HDFS_LOGIN_KEYTAB);
+        if (blobstoreKeyTab == null && hdfsKeyTab == null) {
+            return null;
+        } else if (blobstoreKeyTab == null) {
+            ret = hdfsKeyTab;
+        } else if (hdfsKeyTab == null) {
+            LOG.warn("{} is used as the hdfs keytab. Please use {} instead",
+                Config.BLOBSTORE_HDFS_KEYTAB, Config.STORM_HDFS_LOGIN_KEYTAB);
+            ret = blobstoreKeyTab;
+        } else {
+            //both not null;
+            LOG.warn("Both {} and {} are set. Use {} only.",
+                Config.BLOBSTORE_HDFS_KEYTAB, Config.STORM_HDFS_LOGIN_KEYTAB, Config.STORM_HDFS_LOGIN_KEYTAB);
+            ret = hdfsKeyTab;
+        }
+        return ret;
+    }
+
 }
