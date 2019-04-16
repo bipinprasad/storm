@@ -2,6 +2,7 @@ jobs:
   pull-request:
     requires: [~pr]
     steps:
+      - screwdrv_8281_hack: export SD_ZIP_ARTIFACTS='false'
       - print_env: set
       - build: gmake ${SD_SETTING_MAKE_ARGS} platforms
       - test: gmake ${SD_SETTING_MAKE_ARGS} testcoverageplatforms
@@ -10,6 +11,7 @@ jobs:
   merge:
     requires: [~commit]
     steps:
+      - screwdrv_8281_hack: export SD_ZIP_ARTIFACTS='false'
       - print_env: set
       - build: gmake ${SD_SETTING_MAKE_ARGS} platforms
       - test: gmake ${SD_SETTING_MAKE_ARGS} testcoverageplatforms
