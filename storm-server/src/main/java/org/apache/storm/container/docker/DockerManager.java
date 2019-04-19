@@ -242,15 +242,16 @@ public class DockerManager implements ResourceIsolationInterface {
 
         //run docker-run command and launch container in background (-d option).
         runDockerCommandWaitFor(conf, user, CmdType.LAUNCH_DOCKER_CONTAINER,
-            dockerRunCommand.getCommandWithArguments(), null, logPrefix, null, targetDir);
+            dockerRunCommand.getCommandWithArguments(), null, logPrefix, null, targetDir, "docker-run");
 
         //docker-wait for the container in another thread. processExitCallback will get the container's exit code.
+        String threadName = "DockerWait_SLOT_" + port;
         Utils.asyncLoop(new Callable<Long>() {
             public Long call() throws IOException {
                 DockerWaitCommand dockerWaitCommand = new DockerWaitCommand(workerId);
                 try {
                     runDockerCommandWaitFor(conf, user, CmdType.RUN_DOCKER_CMD,
-                        dockerWaitCommand.getCommandWithArguments(), null, logPrefix, processExitCallback, targetDir);
+                        dockerWaitCommand.getCommandWithArguments(), null, logPrefix, processExitCallback, targetDir, "docker-wait");
                 } catch (IOException e) {
                     LOG.error("IOException on running docker wait command:", e);
                     throw e;
@@ -315,11 +316,11 @@ public class DockerManager implements ResourceIsolationInterface {
         String workerDir = ConfigUtils.workerRoot(conf, workerId);
         DockerStopCommand dockerStopCommand = new DockerStopCommand(workerId);
         runDockerCommandWaitFor(conf, user, CmdType.RUN_DOCKER_CMD, dockerStopCommand.getCommandWithArguments(),
-            null, null, null, new File(workerDir));
+            null, null, null, new File(workerDir), "docker-stop");
 
         DockerRmCommand dockerRmCommand = new DockerRmCommand(workerId);
         runDockerCommandWaitFor(conf, user, CmdType.RUN_DOCKER_CMD, dockerRmCommand.getCommandWithArguments(),
-            null, null, null, new File(workerDir));
+            null, null, null, new File(workerDir), "docker-rm");
     }
 
     @Override
@@ -328,7 +329,7 @@ public class DockerManager implements ResourceIsolationInterface {
         DockerRmCommand dockerRmCommand = new DockerRmCommand(workerId);
         dockerRmCommand.withForce();
         runDockerCommandWaitFor(conf, user, CmdType.RUN_DOCKER_CMD, dockerRmCommand.getCommandWithArguments(),
-            null, null, null, new File(workerDir));
+            null, null, null, new File(workerDir), "docker-force-rm");
     }
 
     /**
@@ -351,7 +352,7 @@ public class DockerManager implements ResourceIsolationInterface {
         String command = dockerPsCommand.getCommandWithArguments();
 
         Process p = runDockerCommand(conf, user, CmdType.RUN_DOCKER_CMD, command,
-            null, null, null, new File(workerDir));
+            null, null, null, new File(workerDir), "docker-ps");
 
         try {
             p.waitFor();
@@ -415,7 +416,7 @@ public class DockerManager implements ResourceIsolationInterface {
         String profilingArgs = StringUtils.join(command, " ");
 
         //run nsenter
-        String nsenterScriptPath = writeToCommandFile(workerDir, profilingArgs);
+        String nsenterScriptPath = writeToCommandFile(workerDir, profilingArgs, "profile");
 
         List<String> args = Arrays.asList(CmdType.RUN_NSENTER.toString(), workerId, workerDir, nsenterScriptPath);
 
@@ -434,12 +435,12 @@ public class DockerManager implements ResourceIsolationInterface {
         return ConfigUtils.workerRoot(conf, workerId) + File.separator + "container.cid";
     }
 
-    private String commandFilePath(String dir) {
-        return dir + File.separator + "command-to-run.sh";
+    private String commandFilePath(String dir, String commandTag) {
+        return dir + File.separator + commandTag + ".sh";
     }
 
-    private String writeToCommandFile(String workerDir, String command) throws IOException {
-        String scriptPath = commandFilePath(workerDir);
+    private String writeToCommandFile(String workerDir, String command, String commandTag) throws IOException {
+        String scriptPath = commandFilePath(workerDir, commandTag);
         try (BufferedWriter out = new BufferedWriter(new FileWriter(scriptPath))) {
             out.write(command);
         }
@@ -461,9 +462,9 @@ public class DockerManager implements ResourceIsolationInterface {
      */
     private Process runDockerCommand(Map<String, Object> conf, String user, CmdType cmdType, String dockerCommand,
                                      Map<String, String> environment, final String logPrefix,
-                                     final ExitCodeCallback exitCodeCallback, File targetDir) throws IOException {
+                                     final ExitCodeCallback exitCodeCallback, File targetDir, String commandTag) throws IOException {
         String workerDir = targetDir.getAbsolutePath();
-        String dockerScriptPath = writeToCommandFile(workerDir, dockerCommand);
+        String dockerScriptPath = writeToCommandFile(workerDir, dockerCommand, commandTag);
 
         List<String> args = Arrays.asList(cmdType.toString(), workerDir, dockerScriptPath);
 
@@ -485,8 +486,8 @@ public class DockerManager implements ResourceIsolationInterface {
      */
     private int runDockerCommandWaitFor(Map<String, Object> conf, String user, CmdType cmdType, String dockerCommand,
                                         Map<String, String> environment, final String logPrefix,
-                                        final ExitCodeCallback exitCodeCallback, File targetDir) throws IOException {
-        Process p = runDockerCommand(conf, user, cmdType, dockerCommand, environment, logPrefix, exitCodeCallback, targetDir);
+                                        final ExitCodeCallback exitCodeCallback, File targetDir, String commandTag) throws IOException {
+        Process p = runDockerCommand(conf, user, cmdType, dockerCommand, environment, logPrefix, exitCodeCallback, targetDir, commandTag);
         try {
             p.waitFor();
         } catch (InterruptedException e) {
