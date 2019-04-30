@@ -163,8 +163,10 @@ public class DockerManager implements ResourceIsolationInterface {
     }
 
     @Override
-    public void launchWorkerProcess(String user, String topologyId, int port, String workerId, List<String> command, Map<String, String> env,
-                                    String logPrefix, ExitCodeCallback processExitCallback, File targetDir) throws IOException {
+    public void launchWorkerProcess(String user, String topologyId, int port, String numaId,
+                                    String workerId, List<String> command, Map<String, String> env,
+                                    String logPrefix, ExitCodeCallback processExitCallback,
+                                    File targetDir) throws IOException {
         String dockerImage = env.get(TOPOLOGY_ENV_DOCKER_IMAGE);
         if (dockerImage == null || dockerImage.isEmpty()) {
             dockerImage = defaultDockerImage;
@@ -241,7 +243,7 @@ public class DockerManager implements ResourceIsolationInterface {
         dockerRunCommand.setOverrideCommandWithArgs(Arrays.asList("bash", ServerUtils.writeScript(workerDir, command, env, "0027")));
 
         //run docker-run command and launch container in background (-d option).
-        runDockerCommandWaitFor(conf, user, CmdType.LAUNCH_DOCKER_CONTAINER,
+        runDockerCommandWaitFor(conf, user, numaId, CmdType.LAUNCH_DOCKER_CONTAINER,
             dockerRunCommand.getCommandWithArguments(), null, logPrefix, null, targetDir, "docker-run");
 
         //docker-wait for the container in another thread. processExitCallback will get the container's exit code.
@@ -250,7 +252,7 @@ public class DockerManager implements ResourceIsolationInterface {
             public Long call() throws IOException {
                 DockerWaitCommand dockerWaitCommand = new DockerWaitCommand(workerId);
                 try {
-                    runDockerCommandWaitFor(conf, user, CmdType.RUN_DOCKER_CMD,
+                    runDockerCommandWaitFor(conf, user, null, CmdType.RUN_DOCKER_CMD,
                         dockerWaitCommand.getCommandWithArguments(), null, logPrefix, processExitCallback, targetDir, "docker-wait");
                 } catch (IOException e) {
                     LOG.error("IOException on running docker wait command:", e);
@@ -315,11 +317,11 @@ public class DockerManager implements ResourceIsolationInterface {
     public void kill(String user, String workerId) throws IOException {
         String workerDir = ConfigUtils.workerRoot(conf, workerId);
         DockerStopCommand dockerStopCommand = new DockerStopCommand(workerId);
-        runDockerCommandWaitFor(conf, user, CmdType.RUN_DOCKER_CMD, dockerStopCommand.getCommandWithArguments(),
+        runDockerCommandWaitFor(conf, user, null, CmdType.RUN_DOCKER_CMD, dockerStopCommand.getCommandWithArguments(),
             null, null, null, new File(workerDir), "docker-stop");
 
         DockerRmCommand dockerRmCommand = new DockerRmCommand(workerId);
-        runDockerCommandWaitFor(conf, user, CmdType.RUN_DOCKER_CMD, dockerRmCommand.getCommandWithArguments(),
+        runDockerCommandWaitFor(conf, user, null, CmdType.RUN_DOCKER_CMD, dockerRmCommand.getCommandWithArguments(),
             null, null, null, new File(workerDir), "docker-rm");
     }
 
@@ -328,7 +330,7 @@ public class DockerManager implements ResourceIsolationInterface {
         String workerDir = ConfigUtils.workerRoot(conf, workerId);
         DockerRmCommand dockerRmCommand = new DockerRmCommand(workerId);
         dockerRmCommand.withForce();
-        runDockerCommandWaitFor(conf, user, CmdType.RUN_DOCKER_CMD, dockerRmCommand.getCommandWithArguments(),
+        runDockerCommandWaitFor(conf, user, null,  CmdType.RUN_DOCKER_CMD, dockerRmCommand.getCommandWithArguments(),
             null, null, null, new File(workerDir), "docker-force-rm");
     }
 
@@ -351,7 +353,7 @@ public class DockerManager implements ResourceIsolationInterface {
 
         String command = dockerPsCommand.getCommandWithArguments();
 
-        Process p = runDockerCommand(conf, user, CmdType.RUN_DOCKER_CMD, command,
+        Process p = runDockerCommand(conf, user, null, CmdType.RUN_DOCKER_CMD, command,
             null, null, null, new File(workerDir), "docker-ps");
 
         try {
@@ -420,8 +422,9 @@ public class DockerManager implements ResourceIsolationInterface {
 
         List<String> args = Arrays.asList(CmdType.RUN_NSENTER.toString(), workerId, workerDir, nsenterScriptPath);
 
-        Process process = ClientSupervisorUtils.processLauncher(conf, user, null, args,
-            env, logPrefix, null, targetDir);
+        Process process = ClientSupervisorUtils.processLauncher(
+                conf, user, null, null, args, env, logPrefix, null, targetDir
+        );
 
         process.waitFor();
 
@@ -460,7 +463,8 @@ public class DockerManager implements ResourceIsolationInterface {
      * @return the Process
      * @throws IOException on I/O exception
      */
-    private Process runDockerCommand(Map<String, Object> conf, String user, CmdType cmdType, String dockerCommand,
+    private Process runDockerCommand(Map<String, Object> conf, String user, String numaId,
+                                     CmdType cmdType, String dockerCommand,
                                      Map<String, String> environment, final String logPrefix,
                                      final ExitCodeCallback exitCodeCallback, File targetDir, String commandTag) throws IOException {
         String workerDir = targetDir.getAbsolutePath();
@@ -468,7 +472,7 @@ public class DockerManager implements ResourceIsolationInterface {
 
         List<String> args = Arrays.asList(cmdType.toString(), workerDir, dockerScriptPath);
 
-        return ClientSupervisorUtils.processLauncher(conf, user, null, args, environment,
+        return ClientSupervisorUtils.processLauncher(conf, user, numaId, null, args, environment,
             logPrefix, exitCodeCallback, targetDir);
     }
 
@@ -484,10 +488,15 @@ public class DockerManager implements ResourceIsolationInterface {
      * @return the Process
      * @throws IOException on I/O exception
      */
-    private int runDockerCommandWaitFor(Map<String, Object> conf, String user, CmdType cmdType, String dockerCommand,
+    private int runDockerCommandWaitFor(Map<String, Object> conf, String user, String numaId,
+                                        CmdType cmdType, String dockerCommand,
                                         Map<String, String> environment, final String logPrefix,
                                         final ExitCodeCallback exitCodeCallback, File targetDir, String commandTag) throws IOException {
-        Process p = runDockerCommand(conf, user, cmdType, dockerCommand, environment, logPrefix, exitCodeCallback, targetDir, commandTag);
+        Process p = runDockerCommand(
+                conf, user, numaId, cmdType, dockerCommand, environment, logPrefix,
+                exitCodeCallback, targetDir, commandTag
+        );
+
         try {
             p.waitFor();
         } catch (InterruptedException e) {

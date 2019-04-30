@@ -208,13 +208,16 @@ public class CgroupManager extends DefaultResourceIsolationManager {
     }
 
     @Override
-    public void launchWorkerProcess(String user, String topologyId, int port, String workerId, List<String> command, Map<String, String> env, String logPrefix,
+    public void launchWorkerProcess(String user, String topologyId, int port, String numaId, String workerId, List<String> command, Map<String, String> env, String logPrefix,
                                     ExitCodeCallback processExitCallback, File targetDir) throws IOException {
         if (runAsUser) {
             String workerDir = targetDir.getAbsolutePath();
             List<String> args = Arrays.asList("worker", workerDir, ServerUtils.writeScript(workerDir, command, env));
             List<String> commandPrefix = getLaunchCommandPrefix(workerId);
-            ClientSupervisorUtils.processLauncher(conf, user, commandPrefix, args, null, logPrefix, processExitCallback, targetDir);
+            ClientSupervisorUtils.processLauncher(
+                    conf, user, numaId, commandPrefix, args, null,
+                    logPrefix, processExitCallback, targetDir
+            );
         } else {
             command = getLaunchCommand(workerId, command);
             ClientSupervisorUtils.launchProcess(command, env, logPrefix, processExitCallback, targetDir);

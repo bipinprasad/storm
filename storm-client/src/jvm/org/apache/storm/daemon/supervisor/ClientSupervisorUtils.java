@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import org.apache.storm.Config;
 import org.apache.storm.shade.org.apache.commons.lang.StringUtils;
+import org.apache.storm.shade.org.apache.commons.lang.SystemUtils;
 import org.apache.storm.utils.ConfigUtils;
 import org.apache.storm.utils.ObjectReader;
 import org.apache.storm.utils.ShellUtils;
@@ -64,7 +65,7 @@ public class ClientSupervisorUtils {
                                              final Map<String, String> environment, final String logPreFix)
         throws IOException {
         int ret = 0;
-        Process process = processLauncher(conf, user, null, args, environment, logPreFix, null, null);
+        Process process = processLauncher(conf, user, null, null, args, environment, logPreFix, null, null);
         if (StringUtils.isNotBlank(logPreFix)) {
             Utils.readAndLogStream(logPreFix, process.getInputStream());
         }
@@ -77,12 +78,37 @@ public class ClientSupervisorUtils {
         return ret;
     }
 
-    public static Process processLauncher(Map<String, Object> conf, String user, List<String> commandPrefix, List<String> args,
+    /**
+     * Extracting out to mock it for tests.
+     * @return true if on Linux.
+     */
+    protected static boolean isOnLinux() {
+        return SystemUtils.IS_OS_LINUX;
+    }
+
+    private static void prefixNumaPinningIfApplicable(String numaId, List<String> commandList) {
+        if (numaId != null) {
+            if (isOnLinux()) {
+                numaId = "0";
+                commandList.add(0, "numactl");
+                commandList.add(1, "--cpunodebind=" + numaId);
+                commandList.add(2, "--membind=" + numaId);
+                return;
+            } else {
+                // TODO : Add support for pinning on Windows host
+                throw new RuntimeException("numactl pinning currently not supported on non-Linux hosts");
+            }
+        }
+    }
+
+    public static Process processLauncher(Map<String, Object> conf, String user, String numaId,
+                                          List<String> commandPrefix, List<String> args,
                                           Map<String, String> environment, final String logPreFix,
                                           final ExitCodeCallback exitCodeCallback, File dir) throws IOException {
         if (StringUtils.isBlank(user)) {
             throw new IllegalArgumentException("User cannot be blank when calling processLauncher.");
         }
+
         String wlinitial = (String) (conf.get(Config.SUPERVISOR_WORKER_LAUNCHER));
         String stormHome = ConfigUtils.concatIfNotNull(System.getProperty(ConfigUtils.STORM_HOME));
         String wl;
@@ -92,6 +118,9 @@ public class ClientSupervisorUtils {
             wl = stormHome + "/bin/worker-launcher";
         }
         List<String> commands = new ArrayList<>();
+
+        prefixNumaPinningIfApplicable(numaId, commands);
+
         if (commandPrefix != null) {
             commands.addAll(commandPrefix);
         }
