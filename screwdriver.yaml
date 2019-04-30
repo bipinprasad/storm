@@ -1,32 +1,48 @@
-jobs:
-  pull-request:
-    requires: [~pr]
-    steps:
-      - screwdrv_8281_hack: export SD_ZIP_ARTIFACTS='false'
-      - print_env: set
-      - build: gmake ${SD_SETTING_MAKE_ARGS} platforms
-      - test: gmake ${SD_SETTING_MAKE_ARGS} testcoverageplatforms
-      - package: gmake ${SD_SETTING_MAKE_ARGS} package-release
-      
-  merge:
-    requires: [~commit]
-    steps:
-      - screwdrv_8281_hack: export SD_ZIP_ARTIFACTS='false'
-      - print_env: set
-      - build: gmake ${SD_SETTING_MAKE_ARGS} platforms
-      - test: gmake ${SD_SETTING_MAKE_ARGS} testcoverageplatforms
-      - package: gmake ${SD_SETTING_MAKE_ARGS} package-release
-      - dist_force_push: gmake dist_force_push
-      - git_tag: gmake git_tag
-
 shared:
-  image: docker-registry.ops.yahoo.com:4443/storm/storm-ci-docker-image:latest
   annotations:
-    screwdriver.cd/cpu: HIGH
-    screwdriver.cd/ram: HIGH
+    some_yaml_anchors:
+      - &build_job_definition
+          requires: [~pr, ~commit]
+          annotations:
+            # HIGH RAM is needed for tests to run.
+            # HIGH CPU seems to increase the frequency of false negatives in tests.
+            screwdriver.cd/ram: HIGH
+          steps:
+          - print_env: set
+          - set_metadata: meta set "${YSTORM_DIST_OS}".build_id "${SD_BUILD_ID}"
+          - build: gmake ${SD_SETTING_MAKE_ARGS} platforms
+          - test: gmake ${SD_SETTING_MAKE_ARGS} testcoverageplatforms
+          - package: gmake ${SD_SETTING_MAKE_ARGS} package-release
+          - save_artifact: ./yahoo-build/screwdriver/save_artifact.sh "${YSTORM_DIST_OS}"
   environment:
     USER_SHELL_BIN: bash
+    SD_ZIP_ARTIFACTS: false
   settings:
     email:
       addresses: [ storm-devel@verizonmedia.com ]
       statuses: [ FAILURE ]
+
+jobs:
+  build_rhel6:
+    image: docker-registry.ops.yahoo.com:4443/storm/storm-ci-docker-image-rhel-6.10.2:latest
+    environment:
+      YSTORM_DIST_OS: rhel-6.x
+    <<: *build_job_definition
+
+  build_rhel7:
+    image: docker-registry.ops.yahoo.com:4443/storm/storm-ci-docker-image-rhel-7.5.4:latest
+    environment:
+      YSTORM_DIST_OS: rhel-7.x
+    <<: *build_job_definition
+
+  publish:
+    image: docker-registry.ops.yahoo.com:4443/storm/storm-ci-docker-image-rhel-7.5.4:latest
+    # Blocking because dist_install can race with auto_increment.pl, resulting
+    # in differing package versions.
+    blockedBy: [~build_rhel6, ~build_rhel7]
+    requires: [build_rhel6, build_rhel7]
+    steps:
+      - print_env: set
+      - fetch_artifacts: ./yahoo-build/screwdriver/fetch_artifacts.sh
+      - dist_force_push: gmake dist_force_push
+      - git_tag: gmake git_tag

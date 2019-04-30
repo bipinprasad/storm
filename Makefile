@@ -37,7 +37,6 @@ testcoverageplatforms:
 
 package-release:
 	$(MAKE) -C yahoo-build package-sd
-	cp -rv yahoo-build/packages "${SD_ARTIFACTS_DIR}/"
 
 dist_force_push:
 	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-6.x ${SD_ARTIFACTS_DIR}/packages/rhel-6.x/*.tgz && \
