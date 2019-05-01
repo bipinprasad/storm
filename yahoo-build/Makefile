@@ -7,6 +7,7 @@ MVN_MAKE_OPTS=--batch-mode
 MVN=LD_LIBRARY_PATH=/home/y/lib64 STORM_TEST_TIMEOUT_MS=20000 MAVEN_OPTS="-Xmx1024M -XX:+TieredCompilation -XX:TieredStopAtLevel=1"  /home/y/bin/mvn -T 1C
 EXEC_CONF_DIR?=/home/y/conf/storm/
 DATE=`date +%s`
+OSMAJOR=$(shell yinst platform OSMAJOR)
 
 all: build
 
@@ -64,16 +65,12 @@ copy_webapp: DATE
 	rsync -razv ../storm-webapp/src/main/java/org/apache/storm/daemon/ui/WEB-INF/ ./WEB-INF/
 	find ./WEB-INF/ -type f | xargs sed -i.back -e 's/$${packageTimestamp}/'`cat DATE`'/g'
 
-packages/rhel-6.x:
+packages/rhel-${OSMAJOR}.x:
 	mkdir -pv "$@"
 
-packages/rhel-7.x:
-	mkdir -pv "$@"
-
-testpkg: RELEASE BASE_VERSION build copy_webapp packages/rhel-6.x packages/rhel-7.x
+testpkg: RELEASE BASE_VERSION build copy_webapp packages/rhel-${OSMAJOR}.x
 	$(setup-versions)
-	yinst_create --buildtype test --platform rhel-6.x ystorm.yicf --target packages/rhel-6.x && \
-	yinst_create --buildtype test --platform rhel-7.x ystorm.yicf --target packages/rhel-7.x && \
+	yinst_create --buildtype test --platform rhel-${OSMAJOR}.x ystorm.yicf --target packages/rhel-${OSMAJOR}.x
 	$(revert-versions) || ( $(revert-versions) && false )
 
 ignore-pom-changes:
@@ -81,21 +78,15 @@ ignore-pom-changes:
 	
 # This target is called from screwdriver build and leaves the poms changed for its
 # publish phase
-package-sd: RELEASE copy_webapp packages/rhel-6.x packages/rhel-7.x
+package-sd: RELEASE copy_webapp packages/rhel-${OSMAJOR}.x
 	$(setup-versions)
 	cd ../shaded-deps && $(MVN) install -DskipTests
 	cd .. && $(find-tracked-pom-xml)| xargs git update-index --assume-unchanged
-	yinst_create --buildtype release --platform rhel-6.x ystorm.yicf --target packages/rhel-6.x && \
-	yinst_create --buildtype release --platform rhel-7.x ystorm.yicf --target packages/rhel-7.x
+	yinst_create --buildtype release --platform rhel-${OSMAJOR}.x ystorm.yicf --target packages/rhel-${OSMAJOR}.x
 	cd .. && $(find-tracked-pom-xml) | xargs git update-index --no-assume-unchanged
 
 package: package-sd
 	$(revert-versions)
-
-
-rhel6_build.state: rhel6_build.yidf rhel6_build.yml
-	rm -f rhel6_build.state rhel6_build.state.tmp rhel6_build.ruleset
-	statecc --branch test ./rhel6_build.yml
 
 clean:
 	cd .. && $(MVN) -Pyahoo -Pexternals,examples clean ${MVN_MAKE_OPTS}

@@ -42,7 +42,14 @@ dist_force_push:
 	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-6.x ${SD_ARTIFACTS_DIR}/packages/rhel-6.x/*.tgz && \
 	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-7.x ${SD_ARTIFACTS_DIR}/packages/rhel-7.x/*.tgz
 
-git_tag:
-	git tag -f -a `cat ${SD_SOURCE_DIR}/yahoo-build/RELEASE` -m "yahoo version `cat ${SD_SOURCE_DIR}/yahoo-build/RELEASE`"
-	git push origin `cat ${SD_SOURCE_DIR}/yahoo-build/RELEASE`
+# RELEASE files are assumed to exist per-OS.
+RELEASE:
+	# Make sure the release files have the same content.
+	diff ${SD_ARTIFACTS_DIR}/packages/rhel-?.x/RELEASE
+	# Copy one of the files.
+	cp -nv `ls ${SD_ARTIFACTS_DIR}/packages/rhel-?.x/RELEASE | head -n 1` RELEASE
+
+git_tag: RELEASE
+	git tag -f -a `cat RELEASE` -m "Pipeline ${SD_PIPELINE_ID} job ${SD_JOB_ID} build ${SD_BUILD_ID}: yahoo version `cat RELEASE`"
+	git push origin `cat RELEASE`
 	${SD_SOURCE_DIR}/internal/QATools/storm_tag_master_launcher
