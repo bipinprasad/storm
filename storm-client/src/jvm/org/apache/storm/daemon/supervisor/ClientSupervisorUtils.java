@@ -89,7 +89,6 @@ public class ClientSupervisorUtils {
     private static void prefixNumaPinningIfApplicable(String numaId, List<String> commandList) {
         if (numaId != null) {
             if (isOnLinux()) {
-                numaId = "0";
                 commandList.add(0, "numactl");
                 commandList.add(1, "--cpunodebind=" + numaId);
                 commandList.add(2, "--membind=" + numaId);
