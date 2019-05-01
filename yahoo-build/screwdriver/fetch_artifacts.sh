@@ -30,6 +30,8 @@ function fetch_file {
         echo "Failed to download '$url'"
         exit 1
     fi
+
+    ls -l "$output_file"
 }
 
 

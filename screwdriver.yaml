@@ -13,7 +13,7 @@ shared:
           - build: gmake ${SD_SETTING_MAKE_ARGS} platforms
           - test: gmake ${SD_SETTING_MAKE_ARGS} testcoverageplatforms
           - package: gmake ${SD_SETTING_MAKE_ARGS} package-release
-          - save_artifact: ./yahoo-build/screwdriver/save_artifact.sh "${YSTORM_DIST_OS}"
+          - save_artifacts: ./yahoo-build/screwdriver/save_artifacts.sh "${YSTORM_DIST_OS}"
   environment:
     USER_SHELL_BIN: bash
     SD_ZIP_ARTIFACTS: false
