@@ -581,28 +581,6 @@ public class BasicContainer extends Container {
     }
 
     /**
-     * Extracting out to mock it for tests.
-     * @return true if on Linux.
-     */
-    protected boolean isOnLinux() {
-        return SystemUtils.IS_OS_LINUX;
-    }
-
-    private void prefixNumaPinningIfApplicable(String numaId, List<String> commandList) {
-        if (numaId != null) {
-            if (isOnLinux()) {
-                commandList.add(0, "numactl");
-                commandList.add(1, "--cpunodebind=" + numaId);
-                commandList.add(2, "--membind=" + numaId);
-                return;
-            } else {
-                // TODO : Add support for pinning on Windows host
-                throw new RuntimeException("numactl pinning currently not supported on non-Linux hosts");
-            }
-        }
-    }
-
-    /**
      * Create the command to launch the worker process.
      *
      * @param memOnheap the on heap memory for the worker
@@ -634,7 +612,6 @@ public class BasicContainer extends Container {
         }
 
         List<String> commandList = new ArrayList<>();
-        prefixNumaPinningIfApplicable(numaId, commandList);
         String logWriter = getWorkerLogWriter(topoVersion);
         if (logWriter != null) {
             //Log Writer Command...
@@ -865,8 +842,9 @@ public class BasicContainer extends Container {
 
         String workerDir = ConfigUtils.workerRoot(_conf, _workerId);
 
-        resourceIsolationManager.launchWorkerProcess(getWorkerUser(), _topologyId, _port, _workerId, commandList, topEnvironment,
-            logPrefix, processExitCallback, new File(workerDir));
+        resourceIsolationManager.launchWorkerProcess(getWorkerUser(), _topologyId, _port, numaId, _workerId,
+                commandList, topEnvironment, logPrefix, processExitCallback, new File(workerDir)
+        );
     }
 
     private static class TopologyMetaData {
