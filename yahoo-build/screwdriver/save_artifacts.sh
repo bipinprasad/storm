@@ -32,3 +32,7 @@ save_file "${PackagePath}"
 # Saves the RELEASE file
 ReleasePath="$(ls "${SD_SOURCE_DIR}/yahoo-build/RELEASE")"
 save_file "${ReleasePath}"
+
+# Saves the DIST_TAG file
+DistTagPath="$(ls "${SD_SOURCE_DIR}/yahoo-build/DIST_TAG")"
+save_file "${DistTagPath}"
