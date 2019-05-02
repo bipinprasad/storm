@@ -54,7 +54,7 @@ DIST_TAG:
 	# Make sure the release files have the same content.
 	diff ${SD_ARTIFACTS_DIR}/packages/rhel-?.x/DIST_TAG
 	# Copy one of the files.
-	cp -nv `ls ${SD_ARTIFACTS_DIR}/packages/rhel-?.x/DIST_TAG | head -n 1` DIST_TAG
+	cp -nv `ls ${SD_ARTIFACTS_DIR}/packages/rhel-?.x/DIST_TAG | head -n 1` yahoo-build/DIST_TAG
 
 git_tag: internal RELEASE DIST_TAG
 	git tag -f -a `cat RELEASE` -m "Pipeline ${SD_PIPELINE_ID} job ${SD_JOB_ID} build ${SD_BUILD_ID}: yahoo version `cat RELEASE`"
