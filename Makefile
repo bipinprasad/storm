@@ -39,22 +39,22 @@ package-release:
 	$(MAKE) -C yahoo-build package-sd
 
 dist_force_push:
-	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-6.x ${SD_ARTIFACTS_DIR}/packages/rhel-6.x/*.tgz && \
-	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-7.x ${SD_ARTIFACTS_DIR}/packages/rhel-7.x/*.tgz
+	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-6.x ${SD_ARTIFACTS_DIR}/yahoo-build/packages/rhel-6.x/*.tgz && \
+	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-7.x ${SD_ARTIFACTS_DIR}/yahoo-build/packages/rhel-7.x/*.tgz
 
 # RELEASE files are assumed to exist per-OS.
 RELEASE:
 	# Make sure the release files have the same content.
-	diff ${SD_ARTIFACTS_DIR}/packages/rhel-?.x/RELEASE
+	diff ${SD_ARTIFACTS_DIR}/yahoo-build/packages/rhel-?.x/RELEASE
 	# Copy one of the files.
-	cp -nv `ls ${SD_ARTIFACTS_DIR}/packages/rhel-?.x/RELEASE | head -n 1` RELEASE
+	cp -nv `ls ${SD_ARTIFACTS_DIR}/yahoo-build/packages/rhel-?.x/RELEASE | head -n 1` RELEASE
 
 # DIST_TAG files are assumed to exist per-OS.
 DIST_TAG:
 	# Make sure the release files have the same content.
-	diff ${SD_ARTIFACTS_DIR}/packages/rhel-?.x/DIST_TAG
+	diff ${SD_ARTIFACTS_DIR}/yahoo-build/packages/rhel-?.x/DIST_TAG
 	# Copy one of the files.
-	cp -nv `ls ${SD_ARTIFACTS_DIR}/packages/rhel-?.x/DIST_TAG | head -n 1` yahoo-build/DIST_TAG
+	cp -nv `ls ${SD_ARTIFACTS_DIR}/yahoo-build/packages/rhel-?.x/DIST_TAG | head -n 1` yahoo-build/DIST_TAG
 
 git_tag: internal RELEASE DIST_TAG
 	git tag -f -a `cat RELEASE` -m "Pipeline ${SD_PIPELINE_ID} job ${SD_JOB_ID} build ${SD_BUILD_ID}: yahoo version `cat RELEASE`"

@@ -65,12 +65,12 @@ copy_webapp: DATE
 	rsync -razv ../storm-webapp/src/main/java/org/apache/storm/daemon/ui/WEB-INF/ ./WEB-INF/
 	find ./WEB-INF/ -type f | xargs sed -i.back -e 's/$${packageTimestamp}/'`cat DATE`'/g'
 
-packages/rhel-${OSMAJOR}.x:
+yahoo-build/packages/rhel-${OSMAJOR}.x:
 	mkdir -pv "$@"
 
-testpkg: RELEASE BASE_VERSION build copy_webapp packages/rhel-${OSMAJOR}.x
+testpkg: RELEASE BASE_VERSION build copy_webapp yahoo-build/packages/rhel-${OSMAJOR}.x
 	$(setup-versions)
-	yinst_create --buildtype test --platform rhel-${OSMAJOR}.x ystorm.yicf --target packages/rhel-${OSMAJOR}.x
+	yinst_create --buildtype test --platform rhel-${OSMAJOR}.x ystorm.yicf --target yahoo-build/packages/rhel-${OSMAJOR}.x
 	$(revert-versions) || ( $(revert-versions) && false )
 
 ignore-pom-changes:
@@ -78,11 +78,11 @@ ignore-pom-changes:
 	
 # This target is called from screwdriver build and leaves the poms changed for its
 # publish phase
-package-sd: RELEASE copy_webapp packages/rhel-${OSMAJOR}.x
+package-sd: RELEASE copy_webapp yahoo-build/packages/rhel-${OSMAJOR}.x
 	$(setup-versions)
 	cd ../shaded-deps && $(MVN) install -DskipTests
 	cd .. && $(find-tracked-pom-xml)| xargs git update-index --assume-unchanged
-	yinst_create --buildtype release --platform rhel-${OSMAJOR}.x ystorm.yicf --target packages/rhel-${OSMAJOR}.x
+	yinst_create --buildtype release --platform rhel-${OSMAJOR}.x ystorm.yicf --target yahoo-build/packages/rhel-${OSMAJOR}.x
 	cd .. && $(find-tracked-pom-xml) | xargs git update-index --no-assume-unchanged
 
 package: package-sd

@@ -26,7 +26,8 @@ function save_file {
 # package to the artifacts directory so that it will be automatically stored,
 # and set a metadata value containing the file name of the package so that any
 # downstream job can know what file to fetch.
-PackagePath="$(ls "${SD_SOURCE_DIR}/yahoo-build/packages/${YSTORM_DIST_OS}"/ystorm-*.tgz)"
+# the double yahoo-build is required for the storm_tools script that is looking for the same package
+PackagePath="$(ls "${SD_SOURCE_DIR}/yahoo-build/yahoo-build/packages/${YSTORM_DIST_OS}"/ystorm-*.tgz)"
 save_file "${PackagePath}"
 
 # Saves the RELEASE file
