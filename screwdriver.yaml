@@ -24,7 +24,7 @@ shared:
 
 jobs:
   build_rhel6:
-    image: docker-registry.ops.yahoo.com:4443/storm/storm-ci-docker-image-rhel-6.10.2:latest
+    image: docker-registry.ops.yahoo.com:4443/storm/storm-ci-docker-image-rhel-6.10.3:latest
     environment:
       YSTORM_DIST_OS: rhel-6.x
     <<: *build_job_definition
