@@ -39,8 +39,8 @@ package-release:
 	$(MAKE) -C yahoo-build package-sd
 
 dist_force_push:
-	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-6.x ${SD_ARTIFACTS_DIR}/yahoo-build/packages/rhel-6.x/*.tgz && \
-	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-7.x ${SD_ARTIFACTS_DIR}/yahoo-build/packages/rhel-7.x/*.tgz
+	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-6.x ${SD_SOURCE_DIR}/yahoo-build/packages/rhel-6.x/*.tgz && \
+	/home/y/bin/dist_install -branch quarantine -headless -identity=/home/screwdrv/.ssh/id_dsa -group=hadoopqa -batch -nomail -os rhel-7.x ${SD_SOURCE_DIR}/yahoo-build/packages/rhel-7.x/*.tgz
 
 # RELEASE files are assumed to exist per-OS.
 RELEASE:
