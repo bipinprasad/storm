@@ -41,7 +41,7 @@ function fetch_files {
     for f in $files
     do
         # Places files under directories for the respective cluster.
-        output_file="${SD_ARTIFACTS_DIR}/yahoo-build/packages/$1/$f"
+        output_file="${SD_SOURCE_DIR}/yahoo-build/packages/$1/$f"
         fetch_file "$build_id" "$f" "$output_file"
     done
 
