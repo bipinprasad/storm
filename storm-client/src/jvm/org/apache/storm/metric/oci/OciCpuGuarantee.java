@@ -10,7 +10,7 @@
  * and limitations under the License.
  */
 
-package org.apache.storm.metric.docker;
+package org.apache.storm.metric.oci;
 
 import java.io.IOException;
 import java.util.Map;
@@ -18,11 +18,11 @@ import org.apache.storm.container.cgroup.SubSystemType;
 import org.apache.storm.container.cgroup.core.CgroupCore;
 import org.apache.storm.container.cgroup.core.CpuCore;
 
-public class DockerCpuGuarantee extends DockerMetricsBase<Long> {
+public class OciCpuGuarantee extends OciMetricsBase<Long> {
 
     long previousTime = -1;
 
-    public DockerCpuGuarantee(Map<String, Object> conf) {
+    public OciCpuGuarantee(Map<String, Object> conf) {
         super(conf, SubSystemType.cpu);
     }
 

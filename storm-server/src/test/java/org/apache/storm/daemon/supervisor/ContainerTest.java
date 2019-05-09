@@ -311,6 +311,11 @@ public class ContainerTest {
         }
 
         @Override
+        public void cleanup(String user, String workerId) {
+            //NO OP
+        }
+
+        @Override
         public boolean isResourceManaged() {
             return false;
         }

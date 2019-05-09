@@ -10,16 +10,16 @@
  * and limitations under the License.
  */
 
-package org.apache.storm.metric.docker;
+package org.apache.storm.metric.oci;
 
 import java.util.Map;
 import org.apache.storm.container.cgroup.SubSystemType;
 import org.apache.storm.container.cgroup.core.CgroupCore;
 import org.apache.storm.container.cgroup.core.MemoryCore;
 
-public class DockerMemoryUsage  extends DockerMetricsBase<Long> {
+public class OciMemoryUsage extends OciMetricsBase<Long> {
 
-    public DockerMemoryUsage(Map<String, Object> conf) {
+    public OciMemoryUsage(Map<String, Object> conf) {
         super(conf, SubSystemType.memory);
     }
 

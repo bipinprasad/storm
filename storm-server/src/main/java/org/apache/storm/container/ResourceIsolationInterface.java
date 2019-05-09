@@ -121,6 +121,9 @@ public interface ResourceIsolationInterface {
     boolean runProfilingCommand(String user, String workerId, List<String> command, Map<String, String> env,
                                 String logPrefix, File targetDir) throws IOException, InterruptedException;
 
+
+    void cleanup(String user, String workerId) throws IOException;
+
     /**
      * Return true if resources are being managed.
      * The {@link DefaultResourceIsolationManager} will have it return false since it doesn't really manage resources.

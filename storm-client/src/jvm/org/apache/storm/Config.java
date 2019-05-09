@@ -1680,11 +1680,11 @@ public class Config extends HashMap<String, Object> {
     @isPositiveNumber
     public static final String NUM_STAT_BUCKETS = "num.stat.buckets";
     /**
-     * The root of cgroup for docker to use. On RHEL7, it should be "/sys/fs/cgroup".
+     * The root of cgroup for oci to use. On RHEL7, it should be "/sys/fs/cgroup".
      */
     @isString
     @NotNull
-    public static String STORM_DOCKER_CGROUP_ROOT = "storm.docker.cgroup.root";
+    public static String STORM_OCI_CGROUP_ROOT = "storm.oci.cgroup.root";
     /**
      * Interval to check for the worker to check for updated blobs and refresh worker state accordingly. The default is 10 seconds
      */

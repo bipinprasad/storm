@@ -38,7 +38,7 @@ import org.apache.storm.Config;
 import org.apache.storm.Constants;
 import org.apache.storm.DaemonConfig;
 import org.apache.storm.container.ResourceIsolationInterface;
-import org.apache.storm.container.docker.DockerManager;
+import org.apache.storm.container.oci.OciContainerManager;
 import org.apache.storm.generated.LocalAssignment;
 import org.apache.storm.generated.ProfileAction;
 import org.apache.storm.generated.ProfileRequest;
@@ -157,11 +157,11 @@ public class BasicContainer extends Container {
             createNewWorkerId();
         }
 
-        if (resourceIsolationManager instanceof DockerManager) {
+        if (resourceIsolationManager instanceof OciContainerManager) {
             //When we use DockerManager, we will only use the profiler configured in worker-launcher.cfg due to security reasons
             LOG.debug("Supervisor is using {} as the {}."
                 + "The profiler set at worker.profiler.script.path in worker-launcher.cfg is the only profiler to be used. "
-                + "Please make sure it is configured properly", DockerManager.class.getName(), ResourceIsolationInterface.class.getName());
+                + "Please make sure it is configured properly", resourceIsolationManager.getClass().getName(), ResourceIsolationInterface.class.getName());
             _profileCmd = "";
         } else {
             if (profileCmd == null) {

@@ -8,6 +8,8 @@ documentation: true
 
 This page describes how storm supervisor launches the worker in a docker container. 
 
+Note: This is only tested on RHEL7.
+
 ## Motivation
 
 This is mostly about security and portability. With workers running inside of docker containers, we isolate running user code from each other and from the hosted machine so that the whole system is less vulnerable to attack. 
@@ -65,13 +67,13 @@ To make supervisor work with docker, you need to configure related settings corr
 |-------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `storm.resource.isolation.plugin.enable`  | set to `true` to enable isolation plugin. `storm.resource.isolation.plugin` determines which plugin to use. If this is set to `false`, `org.apache.storm.container.DefaultResourceIsolationManager` will be used.                                                                                                                                                                                                                                           |
 | `storm.resource.isolation.plugin`         | set to `"org.apache.storm.container.docker.DockerManager"` to enable docker support                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `storm.docker.allowed.images`             | A whitelist of docker images that can be used. Users can only choose a docker image from the list.
-| `storm.docker.image`                      | The default docker image to be used if user doesn't specify which image to use. And it must belong to the `storm.docker.allowed.images` 
-| `storm.docker.cgroup.root`                | The root path of cgroup for docker to use. On RHEL7, it should be "/sys/fs/cgroup".
-| `storm.docker.cgroup.parent`              | --cgroup-parent config for docker command. It must follow the constraints of docker commands. The path will be made as absolute path if it's a relative path because we saw some weird bugs ((the cgroup memory directory disappears after a while) when a relative path is used.
-| `storm.docker.readonly.bindmounts`        | A list of read only bind mounted directories.
-| `storm.docker.nscd.dir`                   | The directory of nscd (name service cache daemon), e.g. "/var/run/nscd/". nscd must be running so that profiling can work properly.
-| `storm.docker.seccomp.profile`            | White listed syscalls seccomp Json file to be used as a seccomp filter
+| `storm.oci.allowed.images`             | A whitelist of docker images that can be used. Users can only choose a docker image from the list.
+| `storm.oci.image`                      | The default docker image to be used if user doesn't specify which image to use. And it must belong to the `storm.oci.allowed.images` 
+| `storm.oci.cgroup.root`                | The root path of cgroup for docker to use. On RHEL7, it should be "/sys/fs/cgroup".
+| `storm.oci.cgroup.parent`              | --cgroup-parent config for docker command. It must follow the constraints of docker commands. The path will be made as absolute path if it's a relative path because we saw some weird bugs ((the cgroup memory directory disappears after a while) when a relative path is used.
+| `storm.oci.readonly.bindmounts`        | A list of read only bind mounted directories.
+| `storm.oci.nscd.dir`                   | The directory of nscd (name service cache daemon), e.g. "/var/run/nscd/". nscd must be running so that profiling can work properly.
+| `storm.oci.seccomp.profile`            | White listed syscalls seccomp Json file to be used as a seccomp filter
 | `supervisor.worker.launcher`              | Full path to the worker-launcher executable. Details explained at [How to set up worker-launcher](#how-to-set-up-worker-launcher)
 
 Note that we only support cgroupfs cgroup driver because of some issues with `systemd` cgroup driver; restricting to `cgroupfs` also makes cgroup paths simpler. Please make sure to use `cgroupfs` before setting up docker support.
@@ -83,14 +85,14 @@ Below is a simple configuration example for storm on Rhel7. In this example, sto
 ```bash
 storm.resource.isolation.plugin.enable: true
 storm.resource.isolation.plugin: "org.apache.storm.container.docker.DockerManager"
-storm.docker.allowed.images: ["xxx.xxx.com:8080/storm/docker_images/rhel6:latest"]
-storm.docker.image: "xxx.xxx.com:8080/storm/docker_images/rhel6:latest"
-storm.docker.cgroup.root: "/storm"
-storm.docker.cgroup.parent: "/sys/fs/cgroup"
-storm.docker.readonly.bindmounts:
+storm.oci.allowed.images: ["xxx.xxx.com:8080/storm/docker_images/rhel6:latest"]
+storm.oci.image: "xxx.xxx.com:8080/storm/docker_images/rhel6:latest"
+storm.oci.cgroup.root: "/storm"
+storm.oci.cgroup.parent: "/sys/fs/cgroup"
+storm.oci.readonly.bindmounts:
     - "/etc"
     - "/home/y"
-storm.docker.nscd.dir: "/var/run/nscd"
+storm.oci.nscd.dir: "/var/run/nscd"
 supervisor.worker.launcher: "/usr/share/apache-storm-2.0.0/bin/worker-launcher"
 ```
 
@@ -114,7 +116,7 @@ nsenter.binary=/usr/bin/nsenter
 ```
 and you don't need to set them in the worker-launcher.cfg unless you need to change them.
 
-## Monitoring
+## Resource Monitoring
 
 You can use docker commands like `docker inspect`, `docker ps`, etc to monitor the docker containers. 
 
@@ -122,10 +124,20 @@ Also in the `storm.yaml` file, you can add the following configs
 
 ```bash
 worker.metrics:
-   "CGroupMemory": "org.apache.storm.metric.docker.DockerMemoryUsage"
-   "CGroupMemoryLimit": "org.apache.storm.metric.docker.DockerMemoryLimit"
-   "CGroupCpu": "org.apache.storm.metric.docker.DockerCpu"
-   "CGroupCpuGuarantee": "org.apache.storm.metric.docker.DockerCpuGuarantee"
+   "CGroupMemory": "org.apache.storm.metric.oci.OciMemoryUsage"
+   "CGroupMemoryLimit": "org.apache.storm.metric.oci.OciMemoryLimit"
+   "CGroupCpu": "org.apache.storm.metric.oci.OciCpu"
+   "CGroupCpuGuarantee": "org.apache.storm.metric.oci.OciCpuGuarantee"
 ```
 
 so that the cpu/memory metrics per worker will be reported.
+
+## Profile the processes inside the container
+If you have sudo permission, you can also run `sudo nsenter --target <container-pid> --pid --mount` to enter the container. 
+Then you can run `jstack`, `jmap` etc inside the container. `<container-pid>` is the pid of the container process on the host.
+`<container-pid>` can be obtained by running `sudo docker inspect --format '{{.State.Pid}}' <container-id>` command
+
+## Seccomp security profiles
+
+You can set `storm.oci.seccomp.profile` to restrict the actions available within the container. If it's not set, the [default docker seccomp profile](https://github.com/moby/moby/blob/master/profiles/seccomp/default.json)
+is used. You can use `conf/seccomp.json.example` provided or you can specify our own `seccomp.json` file.

@@ -10,7 +10,7 @@
  * and limitations under the License.
  */
 
-package org.apache.storm.metric.docker;
+package org.apache.storm.metric.oci;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,16 +21,16 @@ import org.apache.storm.container.cgroup.SubSystemType;
 import org.apache.storm.container.cgroup.core.CgroupCore;
 import org.apache.storm.container.cgroup.core.CpuacctCore;
 
-public class DockerCpu extends DockerMetricsBase<Map<String, Long>> {
+public class OciCpu extends OciMetricsBase<Map<String, Long>> {
     long previousSystem = 0;
     long previousUser = 0;
     private int userHz = -1;
 
-    public DockerCpu(Map<String, Object> conf) {
+    public OciCpu(Map<String, Object> conf) {
         super(conf, SubSystemType.cpuacct);
     }
 
-    public synchronized int getUserHZ() throws IOException {
+    public synchronized int getUserHz() throws IOException {
         if (userHz < 0) {
             ProcessBuilder pb = new ProcessBuilder("getconf", "CLK_TCK");
             Process p = pb.start();
@@ -47,11 +47,13 @@ public class DockerCpu extends DockerMetricsBase<Map<String, Long>> {
         Map<CpuacctCore.StatType, Long> stat = cpu.getCpuStat();
         long systemHz = stat.get(CpuacctCore.StatType.system);
         long userHz = stat.get(CpuacctCore.StatType.user);
-        long user = userHz - previousUser;
-        long sys = systemHz - previousSystem;
         previousUser = userHz;
         previousSystem = systemHz;
-        long hz = getUserHZ();
+
+        long hz = getUserHz();
+        long user = userHz - previousUser;
+        long sys = systemHz - previousSystem;
+
         HashMap<String, Long> ret = new HashMap<>();
         ret.put("user-ms", user * 1000 / hz); //Convert to millis
         ret.put("sys-ms", sys * 1000 / hz);

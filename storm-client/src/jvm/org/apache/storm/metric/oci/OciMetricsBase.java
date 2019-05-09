@@ -10,7 +10,7 @@
  * and limitations under the License.
  */
 
-package org.apache.storm.metric.docker;
+package org.apache.storm.metric.oci;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,8 +25,8 @@ import org.apache.storm.metric.api.IMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class DockerMetricsBase<T> implements IMetric {
-    private static final Logger LOG = LoggerFactory.getLogger(DockerMetricsBase.class);
+public abstract class OciMetricsBase<T> implements IMetric {
+    private static final Logger LOG = LoggerFactory.getLogger(OciMetricsBase.class);
     private boolean enabled;
     private CgroupCore core = null;
 
@@ -35,20 +35,20 @@ public abstract class DockerMetricsBase<T> implements IMetric {
      * @param conf the storm conf
      * @param type the subsystem type
      */
-    public DockerMetricsBase(Map<String, Object> conf, SubSystemType type) {
+    public OciMetricsBase(Map<String, Object> conf, SubSystemType type) {
         final String simpleName = getClass().getSimpleName();
         enabled = false;
 
-        String dockerCgroupRoot = (String) conf.get(Config.STORM_DOCKER_CGROUP_ROOT);
-        if (dockerCgroupRoot == null || dockerCgroupRoot.isEmpty()) {
-            LOG.warn("{} is disabled {} is not set", simpleName, Config.STORM_DOCKER_CGROUP_ROOT);
+        String ociCgroupRoot = (String) conf.get(Config.STORM_OCI_CGROUP_ROOT);
+        if (ociCgroupRoot == null || ociCgroupRoot.isEmpty()) {
+            LOG.warn("{} is disabled {} is not set", simpleName, Config.STORM_OCI_CGROUP_ROOT);
             return;
         }
 
-        String dockerCgroupSubSystemRoot = dockerCgroupRoot + File.separator + type;
+        String ociCgroupSubSystemRoot = ociCgroupRoot + File.separator + type;
 
-        if (!new File(dockerCgroupSubSystemRoot).exists()) {
-            LOG.warn("{} is disabled {} does not exist", simpleName, dockerCgroupSubSystemRoot);
+        if (!new File(ociCgroupSubSystemRoot).exists()) {
+            LOG.warn("{} is disabled {} does not exist", simpleName, ociCgroupSubSystemRoot);
             return;
         }
 
@@ -65,13 +65,13 @@ public abstract class DockerMetricsBase<T> implements IMetric {
             //hierarchy-ID:controller-list:cgroup-path
             String[] parts = line.split(":");
             String cgroupPath = parts[2];
-            core = CgroupCoreFactory.getInstance(type, new File(dockerCgroupSubSystemRoot, cgroupPath).getAbsolutePath());
+            core = CgroupCoreFactory.getInstance(type, new File(ociCgroupSubSystemRoot, cgroupPath).getAbsolutePath());
         } catch (Exception e) {
             LOG.warn("{} is disabled error trying to read or parse {}", simpleName, cgroupFile);
             return;
         }
         enabled = true;
-        LOG.info("{} is ENABLED {} exists...", simpleName);
+        LOG.info("{} is ENABLED {} exists...", simpleName, ociCgroupSubSystemRoot);
     }
 
     @Override

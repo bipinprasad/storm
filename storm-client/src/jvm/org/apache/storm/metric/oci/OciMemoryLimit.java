@@ -10,7 +10,7 @@
  * and limitations under the License.
  */
 
-package org.apache.storm.metric.docker;
+package org.apache.storm.metric.oci;
 
 import java.util.Map;
 import org.apache.storm.container.cgroup.SubSystemType;
@@ -20,7 +20,7 @@ import org.apache.storm.metric.cgroup.CGroupMemoryLimit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DockerMemoryLimit extends DockerMetricsBase<Long> {
+public class OciMemoryLimit extends OciMetricsBase<Long> {
     private static final Logger LOG = LoggerFactory.getLogger(CGroupMemoryLimit.class);
     private static final long BYTES_PER_MB = 1024 * 1024;
     private final long workerLimitBytes;
@@ -29,7 +29,7 @@ public class DockerMemoryLimit extends DockerMetricsBase<Long> {
      * The constructor.
      * @param conf storm conf
      */
-    public DockerMemoryLimit(Map<String, Object> conf) {
+    public OciMemoryLimit(Map<String, Object> conf) {
         super(conf, SubSystemType.memory);
         //In some cases we might be limiting memory in the supervisor and not in the cgroups
         long limit = -1;

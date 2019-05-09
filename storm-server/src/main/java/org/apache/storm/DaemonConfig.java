@@ -20,8 +20,10 @@ package org.apache.storm;
 
 import java.util.ArrayList;
 import java.util.Map;
-import org.apache.storm.container.ResourceIsolationInterface;
 import org.apache.storm.container.docker.DockerManager;
+import org.apache.storm.container.oci.OciImageTagToManifestPluginInterface;
+import org.apache.storm.container.oci.OciManifestToResourcesPluginInterface;
+import org.apache.storm.container.oci.OciResourcesLocalizerInterface;
 import org.apache.storm.nimbus.ITopologyActionNotifierPlugin;
 import org.apache.storm.scheduler.blacklist.reporters.IReporter;
 import org.apache.storm.scheduler.blacklist.strategies.IBlacklistStrategy;
@@ -30,7 +32,6 @@ import org.apache.storm.scheduler.resource.strategies.scheduling.IStrategy;
 import org.apache.storm.security.auth.IAuthorizer;
 import org.apache.storm.security.auth.IHttpCredentialsPlugin;
 import org.apache.storm.validation.ConfigValidation;
-import org.apache.storm.validation.ConfigValidationAnnotations;
 import org.apache.storm.validation.Validated;
 
 import static org.apache.storm.validation.ConfigValidationAnnotations.NotNull;
@@ -1171,16 +1172,17 @@ public class DaemonConfig implements Validated {
      */
     @isString
     @NotNull
-    public static String STORM_DOCKER_NSCD_DIR = "storm.docker.nscd.dir";
+    public static String STORM_OCI_NSCD_DIR = "storm.oci.nscd.dir";
 
     /**
      * A list of read only bind mounted directories.
      */
     @isStringList
-    public static String STORM_DOCKER_READONLY_BINDMOUNTS = "storm.docker.readonly.bindmounts";
+    public static String STORM_OCI_READONLY_BINDMOUNTS = "storm.oci.readonly.bindmounts";
 
     /**
-     * --cgroup-parent config for docker command. Must follow the constraints of the docker command.
+     * The cgroup root for oci container. (Also a --cgroup-parent config for docker command)
+     * Must follow the constraints of the docker command.
      * The path will be made as absolute path if it's a relative path
      * because we saw some weird bugs (the cgroup memory directory disappears after a while) when a relative path is used.
      * Note that we only support cgroupfs cgroup driver because of some issues with systemd; restricting to `cgroupfs`
@@ -1188,25 +1190,61 @@ public class DaemonConfig implements Validated {
      */
     @isString
     @NotNull
-    public static String STORM_DOCKER_CGROUP_PARENT = "storm.docker.cgroup.parent";
+    public static String STORM_OCI_CGROUP_PARENT = "storm.oci.cgroup.parent";
 
     /**
-     * Default docker image to use if the topology doesn't specify which docker image to use.
+     * Default oci image to use if the topology doesn't specify which oci image to use.
      */
     @isString
-    public static String STORM_DOCKER_IMAGE = "storm.docker.image";
+    public static String STORM_OCI_IMAGE = "storm.oci.image";
 
     /**
      * A list of docker image that are allowed.
      */
     @isStringList
-    public static String STORM_DOCKER_ALLOWED_IMAGES = "storm.docker.allowed.images";
+    public static String STORM_OCI_ALLOWED_IMAGES = "storm.oci.allowed.images";
 
     /**
      * White listed syscalls seccomp Json file to be used as a seccomp filter.
      */
     @isString
-    public static String STORM_DOCKER_SECCOMP_PROFILE = "storm.docker.seccomp.profile";
+    public static String STORM_OCI_SECCOMP_PROFILE = "storm.oci.seccomp.profile";
+
+    /**
+     * The HDFS location under which the oci image manifests, layers,
+     * and configs directories exist.
+     */
+    public static String STORM_OCI_IMAGE_HDFS_TOPLEVEL_DIR = "storm.oci.image.hdfs.toplevel.dir";
+
+    /**
+     * The plugin to be used to get the image-tag to manifest mappings.
+     */
+    @isImplementationOfClass(implementsClass = OciImageTagToManifestPluginInterface.class)
+    public static final String STORM_OCI_IMAGE_TAG_TO_MANIFEST_PLUGIN = "storm.oci.image.tag.to.manifest.plugin";
+
+    /**
+     * The plugin to be used to get oci resource according to the manifest.
+     */
+    @isImplementationOfClass(implementsClass = OciManifestToResourcesPluginInterface.class)
+    public static final String STORM_OCI_MANIFEST_TO_RESOURCES_PLUGIN = "storm.oci.manifest.to.resources.plugin";
+
+    /**
+     * The plugin to use for oci resources localization.
+     */
+    @isImplementationOfClass(implementsClass = OciResourcesLocalizerInterface.class)
+    public static final String STORM_OCI_RESOURCES_LOCALIZER = "storm.oci.resources.localizer";
+
+    /**
+     * The local directory for localized oci resources.
+     */
+    @isString
+    public static final String STORM_OCI_RESOURCES_LOCAL_DIR = "storm.oci.resources.local.dir";
+
+    /**
+     * Target count of OCI layer mounts that we should keep on disk at one time.
+     */
+    @isInteger
+    public static final String STORM_OCI_LAYER_MOUNTS_TO_KEEP = "storm.oci.layer.mounts.to.keep";
 
     public static String getCgroupRootDir(Map<String, Object> conf) {
         return (String) conf.get(STORM_SUPERVISOR_CGROUP_ROOTDIR);

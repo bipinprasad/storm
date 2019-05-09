@@ -58,6 +58,11 @@ public class DefaultResourceIsolationManager implements ResourceIsolationInterfa
     }
 
     @Override
+    public void cleanup(String user, String workerId) throws IOException {
+        //NO OP
+    }
+
+    @Override
     public void launchWorkerProcess(String user, String topologyId, int port, String numaId,
                                     String workerId, List<String> command, Map<String, String> env,
                                     String logPrefix, ExitCodeCallback processExitCallback, File targetDir) throws IOException {
@@ -149,7 +154,7 @@ public class DefaultResourceIsolationManager implements ResourceIsolationInterfa
         boolean allDead = true;
         for (Long pid : pids) {
             LOG.debug("Checking if pid {} owner {} is alive", pid, user);
-            if (!isProcessAlive(pid, user)) {
+            if (!ServerUtils.isProcessAlive(pid, user)) {
                 LOG.debug("{}: PID {} is dead", workerId, pid);
             } else {
                 allDead = false;
@@ -159,71 +164,7 @@ public class DefaultResourceIsolationManager implements ResourceIsolationInterfa
         return allDead;
     }
 
-    /**
-     * Is a process alive and running?.
-     * @param pid the PID of the running process
-     * @param user the user that is expected to own that process
-     * @return true if it is, else false
-     * @throws IOException on I/O exception
-     */
-    private boolean isProcessAlive(long pid, String user) throws IOException {
-        if (ServerUtils.IS_ON_WINDOWS) {
-            return isWindowsProcessAlive(pid, user);
-        }
-        return isPosixProcessAlive(pid, user);
-    }
 
-    private boolean isWindowsProcessAlive(long pid, String user) throws IOException {
-        boolean ret = false;
-        ProcessBuilder pb = new ProcessBuilder("tasklist", "/fo", "list", "/fi", "pid eq " + pid, "/v");
-        pb.redirectError(Redirect.INHERIT);
-        Process p = pb.start();
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-            String read;
-            while ((read = in.readLine()) != null) {
-                if (read.contains("User Name:")) { //Check for : in case someone called their user "User Name"
-                    //This line contains the user name for the pid we're looking up
-                    //Example line: "User Name:    exampleDomain\exampleUser"
-                    List<String> userNameLineSplitOnWhitespace = Arrays.asList(read.split(":"));
-                    if (userNameLineSplitOnWhitespace.size() == 2) {
-                        List<String> userAndMaybeDomain = Arrays.asList(userNameLineSplitOnWhitespace.get(1).trim().split("\\\\"));
-                        String processUser = userAndMaybeDomain.size() == 2 ? userAndMaybeDomain.get(1) : userAndMaybeDomain.get(0);
-                        if (user.equals(processUser)) {
-                            ret = true;
-                        } else {
-                            LOG.info("Found {} running as {}, but expected it to be {}", pid, processUser, user);
-                        }
-                    } else {
-                        LOG.error("Received unexpected output from tasklist command. Expected one colon in user name line. Line was {}",
-                            read);
-                    }
-                    break;
-                }
-            }
-        }
-        return ret;
-    }
-
-    private boolean isPosixProcessAlive(long pid, String user) throws IOException {
-        boolean ret = false;
-        ProcessBuilder pb = new ProcessBuilder("ps", "-o", "user", "-p", String.valueOf(pid));
-        pb.redirectError(Redirect.INHERIT);
-        Process p = pb.start();
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-            String first = in.readLine();
-            assert ("USER".equals(first));
-            String processUser;
-            while ((processUser = in.readLine()) != null) {
-                if (user.equals(processUser)) {
-                    ret = true;
-                    break;
-                } else {
-                    LOG.info("Found {} running as {}, but expected it to be {}", pid, processUser, user);
-                }
-            }
-        }
-        return ret;
-    }
 
     @Override
     public boolean runProfilingCommand(String user, String workerId, List<String> command, Map<String, String> env,

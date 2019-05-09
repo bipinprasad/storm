@@ -14,28 +14,24 @@ package org.apache.storm.container.docker;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.storm.Config;
-import org.apache.storm.DaemonConfig;
-import org.apache.storm.container.ResourceIsolationInterface;
 import org.apache.storm.container.cgroup.core.MemoryCore;
+import org.apache.storm.container.oci.OciContainerManager;
 import org.apache.storm.daemon.supervisor.ClientSupervisorUtils;
 import org.apache.storm.daemon.supervisor.ExitCodeCallback;
 import org.apache.storm.shade.com.google.common.io.Files;
 import org.apache.storm.utils.ConfigUtils;
-import org.apache.storm.utils.ObjectReader;
 import org.apache.storm.utils.ServerUtils;
 import org.apache.storm.utils.ShellCommandRunnerImpl;
 import org.apache.storm.utils.Utils;
@@ -46,96 +42,13 @@ import org.slf4j.LoggerFactory;
  * For security, we can launch worker processes inside the docker container.
  * This class manages the interaction with docker containers including launching, stopping, profiling and etc.
  */
-public class DockerManager implements ResourceIsolationInterface {
+public class DockerManager extends OciContainerManager {
     private static final Logger LOG = LoggerFactory.getLogger(DockerManager.class);
-    private static final String TOPOLOGY_ENV_DOCKER_IMAGE = "DOCKER_IMAGE";
-    private static final String DOCKER_IMAGE_PATTERN =
-        "^(([a-zA-Z0-9.-]+)(:\\d+)?/)?([a-z0-9_./-]+)(:[\\w.-]+)?$";
-    private static final Pattern dockerImagePattern =
-        Pattern.compile(DOCKER_IMAGE_PATTERN);
-    private String defaultDockerImage;
-    private List<String> allowedDockerImages;
-    private final String networkType = "host";
-    private String cgroupParent;
-    private String memoryCgroupRootPath;
-    private String cgroupRootPath;
-    private String nscdPath;
-    private Map<String, Object> conf;
-    private Map<String, Integer> workerToCpu = new HashMap<>();
-    private Map<String, Integer> workerToMemoryMb = new HashMap<>();
-    private Map<String, String> workerToCid = new HashMap<>();
-    private MemoryCore memoryCoreAtRoot;
-    private String seccompJsonFile;
-    private String stormHome;
-    private static final String TMP_DIR = File.separator + "tmp";
-    private List<String> readonlyBindmounts;
+    private Map<String, String> workerToCid = new ConcurrentHashMap<>();
 
     @Override
     public void prepare(Map<String, Object> conf) throws IOException {
-        this.conf = conf;
-        //allowed docker images can't be null or empty
-        allowedDockerImages = ObjectReader.getStrings(conf.get(DaemonConfig.STORM_DOCKER_ALLOWED_IMAGES));
-        if (allowedDockerImages == null || allowedDockerImages.isEmpty()) {
-            throw new IllegalArgumentException(DaemonConfig.STORM_DOCKER_ALLOWED_IMAGES
-                + " is empty or not configured. No docker images are allowed. Please check the configuration.");
-        }
-
-        //every image in the whitelist must be valid
-        for (String image: allowedDockerImages) {
-            if (!dockerImagePattern.matcher(image).matches()) {
-                throw new IllegalArgumentException(image + " in the list of "
-                    + DaemonConfig.STORM_DOCKER_ALLOWED_IMAGES
-                    + " doesn't match " + DOCKER_IMAGE_PATTERN);
-            }
-        }
-
-        //default docker image must be in the whitelist.
-        defaultDockerImage = (String) conf.get(DaemonConfig.STORM_DOCKER_IMAGE);
-        if (defaultDockerImage == null || !allowedDockerImages.contains(defaultDockerImage)) {
-            throw new IllegalArgumentException(DaemonConfig.STORM_DOCKER_IMAGE
-                + ": " + defaultDockerImage
-                + " is not in the list of " + DaemonConfig.STORM_DOCKER_ALLOWED_IMAGES
-                + ": " + allowedDockerImages
-                + ". Please check the configuration.");
-        }
-
-        seccompJsonFile = (String) conf.get(DaemonConfig.STORM_DOCKER_SECCOMP_PROFILE);
-        cgroupParent = ObjectReader.getString(conf.get(DaemonConfig.STORM_DOCKER_CGROUP_PARENT));
-
-        if (!cgroupParent.startsWith(File.separator)) {
-            cgroupParent = File.separator + cgroupParent;
-            LOG.warn("{} is not an absolute path. Changing it to be absolute: {}", DaemonConfig.STORM_DOCKER_CGROUP_PARENT, cgroupParent);
-        }
-
-        cgroupRootPath = ObjectReader.getString(conf.get(Config.STORM_DOCKER_CGROUP_ROOT));
-        memoryCgroupRootPath = cgroupRootPath + File.separator + "memory" + File.separator + cgroupParent;
-        memoryCoreAtRoot = new MemoryCore(memoryCgroupRootPath);
-
-        nscdPath = ObjectReader.getString(conf.get(DaemonConfig.STORM_DOCKER_NSCD_DIR));
-        readonlyBindmounts = ObjectReader.getStrings(conf.get(DaemonConfig.STORM_DOCKER_READONLY_BINDMOUNTS));
-
-        stormHome = System.getProperty(ConfigUtils.STORM_HOME);
-    }
-
-    @Override
-    public void reserveResourcesForWorker(String workerId, Integer workerMemory, Integer workerCpu) {
-        // The manually set STORM_WORKER_CGROUP_CPU_LIMIT config on supervisor will overwrite resources assigned by
-        // RAS (Resource Aware Scheduler)
-        if (conf.get(DaemonConfig.STORM_WORKER_CGROUP_CPU_LIMIT) != null) {
-            workerCpu = ((Number) conf.get(DaemonConfig.STORM_WORKER_CGROUP_CPU_LIMIT)).intValue();
-        }
-        workerToCpu.put(workerId, workerCpu);
-
-        if ((boolean) this.conf.get(DaemonConfig.STORM_CGROUP_MEMORY_ENFORCEMENT_ENABLE)) {
-            workerToMemoryMb.put(workerId, workerMemory);
-        }
-    }
-
-    @Override
-    public void releaseResourcesForWorker(String workerId) {
-        workerToCpu.remove(workerId);
-        workerToMemoryMb.remove(workerId);
-        workerToCid.remove(workerId);
+        super.prepare(conf);
     }
 
     private String[] getGroupIdInfo(String userName)
@@ -164,22 +77,11 @@ public class DockerManager implements ResourceIsolationInterface {
 
     @Override
     public void launchWorkerProcess(String user, String topologyId, int port, String numaId,
-                                    String workerId, List<String> command, Map<String, String> env,
-                                    String logPrefix, ExitCodeCallback processExitCallback,
-                                    File targetDir) throws IOException {
-        String dockerImage = env.get(TOPOLOGY_ENV_DOCKER_IMAGE);
-        if (dockerImage == null || dockerImage.isEmpty()) {
-            dockerImage = defaultDockerImage;
-        } else {
-            if (!allowedDockerImages.contains(dockerImage)) {
-                throw new IllegalArgumentException(TOPOLOGY_ENV_DOCKER_IMAGE
-                    + ": " + dockerImage
-                    + " specified in " + Config.TOPOLOGY_ENVIRONMENT
-                    + " is not in the list of " + DaemonConfig.STORM_DOCKER_ALLOWED_IMAGES
-                    + ": " + allowedDockerImages
-                    + ". Please check your configuration.");
-            }
-        }
+            String workerId, List<String> command, Map<String, String> env,
+            String logPrefix, ExitCodeCallback processExitCallback,
+            File targetDir) throws IOException {
+        String dockerImage = getImageName(env);
+        checkImageInWhitelist(dockerImage);
 
         String workerDir = targetDir.getAbsolutePath();
 
@@ -201,7 +103,7 @@ public class DockerManager implements ResourceIsolationInterface {
         String supervisorLocalDir = ConfigUtils.supervisorLocalDir(conf);
 
         dockerRunCommand.detachOnRun()
-            .setNetworkType(networkType)
+            .setNetworkType("host")
             //The whole file system of the container will be read-only except specific read-write bind mounts
             .setReadonly()
             .addReadOnlyMountLocation(cgroupRootPath, cgroupRootPath, false)
@@ -236,8 +138,8 @@ public class DockerManager implements ResourceIsolationInterface {
             dockerRunCommand.setCpus(workerToCpu.get(workerId) / 100.0);
         }
 
-        if (workerToMemoryMb.containsKey(workerId)) {
-            dockerRunCommand.setMemoryMb(workerToMemoryMb.get(workerId));
+        if (workerToMemoryMB.containsKey(workerId)) {
+            dockerRunCommand.setMemoryMB(workerToMemoryMB.get(workerId));
         }
 
         dockerRunCommand.setOverrideCommandWithArgs(Arrays.asList("bash", ServerUtils.writeScript(workerDir, command, env, "0027")));
@@ -260,8 +162,14 @@ public class DockerManager implements ResourceIsolationInterface {
                 }
                 return null; // Run only once.
             }
-        });
+        }, threadName, null);
 
+    }
+
+    @Override
+    public void releaseResourcesForWorker(String workerId) {
+        super.releaseResourcesForWorker(workerId);
+        workerToCid.remove(workerId);
     }
 
     //Get the container ID of the worker
@@ -295,22 +203,6 @@ public class DockerManager implements ResourceIsolationInterface {
         String memoryCgroupPath = memoryCgroupRootPath + File.separator + getCID(workerId);
         MemoryCore memoryCore = new MemoryCore(memoryCgroupPath);
         return memoryCore.getPhysicalUsage();
-    }
-
-    @Override
-    public long getSystemFreeMemoryMb() throws IOException {
-        long rootCgroupLimitFree = Long.MAX_VALUE;
-
-        try {
-            //For cgroups no limit is max long.
-            long limit = memoryCoreAtRoot.getPhysicalUsageLimit();
-            long used = memoryCoreAtRoot.getMaxPhysicalUsage();
-            rootCgroupLimitFree = (limit - used) / 1024 / 1024;
-        } catch (FileNotFoundException e) {
-            //Ignored if cgroups is not setup don't do anything with it
-        }
-
-        return Long.min(rootCgroupLimitFree, ServerUtils.getMemInfoFreeMb());
     }
 
     @Override
@@ -392,10 +284,6 @@ public class DockerManager implements ResourceIsolationInterface {
         }
     }
 
-    @Override
-    public boolean isResourceManaged() {
-        return true;
-    }
 
     /**
      * Run profiling command in the container.
@@ -420,7 +308,7 @@ public class DockerManager implements ResourceIsolationInterface {
         //run nsenter
         String nsenterScriptPath = writeToCommandFile(workerDir, profilingArgs, "profile");
 
-        List<String> args = Arrays.asList(CmdType.RUN_NSENTER.toString(), workerId, workerDir, nsenterScriptPath);
+        List<String> args = Arrays.asList(CmdType.PROFILE_DOCKER_CONTAINER.toString(), workerId, nsenterScriptPath);
 
         Process process = ClientSupervisorUtils.processLauncher(
                 conf, user, null, null, args, env, logPrefix, null, targetDir
@@ -429,26 +317,23 @@ public class DockerManager implements ResourceIsolationInterface {
         process.waitFor();
 
         int exitCode = process.exitValue();
-        LOG.debug("exitCode from nsenter: {}", exitCode);
+        LOG.debug("WorkerId {} : exitCode from {}: {}", workerId, CmdType.PROFILE_DOCKER_CONTAINER.toString(), exitCode);
 
         return exitCode == 0;
+    }
+
+    @Override
+    public void cleanup(String user, String workerId) throws IOException {
+        //NO OP
     }
 
     private String dockerCidFilePath(String workerId) {
         return ConfigUtils.workerRoot(conf, workerId) + File.separator + "container.cid";
     }
 
-    private String commandFilePath(String dir, String commandTag) {
-        return dir + File.separator + commandTag + ".sh";
-    }
-
-    private String writeToCommandFile(String workerDir, String command, String commandTag) throws IOException {
-        String scriptPath = commandFilePath(workerDir, commandTag);
-        try (BufferedWriter out = new BufferedWriter(new FileWriter(scriptPath))) {
-            out.write(command);
-        }
-        LOG.debug("command : {}; location: {}", command, scriptPath);
-        return scriptPath;
+    @Override
+    public boolean isResourceManaged() {
+        return true;
     }
 
     /**
@@ -468,6 +353,7 @@ public class DockerManager implements ResourceIsolationInterface {
                                      Map<String, String> environment, final String logPrefix,
                                      final ExitCodeCallback exitCodeCallback, File targetDir, String commandTag) throws IOException {
         String workerDir = targetDir.getAbsolutePath();
+
         String dockerScriptPath = writeToCommandFile(workerDir, dockerCommand, commandTag);
 
         List<String> args = Arrays.asList(cmdType.toString(), workerDir, dockerScriptPath);
@@ -503,22 +389,5 @@ public class DockerManager implements ResourceIsolationInterface {
             LOG.error("running docker command is interrupted", e);
         }
         return p.exitValue();
-    }
-
-    enum CmdType {
-        LAUNCH_DOCKER_CONTAINER("launch-docker-container"),
-        RUN_DOCKER_CMD("run-docker-cmd"),
-        RUN_NSENTER("run-nsenter");
-
-        private final String name;
-
-        CmdType(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return this.name;
-        }
     }
 }

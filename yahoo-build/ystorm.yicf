@@ -141,6 +141,9 @@ file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/zookeeper-3.4.6.jar ../ex
 # put storm-hdfs-login and its dependencies to extlib-daemon
 file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/storm-hdfs-login-$(BASE_VERSION).jar ../external/storm-hdfs-login/target/storm-hdfs-login-$(BASE_VERSION).jar
 
+# put storm-hdfs-oci and its dependencies to extlib-daemon
+file 444 - - lib64/storm/$(BASE_VERSION)/extlib-daemon/storm-hdfs-oci-$(BASE_VERSION).jar ../external/storm-hdfs-oci/target/storm-hdfs-oci-$(BASE_VERSION).jar
+
 # public, example, external
 find 444 - - lib64/storm/$(BASE_VERSION)/ ../ -maxdepth 1 -type f -iname '*.md' -or -iname '*.markdown'
 find 444 - - lib64/storm/$(BASE_VERSION)/public/css/ ./WEB-INF/css/ -maxdepth 1 -type f -iname '*.css'
@@ -272,6 +275,8 @@ configfile 644 - - lib64/storm/$(BASE_VERSION)/conf/drpc-auth-acl.yaml ./conf/dr
 configfile 644 - - lib64/storm/$(BASE_VERSION)/log4j2/cluster.xml ./log4j2/cluster.xml.sh template overwrite
 configfile 644 - - lib64/storm/$(BASE_VERSION)/log4j2/worker.xml ./log4j2/worker.xml.sh template overwrite
 configfile 644 root root conf/storm/worker-launcher.cfg ./conf/worker-launcher.cfg expand overwrite
+
+file 644 root root conf/storm/seccomp.json ./conf/seccomp.json
 
 symlink - - - lib64/storm/current $(BASE_VERSION)
 symlink - - - lib/storm/current ../../lib64/storm/$(BASE_VERSION)

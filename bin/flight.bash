@@ -23,7 +23,7 @@ USER=`whoami`
 SETTINGS=profile
 
 platform='unknown'
-unamestr=`uname`
+unamestr=`/bin/uname`
 if [[ "$unamestr" == 'Linux' ]]; then
     platform='linux'
 elif [[ "$unamestr" == 'Darwin' ]]; then
@@ -130,14 +130,14 @@ if [ "$CMD" != "start" ] && [ "$CMD" != "kill" ]; then
     if [[ $3 ]] && [[ -d $3 ]]
     then
         TARGETDIR="$3"
-        mkdir -p ${TARGETDIR}
+        /bin/mkdir -p ${TARGETDIR}
     else
         echo "Missing target directory"
         usage_and_quit
     fi
 fi
 
-NOW=`date +'%Y%m%d-%H%M%S'`
+NOW=`/bin/date +'%Y%m%d-%H%M%S'`
 if [ "$CMD" = "" ]; then
     usage_and_quit
 elif [ "$CMD" = "kill" ]; then

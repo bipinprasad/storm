@@ -313,11 +313,11 @@ public class DockerRunCommand extends DockerCommand {
 
     /**
      * Set the number of memory in MB to use.
-     * @param memoryMb the number of memory in MB
+     * @param memoryMB the number of memory in MB
      * @return the self
      */
-    public DockerRunCommand setMemoryMb(int memoryMb) {
-        super.addCommandArguments("--memory=" + memoryMb + "m");
+    public DockerRunCommand setMemoryMB(int memoryMB) {
+        super.addCommandArguments("--memory=" + memoryMB + "m");
         return this;
     }
 

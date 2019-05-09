@@ -125,6 +125,12 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.13</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -181,7 +187,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <!--Note - the version would be inherited-->
                 <configuration>
-                    <maxAllowedViolations>763</maxAllowedViolations>
+                    <maxAllowedViolations>751</maxAllowedViolations>
                 </configuration>
             </plugin>
             <plugin>
