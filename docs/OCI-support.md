@@ -63,12 +63,12 @@ localization is also faster, as the layers no longer need to be unpacked into a 
 
 ## Prerequisite 
 
-First you need to use the`docker-to-squash.sh` script to download docker images and configs, convert layers to squashfs files and put them to a directory in HDFS, for example
+First you need to use the`docker-to-squash.py` script to download docker images and configs, convert layers to squashfs files and put them to a directory in HDFS, for example
 
 ```bash
-./docker-to-squash.sh --hdfs-root= "hdfs://hostname:port/containers/"  \
-                      --image-tag-to-manifest-file=image-tag-to-manifest-file \         
-                      "docker.xxx.com:4443/storm/docker_configs/rhel6:20180918-215129"
+python2 docker-to-squash.py pull-build-push-update --hdfs-root hdfs://hostname:port/containers  \
+                      --image-tag-to-hash image-tag-to-manifest-file \         
+                      docker.xxx.com:4443/storm/docker_configs/rhel6:20180918-215129,docker.xxx.com:4443/storm/docker_configs/rhel6:20180918-215129,storm/rhel6:current
 ```
 
 With this command, all the layers belong to this image will be converted to squashfs file and be placed under `./layers` directory; 
@@ -101,7 +101,7 @@ Found 1 items
 
 The `image-tag-to-manifest-file`:
 ```bash
-docker.xxx.com:4443/storm/docker_configs/rhel6:20180918-215129:c681ee9834682b5c76e138b546502dbae1f920da229daa24794c678d87535242
+docker.xxx.com:4443/storm/docker_configs/rhel6:20180918-215129,storm/rhel6:current:c681ee9834682b5c76e138b546502dbae1f920da229daa24794c678d87535242
 ```
 
 The manifest file `c681ee9834682b5c76e138b546502dbae1f920da229daa24794c678d87535242`:
@@ -326,7 +326,7 @@ And the config file `26d70273e90e4e6888a780d49c2284575ab8874ef4100ee60886405eab3
 }
 ```
 
-Note: To use the `docker-to-squash.sh`, you need to install [skopeo](https://github.com/containers/skopeo), [jq](https://stedolan.github.io/jq/) and squashfs-tools.
+Note: To use the `docker-to-squash.py`, you need to install [skopeo](https://github.com/containers/skopeo), [jq](https://stedolan.github.io/jq/) and squashfs-tools.
 
 
 ## Configurations

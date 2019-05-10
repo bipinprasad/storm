@@ -57,7 +57,7 @@
             <includes>
                 <include>storm*</include>
                 <include>flight.bash</include>
-                <include>docker-to-squash.sh</include>
+                <include>docker-to-squash.py</include>
             </includes>
             <lineEnding>unix</lineEnding>
             <fileMode>0755</fileMode>
