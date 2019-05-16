@@ -895,8 +895,8 @@ public class OciContainerExecutorConfig {
                     private final long period;
                     private final long realtimeRuntime;
                     private final long realtimePeriod;
-                    private final String cpus;
-                    private final String mems;
+                    private String cpus;
+                    private String mems;
                     private final long shares;
 
                     public Cpu(long shares, long quota, long period,
@@ -939,8 +939,16 @@ public class OciContainerExecutorConfig {
                         return cpus;
                     }
 
+                    public void setCpus(String cpus) {
+                        this.cpus = cpus;
+                    }
+
                     public String getMems() {
                         return mems;
+                    }
+
+                    public void setMems(String mems) {
+                        this.mems = mems;
                     }
                 }
 

@@ -833,7 +833,7 @@ public class BasicContainer extends Container {
         if (resourceIsolationManager.isResourceManaged()) {
             final int cpu = (int) Math.ceil(resources.get_cpu());
             //Save the memory limit so we can enforce it less strictly
-            resourceIsolationManager.reserveResourcesForWorker(_workerId, (int) memoryLimitMB, cpu);
+            resourceIsolationManager.reserveResourcesForWorker(_workerId, (int) memoryLimitMB, cpu, numaId);
         }
 
         List<String> commandList = mkLaunchCommand(memOnHeap, stormRoot, jlp, numaId);
@@ -842,7 +842,7 @@ public class BasicContainer extends Container {
 
         String workerDir = ConfigUtils.workerRoot(_conf, _workerId);
 
-        resourceIsolationManager.launchWorkerProcess(getWorkerUser(), _topologyId, _port, numaId, _workerId,
+        resourceIsolationManager.launchWorkerProcess(getWorkerUser(), _topologyId, _port, _workerId,
                 commandList, topEnvironment, logPrefix, processExitCallback, new File(workerDir)
         );
     }

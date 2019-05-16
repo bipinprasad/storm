@@ -412,14 +412,16 @@ public class LocalCluster implements ILocalClusterTrackedTopologyAware, Iface {
     }
 
     /**
-     * @return Nimbus itself so you can interact with it directly, if needed.
+     * Nimbus itself so you can interact with it directly, if needed.
+     * @return Nimbus
      */
     public Nimbus getNimbus() {
         return nimbus;
     }
 
     /**
-     * @return The metrics registry for the local cluster.
+     * The metrics registry for the local cluster.
+     * @return StormMetricsRegistry
      */
     public StormMetricsRegistry getMetricRegistry() {
         return metricRegistry;

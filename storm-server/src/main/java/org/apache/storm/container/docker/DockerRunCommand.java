@@ -171,6 +171,17 @@ public class DockerRunCommand extends DockerCommand {
         return this;
     }
 
+    public DockerRunCommand addCpuSetBindings(List<String> cores, String memoryNode) {
+        if (!cores.isEmpty()) {
+            super.addCommandArguments("--cpuset-cpus=" + StringUtils.join(cores, ","));
+        }
+
+        if (memoryNode != null) {
+            super.addCommandArguments("--cpuset-mems=" + memoryNode);
+        }
+        return this;
+    }
+
     /**
      * Set --cgroup-parent option.
      * @param parentPath the cgroup parent path

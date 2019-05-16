@@ -48,7 +48,7 @@ public class DefaultResourceIsolationManager implements ResourceIsolationInterfa
     }
 
     @Override
-    public void reserveResourcesForWorker(String workerId, Integer workerMemory, Integer workerCpu) {
+    public void reserveResourcesForWorker(String workerId, Integer workerMemory, Integer workerCpu, String numaId) {
         //NO OP
     }
 
@@ -63,14 +63,14 @@ public class DefaultResourceIsolationManager implements ResourceIsolationInterfa
     }
 
     @Override
-    public void launchWorkerProcess(String user, String topologyId, int port, String numaId,
+    public void launchWorkerProcess(String user, String topologyId, int port,
                                     String workerId, List<String> command, Map<String, String> env,
                                     String logPrefix, ExitCodeCallback processExitCallback, File targetDir) throws IOException {
         if (runAsUser) {
             String workerDir = targetDir.getAbsolutePath();
             List<String> args = Arrays.asList("worker", workerDir, ServerUtils.writeScript(workerDir, command, env));
             ClientSupervisorUtils.processLauncher(
-                    conf, user, numaId, null, args, null, logPrefix,
+                    conf, user, null, args, null, logPrefix,
                     processExitCallback, targetDir
             );
         } else {

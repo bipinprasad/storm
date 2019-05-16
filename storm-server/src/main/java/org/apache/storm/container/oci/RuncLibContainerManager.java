@@ -88,7 +88,10 @@ public class RuncLibContainerManager extends OciContainerManager {
         ociResourcesLocalizer = chooseOciResourcesLocalizer();
         ociResourcesLocalizer.init(conf);
 
-        layersToKeep = ObjectReader.getInt(conf.get(DaemonConfig.STORM_OCI_LAYER_MOUNTS_TO_KEEP), 100);
+        layersToKeep = ObjectReader.getInt(
+                conf.get(DaemonConfig.STORM_OCI_LAYER_MOUNTS_TO_KEEP),
+                100
+        );
 
         mapper = new ObjectMapper();
 
@@ -99,21 +102,27 @@ public class RuncLibContainerManager extends OciContainerManager {
 
     private OciImageTagToManifestPluginInterface chooseImageTagToManifestPlugin()
         throws IllegalArgumentException {
-        String pluginName = ObjectReader.getString(conf.get(DaemonConfig.STORM_OCI_IMAGE_TAG_TO_MANIFEST_PLUGIN));
+        String pluginName = ObjectReader.getString(
+                conf.get(DaemonConfig.STORM_OCI_IMAGE_TAG_TO_MANIFEST_PLUGIN)
+        );
         LOG.info("imageTag-to-manifest Plugin is: {}", pluginName);
         return ReflectionUtils.newInstance(pluginName);
     }
 
     private OciManifestToResourcesPluginInterface chooseManifestToResourcesPlugin()
         throws IllegalArgumentException {
-        String pluginName = ObjectReader.getString(conf.get(DaemonConfig.STORM_OCI_MANIFEST_TO_RESOURCES_PLUGIN));
+        String pluginName = ObjectReader.getString(
+                conf.get(DaemonConfig.STORM_OCI_MANIFEST_TO_RESOURCES_PLUGIN)
+        );
         LOG.info("manifest to resource Plugin is: {}", pluginName);
         return ReflectionUtils.newInstance(pluginName);
     }
 
     private OciResourcesLocalizerInterface chooseOciResourcesLocalizer()
         throws IllegalArgumentException {
-        String pluginName = ObjectReader.getString(conf.get(DaemonConfig.STORM_OCI_RESOURCES_LOCALIZER));
+        String pluginName = ObjectReader.getString(
+                conf.get(DaemonConfig.STORM_OCI_RESOURCES_LOCALIZER)
+        );
         LOG.info("oci resource localizer is: {}", pluginName);
         return ReflectionUtils.newInstance(pluginName);
     }
@@ -124,7 +133,7 @@ public class RuncLibContainerManager extends OciContainerManager {
     }
 
     @Override
-    public void launchWorkerProcess(String user, String topologyId, int port, String numaId, String workerId,
+    public void launchWorkerProcess(String user, String topologyId, int port, String workerId,
                                     List<String> command, Map<String, String> env, String logPrefix,
                                     ExitCodeCallback processExitCallback, File targetDir) throws IOException {
         // get image name and validate
@@ -206,7 +215,10 @@ public class RuncLibContainerManager extends OciContainerManager {
 
         OciProcessConfig processConfig = createOciProcessConfig(workerDir, ociEnv, args);
 
-        OciLinuxConfig linuxConfig = createOciLinuxConfig(cpusQuotas, memoryInBytes, cgroupParent + "/" + containerId, seccomp);
+        OciLinuxConfig linuxConfig = createOciLinuxConfig(
+                        cpusQuotas, memoryInBytes,
+                        cgroupParent + "/" + containerId, seccomp, workerId
+                );
 
         OciRuntimeConfig ociRuntimeConfig = new OciRuntimeConfig(null, mounts,
             processConfig, null, null, null, linuxConfig);
@@ -222,7 +234,7 @@ public class RuncLibContainerManager extends OciContainerManager {
 
         List<String> cmdArgs = Arrays.asList(CmdType.RUN_OCI_CONTAINER.toString(), workerDir, executorConfigToJsonFile);
 
-        ClientSupervisorUtils.processLauncher(conf, user, numaId, null, cmdArgs, env,
+        ClientSupervisorUtils.processLauncher(conf, user, null, cmdArgs, env,
             logPrefix, null, targetDir);
 
         //check if this process exits.
@@ -329,12 +341,19 @@ public class RuncLibContainerManager extends OciContainerManager {
     }
 
     private OciLinuxConfig createOciLinuxConfig(Long cpusQuotas, Long memInBytes,
-                                                String cgroupsPath, String seccomp) {
+                                                String cgroupsPath, String seccomp, String workerId) {
         OciLinuxConfig.Resources.Cpu cgroupCpu = null;
+
         if (cpusQuotas != null) {
             cgroupCpu = new OciLinuxConfig.Resources.Cpu(0, cpusQuotas, CPU_CFS_PERIOD_US, 0, 0,
                 null, null);
+
+            if (workerToCores.containsKey(workerId)) {
+                cgroupCpu.setCpus(StringUtils.join(workerToCores.get(workerId), ","));
+                cgroupCpu.setMems(workerToMemoryZone.get(workerId));
+            }
         }
+
         OciLinuxConfig.Resources.Memory cgroupMem = null;
         if (memInBytes != null) {
             cgroupMem = new OciLinuxConfig.Resources.Memory(memInBytes, 0, 0, 0, 0, 0, false);
@@ -493,7 +512,7 @@ public class RuncLibContainerManager extends OciContainerManager {
 
         List<String> args = Arrays.asList(CmdType.PROFILE_OCI_CONTAINER.toString(), containerPid.toString(), nsenterScriptPath);
 
-        Process process = ClientSupervisorUtils.processLauncher(conf, user, null, null, args,
+        Process process = ClientSupervisorUtils.processLauncher(conf, user, null, args,
             env, logPrefix, null, targetDir);
 
         process.waitFor();

@@ -1082,6 +1082,8 @@ char *sanitize_docker_command(const char *line)
       {"security-opt", required_argument, 0, 'S'},
       {"cpu-shares", required_argument, 0, 'c'},
       {"cpus", required_argument, 0, 'C'},
+      {"cpuset-cpus", required_argument, 0, 's'},
+      {"cpuset-mems", required_argument, 0, 'm'},
       {"cidfile", required_argument, 0, 'I'},
       {"format", required_argument, 0, 'f'}, //belongs to docker-inspect command
       {"force", no_argument, 0, 'F'},        //belongs to docker-rm command
@@ -1208,6 +1210,16 @@ char *sanitize_docker_command(const char *line)
       break;
     case 'C':
       strcat(output, "--cpus=");
+      strcat(output, optarg);
+      strcat(output, " ");
+      break;
+    case 's':
+      strcat(output, "--cpuset-cpus=");
+      strcat(output, optarg);
+      strcat(output, " ");
+      break;
+    case 'm':
+      strcat(output, "--cpuset-mems=");
       strcat(output, optarg);
       strcat(output, " ");
       break;

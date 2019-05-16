@@ -24,10 +24,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import org.apache.storm.Config;
 import org.apache.storm.DaemonConfig;
 import org.apache.storm.container.ResourceIsolationInterface;
@@ -35,6 +39,7 @@ import org.apache.storm.container.cgroup.core.MemoryCore;
 import org.apache.storm.utils.ConfigUtils;
 import org.apache.storm.utils.ObjectReader;
 import org.apache.storm.utils.ServerUtils;
+import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +67,10 @@ public abstract class OciContainerManager implements ResourceIsolationInterface 
 
     protected Map<String, Integer> workerToCpu = new ConcurrentHashMap<>();
     protected Map<String, Integer> workerToMemoryMB = new ConcurrentHashMap<>();
+    protected Map<String, Object> validatedNumaMap = new ConcurrentHashMap();
+    protected Map<String, List<String>> workerToCores = new ConcurrentHashMap<>();
+    protected Map<String, String> workerToMemoryZone = new ConcurrentHashMap<>();
+
 
     @Override
     public void prepare(Map<String, Object> conf) throws IOException {
@@ -112,10 +121,11 @@ public abstract class OciContainerManager implements ResourceIsolationInterface 
 
         memoryCgroupRootPath = cgroupRootPath + File.separator + "memory" + File.separator + cgroupParent;
         memoryCoreAtRoot = new MemoryCore(memoryCgroupRootPath);
+        validatedNumaMap = Utils.getNumaMap(conf);
     }
 
     @Override
-    public void reserveResourcesForWorker(String workerId, Integer workerMemoryMB, Integer workerCpu) {
+    public void reserveResourcesForWorker(String workerId, Integer workerMemoryMB, Integer workerCpu, String numaId) {
         // The manually set STORM_WORKER_CGROUP_CPU_LIMIT config on supervisor will overwrite resources assigned by
         // RAS (Resource Aware Scheduler)
         if (conf.get(DaemonConfig.STORM_WORKER_CGROUP_CPU_LIMIT) != null) {
@@ -125,6 +135,15 @@ public abstract class OciContainerManager implements ResourceIsolationInterface 
 
         if ((boolean) this.conf.get(DaemonConfig.STORM_CGROUP_MEMORY_ENFORCEMENT_ENABLE)) {
             workerToMemoryMB.put(workerId, workerMemoryMB);
+        }
+
+        if (numaId != null) {
+            Map<String, Object> numaIdEntry = (Map<String, Object>) validatedNumaMap.get(numaId);
+            List<String> rawCores = ((List<Integer>) numaIdEntry.get(Utils.NUMA_CORES)).stream().map(
+                    rawCore -> String.valueOf(rawCore)
+            ).collect(Collectors.toList());
+            workerToCores.put(workerId, rawCores);
+            workerToMemoryZone.put(workerId, numaId);
         }
     }
 

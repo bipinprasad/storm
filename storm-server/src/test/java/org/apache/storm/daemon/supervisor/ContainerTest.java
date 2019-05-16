@@ -262,7 +262,7 @@ public class ContainerTest {
         }
 
         @Override
-        public void reserveResourcesForWorker(String workerId, Integer workerMemory, Integer workerCpu) {
+        public void reserveResourcesForWorker(String workerId, Integer workerMemory, Integer workerCpu, String numaId) {
             fail("THIS IS NOT UNDER TEST");
         }
 
@@ -271,7 +271,7 @@ public class ContainerTest {
         }
 
         @Override
-        public void launchWorkerProcess(String user, String topologyId, int port, String numaId, String workerId, List<String> command, Map<String, String> env,
+        public void launchWorkerProcess(String user, String topologyId, int port, String workerId, List<String> command, Map<String, String> env,
                                         String logPrefix, ExitCodeCallback processExitCallback, File targetDir) throws IOException {
             workerCmds.add(new CommandRun(command, env, targetDir));
         }

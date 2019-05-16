@@ -65,7 +65,7 @@ public class ClientSupervisorUtils {
                                              final Map<String, String> environment, final String logPreFix)
         throws IOException {
         int ret = 0;
-        Process process = processLauncher(conf, user, null, null, args, environment, logPreFix, null, null);
+        Process process = processLauncher(conf, user, null, args, environment, logPreFix, null, null);
         if (StringUtils.isNotBlank(logPreFix)) {
             Utils.readAndLogStream(logPreFix, process.getInputStream());
         }
@@ -78,29 +78,7 @@ public class ClientSupervisorUtils {
         return ret;
     }
 
-    /**
-     * Extracting out to mock it for tests.
-     * @return true if on Linux.
-     */
-    protected static boolean isOnLinux() {
-        return SystemUtils.IS_OS_LINUX;
-    }
-
-    private static void prefixNumaPinningIfApplicable(String numaId, List<String> commandList) {
-        if (numaId != null) {
-            if (isOnLinux()) {
-                commandList.add(0, "numactl");
-                commandList.add(1, "--cpunodebind=" + numaId);
-                commandList.add(2, "--membind=" + numaId);
-                return;
-            } else {
-                // TODO : Add support for pinning on Windows host
-                throw new RuntimeException("numactl pinning currently not supported on non-Linux hosts");
-            }
-        }
-    }
-
-    public static Process processLauncher(Map<String, Object> conf, String user, String numaId,
+    public static Process processLauncher(Map<String, Object> conf, String user,
                                           List<String> commandPrefix, List<String> args,
                                           Map<String, String> environment, final String logPreFix,
                                           final ExitCodeCallback exitCodeCallback, File dir) throws IOException {
@@ -117,8 +95,6 @@ public class ClientSupervisorUtils {
             wl = stormHome + "/bin/worker-launcher";
         }
         List<String> commands = new ArrayList<>();
-
-        prefixNumaPinningIfApplicable(numaId, commands);
 
         if (commandPrefix != null) {
             commands.addAll(commandPrefix);

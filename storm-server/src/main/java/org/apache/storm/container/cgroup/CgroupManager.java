@@ -1,13 +1,16 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.  The ASF licenses this file to you under the Apache License, Version
- * 2.0 (the "License"); you may not use this file except in compliance with the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.
+ * See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to you under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
  * <p>
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package org.apache.storm.container.cgroup;
@@ -25,6 +28,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 import org.apache.storm.Config;
 import org.apache.storm.DaemonConfig;
 import org.apache.storm.container.DefaultResourceIsolationManager;
@@ -33,8 +39,10 @@ import org.apache.storm.container.cgroup.core.CpusetCore;
 import org.apache.storm.container.cgroup.core.MemoryCore;
 import org.apache.storm.daemon.supervisor.ClientSupervisorUtils;
 import org.apache.storm.daemon.supervisor.ExitCodeCallback;
+import org.apache.storm.shade.org.apache.commons.lang.SystemUtils;
 import org.apache.storm.utils.ObjectReader;
 import org.apache.storm.utils.ServerUtils;
+import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +56,8 @@ public class CgroupManager extends DefaultResourceIsolationManager {
     private Hierarchy hierarchy;
     private CgroupCommon rootCgroup;
     private String rootDir;
+    private Map validatedNumaMap = new ConcurrentHashMap();
+    private Map<String, String> workerToNumaId = new ConcurrentHashMap();
 
     /**
      * initialize data structures.
@@ -57,6 +67,7 @@ public class CgroupManager extends DefaultResourceIsolationManager {
     @Override
     public void prepare(Map<String, Object> conf) throws IOException {
         super.prepare(conf);
+        validatedNumaMap = Utils.getNumaMap(conf);
         this.rootDir = DaemonConfig.getCgroupRootDir(this.conf);
         if (this.rootDir == null) {
             throw new RuntimeException("Check configuration file. The storm.supervisor.cgroup.rootdir is missing.");
@@ -118,7 +129,8 @@ public class CgroupManager extends DefaultResourceIsolationManager {
     }
 
     @Override
-    public void reserveResourcesForWorker(String workerId, Integer totalMem, Integer cpuNum) throws SecurityException {
+    public void reserveResourcesForWorker(String workerId, Integer totalMem,
+                                          Integer cpuNum, String numaId) throws SecurityException {
         LOG.info("Creating cgroup for worker {} with resources {} MB {} % CPU", workerId, totalMem, cpuNum);
         // The manually set STORM_WORKER_CGROUP_CPU_LIMIT config on supervisor will overwrite resources assigned by
         // RAS (Resource Aware Scheduler)
@@ -174,20 +186,37 @@ public class CgroupManager extends DefaultResourceIsolationManager {
             }
         }
 
+
         if ((boolean) this.conf.get(DaemonConfig.STORM_CGROUP_INHERIT_CPUSET_CONFIGS)) {
             if (workerGroup.getParent().getCores().containsKey(SubSystemType.cpuset)) {
                 CpusetCore parentCpusetCore = (CpusetCore) workerGroup.getParent().getCores().get(SubSystemType.cpuset);
                 CpusetCore cpusetCore = (CpusetCore) workerGroup.getCores().get(SubSystemType.cpuset);
                 try {
-                    cpusetCore.setCpus(parentCpusetCore.getCpus());
+                    setCpuSetCoresMemory(cpusetCore, parentCpusetCore.getCpus(), parentCpusetCore.getMems());
                 } catch (IOException e) {
-                    throw new RuntimeException("Cannot set cpuset.cpus! Exception: ", e);
+                    throw new RuntimeException("Cannot obtain parentCpuset! Exception: ", e);
                 }
-                try {
-                    cpusetCore.setMems(parentCpusetCore.getMems());
-                } catch (IOException e) {
-                    throw new RuntimeException("Cannot set cpuset.mems! Exception: ", e);
-                }
+            }
+        }
+
+        if (numaId != null) {
+           workerToNumaId.put(workerId, numaId);
+        }
+    }
+
+    private void setCpuSetCoresMemory(CpusetCore cpusetCore, int[] cores, int[] mems) {
+        if (cores != null) {
+            try {
+                cpusetCore.setCpus(cores);
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot set cpuset.cpus! Exception: ", e);
+            }
+        }
+        if (mems != null) {
+            try {
+                cpusetCore.setMems(mems);
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot set cpuset.mems! Exception: ", e);
             }
         }
     }
@@ -207,15 +236,40 @@ public class CgroupManager extends DefaultResourceIsolationManager {
         }
     }
 
+    /**
+     * Extracting out to mock it for tests.
+     * @return true if on Linux.
+     */
+    protected static boolean isOnLinux() {
+        return SystemUtils.IS_OS_LINUX;
+    }
+
+    private void prefixNumaPinning(List<String> command, String numaId) {
+        if (isOnLinux()) {
+            command.add(0, "numactl");
+            command.add(1, "--cpunodebind=" + numaId);
+            command.add(2, "--membind=" + numaId);
+            return;
+        } else {
+            // TODO : Add support for pinning on Windows host
+            throw new RuntimeException("numactl pinning currently not supported on non-Linux hosts");
+        }
+    }
+
     @Override
-    public void launchWorkerProcess(String user, String topologyId, int port, String numaId, String workerId, List<String> command, Map<String, String> env, String logPrefix,
+    public void launchWorkerProcess(String user, String topologyId, int port, String workerId,
+                                    List<String> command, Map<String, String> env, String logPrefix,
                                     ExitCodeCallback processExitCallback, File targetDir) throws IOException {
+        if (workerToNumaId.containsKey(workerId)) {
+            prefixNumaPinning(command, workerToNumaId.get(workerId));
+        }
+        
         if (runAsUser) {
             String workerDir = targetDir.getAbsolutePath();
             List<String> args = Arrays.asList("worker", workerDir, ServerUtils.writeScript(workerDir, command, env));
             List<String> commandPrefix = getLaunchCommandPrefix(workerId);
             ClientSupervisorUtils.processLauncher(
-                    conf, user, numaId, commandPrefix, args, null,
+                    conf, user, commandPrefix, args, null,
                     logPrefix, processExitCallback, targetDir
             );
         } else {

@@ -37,7 +37,7 @@ public interface ResourceIsolationInterface {
      * @param workerMemory the amount of memory for the worker or null if not enforced
      * @param workerCpu the amount of cpu for the worker or null if not enforced
      */
-    void reserveResourcesForWorker(String workerId, Integer workerMemory, Integer workerCpu);
+    void reserveResourcesForWorker(String workerId, Integer workerMemory, Integer workerCpu, String numaId);
 
     /**
      * This function will be called when the worker needs to shutdown.
@@ -60,7 +60,7 @@ public interface ResourceIsolationInterface {
      * @param targetDir           the working directory to run the command in
      * @throws IOException on I/O exception
      */
-    void launchWorkerProcess(String user, String topologyId, int port, String numaId, String workerId,
+    void launchWorkerProcess(String user, String topologyId, int port, String workerId,
                              List<String> command, Map<String, String> env,
                              String logPrefix, ExitCodeCallback processExitCallback, File targetDir) throws IOException;
 
