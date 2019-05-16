@@ -116,22 +116,6 @@ nsenter.binary=/usr/bin/nsenter
 ```
 and you don't need to set them in the worker-launcher.cfg unless you need to change them.
 
-## Resource Monitoring
-
-You can use docker commands like `docker inspect`, `docker ps`, etc to monitor the docker containers. 
-
-Also in the `storm.yaml` file, you can add the following configs
-
-```bash
-worker.metrics:
-   "CGroupMemory": "org.apache.storm.metric.oci.OciMemoryUsage"
-   "CGroupMemoryLimit": "org.apache.storm.metric.oci.OciMemoryLimit"
-   "CGroupCpu": "org.apache.storm.metric.oci.OciCpu"
-   "CGroupCpuGuarantee": "org.apache.storm.metric.oci.OciCpuGuarantee"
-```
-
-so that the cpu/memory metrics per worker will be reported.
-
 ## Profile the processes inside the container
 If you have sudo permission, you can also run `sudo nsenter --target <container-pid> --pid --mount` to enter the container. 
 Then you can run `jstack`, `jmap` etc inside the container. `<container-pid>` is the pid of the container process on the host.

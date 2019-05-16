@@ -467,20 +467,6 @@ To kill a container, RuncLibContainerManager sends the `SIGTERM or SIGKILL` sign
 The worker-launcher will invoke `runc delete container-id` to delete the container at the end.
 
 
-## Resource Monitoring
-
-To monitor the containers, you can add the following configs in the `storm.yaml` file:
-
-```bash
-worker.metrics:
-   "CGroupMemory": "org.apache.storm.metric.oci.OciMemoryUsage"
-   "CGroupMemoryLimit": "org.apache.storm.metric.oci.OciMemoryLimit"
-   "CGroupCpu": "org.apache.storm.metric.oci.OciCpu"
-   "CGroupCpuGuarantee": "org.apache.storm.metric.oci.OciCpuGuarantee"
-```
-
-so that the cpu/memory metrics per worker will be reported.
-
 ## Profile the processes inside the container
 If you have sudo permission, you can also run `sudo nsenter --target <container-pid> --pid --mount` to enter the container. 
 Then you can run `jstack`, `jmap` etc inside the container. `<container-pid>` is the pid of the container process on the host.
