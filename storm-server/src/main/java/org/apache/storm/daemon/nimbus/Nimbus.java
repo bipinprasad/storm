@@ -4169,7 +4169,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                 setResourcesDefaultIfNotSet(boltResources, entry.getKey(), topoConf);
                 commonStats.set_resources_map(boltResources.get(entry.getKey()).toNormalizedMap());
             }
-            maybeAddPlaceholderBoltAggStats(topoPageInfo, topology);
+            maybeAddPlaceholderBoltAggStats(topoPageInfo, topology, includeSys);
 
             if (workerSummaries != null) {
                 topoPageInfo.set_workers(workerSummaries);
@@ -4233,7 +4233,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
     private void maybeAddPlaceholderSpoutAggStats(TopologyPageInfo topoPageInfo, StormTopology topology) {
         if (topoPageInfo.get_id_to_spout_agg_stats().isEmpty()) {
             Map<String, SpoutSpec> spouts = topology.get_spouts();
-            for (Entry<String, SpoutSpec> entry : spouts.entrySet()) {
+            for (String spoutName : spouts.keySet()) {
                 // component
                 ComponentAggregateStats placeholderComponentStats = new ComponentAggregateStats();
                 placeholderComponentStats.set_type(ComponentType.SPOUT);
@@ -4254,7 +4254,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                 specificStats.set_spout(spoutAggStats);
                 placeholderComponentStats.set_specific_stats(specificStats);
 
-                topoPageInfo.get_id_to_spout_agg_stats().put(entry.getKey(), placeholderComponentStats);
+                topoPageInfo.get_id_to_spout_agg_stats().put(spoutName, placeholderComponentStats);
             }
         }
     }
@@ -4264,12 +4264,13 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
      *
      * @param topoPageInfo  topology page info holding bolt AggStats
      * @param topology      storm topology used to get bolt names
+     * @param includeSys    whether to show system bolts
      */
-    private void maybeAddPlaceholderBoltAggStats(TopologyPageInfo topoPageInfo, StormTopology topology) {
+    private void maybeAddPlaceholderBoltAggStats(TopologyPageInfo topoPageInfo, StormTopology topology, boolean includeSys) {
         if (topoPageInfo.get_id_to_bolt_agg_stats().isEmpty()) {
             Map<String, Bolt> bolts = topology.get_bolts();
-            for (Entry<String, Bolt> entry : bolts.entrySet()) {
-                if (Utils.isSystemId(entry.getKey())) {
+            for (String boltName : bolts.keySet()) {
+                if (!includeSys && Utils.isSystemId(boltName) || boltName.equals("__system")) {
                     continue;
                 }
 
@@ -4296,7 +4297,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                 specificStats.set_bolt(boltAggStats);
                 placeholderComponentStats.set_specific_stats(specificStats);
 
-                topoPageInfo.get_id_to_bolt_agg_stats().put(entry.getKey(), placeholderComponentStats);
+                topoPageInfo.get_id_to_bolt_agg_stats().put(boltName, placeholderComponentStats);
             }
         }
     }
