@@ -27,13 +27,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.storm.DaemonConfig;
-import org.apache.storm.StormTimer;
 import org.apache.storm.container.cgroup.CgroupUtils;
 import org.apache.storm.container.cgroup.core.MemoryCore;
 import org.apache.storm.container.oci.OciContainerExecutorConfig.OciLayer;
@@ -74,6 +74,7 @@ public class RuncLibContainerManager extends OciContainerManager {
     private static final long CPU_CFS_PERIOD_US = 100000;
 
     private Map<String, Long> workerToContainerPid = new ConcurrentHashMap<>();
+    private List<String> watchedWorkers = Collections.synchronizedList(new ArrayList<>());
 
     @Override
     public void prepare(Map<String, Object> conf) throws IOException {
@@ -239,8 +240,18 @@ public class RuncLibContainerManager extends OciContainerManager {
 
         //check if this process exits.
         Long monitorFreqMs = ObjectReader.getInt(conf.get(DaemonConfig.SUPERVISOR_MONITOR_FREQUENCY_SECS)) * 1000L;
+
+        //Add to the watched list
+        LOG.debug("Adding {} to the watchedWorkers list", workerId);
+        watchedWorkers.add(workerId);
+
         Utils.asyncLoop(new Callable<Long>() {
             public Long call()  {
+                //Check if this worker is still being watched
+                if (!watchedWorkers.contains(workerId)) {
+                    LOG.info("{} is not in the watchedWorkers list. Stop watching it", workerId);
+                    return null; //stop here.
+                }
                 Long pid = getContainerPid(workerId);
                 LOG.debug("checking container {}, pid {}", workerId, pid);
                 //do nothing if pid is null.
@@ -479,6 +490,10 @@ public class RuncLibContainerManager extends OciContainerManager {
         List<String> commands = Arrays.asList(CmdType.REAP_OCI_CONTAINER.toString(), workerId, String.valueOf(layersToKeep));
         String logPrefix = "Worker Process " + workerId;
         ClientSupervisorUtils.processLauncherAndWait(conf, user, commands, null, logPrefix);
+
+        //remove from the watched list
+        LOG.debug("Removing {} from the watchedWorkers list", workerId);
+        watchedWorkers.remove(workerId);
     }
 
     /**
