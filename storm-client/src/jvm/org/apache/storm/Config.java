@@ -1190,7 +1190,7 @@ public class Config extends HashMap<String, Object> {
     /**
      * The plugin for use to login to hdfs.
      */
-    @isImplementationOfClass(implementsClass = IHdfsLoginPlugin.class)
+    @isString
     public static final String STORM_HDFS_LOGIN_PLUGIN = "storm.hdfs.login.plugin";
 
     /**
