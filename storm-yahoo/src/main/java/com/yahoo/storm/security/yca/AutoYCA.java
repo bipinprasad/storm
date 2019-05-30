@@ -259,7 +259,7 @@ public class AutoYCA implements IAutoCredentials {
             String proxyPart = (proxyRoleForWeb == null) ? "" : ("?http_proxy_role="+proxyRoleForWeb);
 
             if (v1Cert != null) {
-                cmd.add("http://ca.yca.platform.yahoo.com:4080/wsca/v2/certificates/yca/"+v2RoleForWeb+proxyPart);
+                cmd.add("https://ca.yca.platform.yahoo.com:4443/wsca/v2/certificates/yca/"+v2RoleForWeb+proxyPart);
                 cmd.add("-vvvv");
                 cmd.add("-H");
                 cmd.add("Yahoo-App-Auth:"+v1Cert);
@@ -268,7 +268,7 @@ public class AutoYCA implements IAutoCredentials {
                 cmd.add("--negotiate");
                 cmd.add("-u");
                 cmd.add(":");
-                cmd.add("http://ca.yca.platform.yahoo.com:4080/wsca/v2/certificates/kerberos/"+v2RoleForWeb+proxyPart);
+                cmd.add("https://ca.yca.platform.yahoo.com:4443/wsca/v2/certificates/kerberos/"+v2RoleForWeb+proxyPart);
 
                 krbFile = copyKrbFile();
             }
