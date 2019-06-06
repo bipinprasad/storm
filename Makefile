@@ -60,3 +60,6 @@ git_tag: internal RELEASE DIST_TAG
 	git tag -f -a `cat RELEASE` -m "Pipeline ${SD_PIPELINE_ID} job ${SD_JOB_ID} build ${SD_BUILD_ID}: yahoo version `cat RELEASE`"
 	git push origin `cat RELEASE`
 	${SD_SOURCE_DIR}/internal/QATools/storm_tag_master_launcher
+	./yahoo-build/screwdriver/update_package_info.sh `cat RELEASE`
+
+	
