@@ -22,12 +22,15 @@ package org.apache.storm.container.oci;
 import static org.apache.storm.utils.ConfigUtils.FILE_SEPARATOR;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -53,6 +56,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
 
 public class RuncLibContainerManager extends OciContainerManager {
     private static final Logger LOG = LoggerFactory.getLogger(RuncLibContainerManager.class);
@@ -148,6 +153,8 @@ public class RuncLibContainerManager extends OciContainerManager {
         //get layers metadata
         OciResource configResource = manifestToResourcesPlugin.getConfigResource(manifest);
         LOG.info("workerId {}: Got config metadata: {}", workerId, configResource.toString());
+
+        saveRuncYaml(topologyId, port, imageName, configResource);
 
         List<OciResource> layersResource = manifestToResourcesPlugin.getLayerResources(manifest);
         LOG.info("workerId {}: Got layers metadata: {}", workerId, layersResource.toString());
@@ -270,6 +277,26 @@ public class RuncLibContainerManager extends OciContainerManager {
                 return monitorFreqMs; // sleep, then re-run.
                 }
             }, "CheckContainerAlive_SLOT_" + port, null);
+    }
+
+    // save runc.yaml in artifacts dir so we can track which image the worker was launched with
+    private void saveRuncYaml(String topologyId, int port, String imageName, OciResource configResource) {
+        String fname = ConfigUtils.workerArtifactsRoot(conf, topologyId, port) + FILE_SEPARATOR + "runc.yaml";
+        File file = new File(fname);
+        DumperOptions options = new DumperOptions();
+        options.setIndent(2);
+        options.setPrettyFlow(true);
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        Yaml yaml = new Yaml(options);
+        Map<String, Object> data = new HashMap<>();
+        data.put("imageName", imageName);
+        data.put("manifest", configResource.getFileName());
+        data.put("configPath", configResource.getPath());
+        try (Writer writer = new FileWriter(file)) {
+            yaml.dump(data, writer);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private String writeOciExecutorConfigToJsonFile(ObjectMapper mapper, OciContainerExecutorConfig ociContainerExecutorConfig,
