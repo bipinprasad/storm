@@ -142,23 +142,23 @@ public class HdfsBlobStore extends BlobStore {
         if (hbs.exists(DATA_PREFIX + key)) {
             throw new WrappedKeyAlreadyExistsException(key);
         }
-        BlobStoreFileOutputStream out = null;
+        BlobStoreFileOutputStream outputStream = null;
         try {
             BlobStoreFile metaFile = hbs.write(META_PREFIX + key, true);
             metaFile.setMetadata(meta);
-            out = new BlobStoreFileOutputStream(metaFile);
-            out.write(Utils.thriftSerialize(meta));
-            out.close();
-            out = null;
+            outputStream = new BlobStoreFileOutputStream(metaFile);
+            outputStream.write(Utils.thriftSerialize(meta));
+            outputStream.close();
+            outputStream = null;
             BlobStoreFile dataFile = hbs.write(DATA_PREFIX + key, true);
             dataFile.setMetadata(meta);
             return new BlobStoreFileOutputStream(dataFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            if (out != null) {
+            if (outputStream != null) {
                 try {
-                    out.cancel();
+                    outputStream.cancel();
                 } catch (IOException e) {
                     //Ignored
                 }
@@ -234,7 +234,7 @@ public class HdfsBlobStore extends BlobStore {
     /**
      * Sets leader elector (only used by LocalFsBlobStore to help sync blobs between Nimbi.
      *
-     * @param leaderElector
+     * @param leaderElector the leader elector
      */
     @Override
     public void setLeaderElector(ILeaderElector leaderElector) {
@@ -348,20 +348,20 @@ public class HdfsBlobStore extends BlobStore {
 
     public void writeMetadata(String key, SettableBlobMeta meta)
             throws AuthorizationException, KeyNotFoundException {
-        BlobStoreFileOutputStream out = null;
+        BlobStoreFileOutputStream outputStream = null;
         try {
             BlobStoreFile hdfsFile = hbs.write(META_PREFIX + key, false);
             hdfsFile.setMetadata(meta);
-            out = new BlobStoreFileOutputStream(hdfsFile);
-            out.write(Utils.thriftSerialize(meta));
-            out.close();
-            out = null;
+            outputStream = new BlobStoreFileOutputStream(hdfsFile);
+            outputStream.write(Utils.thriftSerialize(meta));
+            outputStream.close();
+            outputStream = null;
         } catch (IOException exp) {
             throw new RuntimeException(exp);
         } finally {
-            if (out != null) {
+            if (outputStream != null) {
                 try {
-                    out.cancel();
+                    outputStream.cancel();
                 } catch (IOException e) {
                     //Ignored
                 }
