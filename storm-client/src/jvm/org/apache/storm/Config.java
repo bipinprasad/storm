@@ -1268,7 +1268,7 @@ public class Config extends HashMap<String, Object> {
     /**
      * The jvm opts provided to workers launched by this supervisor. All "%ID%", "%WORKER-ID%", "%TOPOLOGY-ID%", "%WORKER-PORT%" and
      * "%HEAP-MEM%" substrings are replaced with: %ID%          -> port (for backward compatibility), %WORKER-ID%   -> worker-id,
-     * %TOPOLOGY-ID%    -> topology-id, %WORKER-PORT% -> port. %HEAP-MEM% -> mem-onheap.
+     * %TOPOLOGY-ID%    -> topology-id, %WORKER-PORT% -> port. %HEAP-MEM% -> mem-onheap. %LIMIT-MEM% -> offheap + onheap
      */
     @isStringOrStringList
     public static final String WORKER_CHILDOPTS = "worker.childopts";
