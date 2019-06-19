@@ -98,11 +98,12 @@ public class DockerManager extends OciContainerManager {
         String workerRootDir = ConfigUtils.workerRoot(conf, workerId);
         String workerArtifactsRoot = ConfigUtils.workerArtifactsRoot(conf, topologyId, port);
         String workerUserFile = ConfigUtils.workerUserFile(conf, workerId);
-        String sharedByTopologyTmpDir = ConfigUtils.sharedByTopologyTmpDir(conf, topologyId);
+        String sharedByTopologyDir = ConfigUtils.sharedByTopologyDir(conf, topologyId);
 
         // Theoretically we only need to mount ConfigUtils.supervisorStormDistRoot directory.
         // But if supervisorLocalDir is not mounted, the worker will try to create it and fail.
         String supervisorLocalDir = ConfigUtils.supervisorLocalDir(conf);
+        String workerTmpRoot = ConfigUtils.workerTmpRoot(conf, workerId);
 
         dockerRunCommand.detachOnRun()
             .setNetworkType("host")
@@ -116,12 +117,13 @@ public class DockerManager extends OciContainerManager {
             .addReadWriteMountLocation(workerUserFile, workerUserFile, false)
             //nscd must be running so that profiling can work properly
             .addReadWriteMountLocation(nscdPath, nscdPath, false)
+            .addReadWriteMountLocation(sharedByTopologyDir, sharedByTopologyDir, false)
             //This is to make /tmp directory in container writable. This is very important.
             // For example
             // 1. jvm needs to write to /tmp/hsperfdata_<user> directory so that jps can work
             // 2. jstack needs to create a socket under /tmp directory.
             //Otherwise profiling will not work properly.
-            .addReadWriteMountLocation(sharedByTopologyTmpDir, TMP_DIR, false)
+            .addReadWriteMountLocation(workerTmpRoot, TMP_DIR, false)
             //a list of read-only bind mount locations
             .addAllReadOnlyMountLocations(readonlyBindmounts, false)
             .addAllReadWriteMountLocations(readwriteBindmounts, false);

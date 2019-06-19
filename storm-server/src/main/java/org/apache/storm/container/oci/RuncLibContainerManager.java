@@ -343,8 +343,11 @@ public class RuncLibContainerManager extends OciContainerManager {
         String workerUserFile = ConfigUtils.workerUserFile(conf, workerId);
         addOciMountLocation(mounts, workerUserFile, workerUserFile, false, true);
 
-        String sharedByTopologyTmpDir = ConfigUtils.sharedByTopologyTmpDir(conf, topologyId);
-        addOciMountLocation(mounts, sharedByTopologyTmpDir, TMP_DIR, false, true);
+        String sharedByTopologyDir = ConfigUtils.sharedByTopologyDir(conf, topologyId);
+        addOciMountLocation(mounts, sharedByTopologyDir, sharedByTopologyDir, false, true);
+
+        String workerTmpRoot = ConfigUtils.workerTmpRoot(conf, workerId);
+        addOciMountLocation(mounts, workerTmpRoot, TMP_DIR, false, true);
     }
 
     private List<String> extractImageEnv(File config) throws IOException {
