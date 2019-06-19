@@ -1181,6 +1181,12 @@ public class DaemonConfig implements Validated {
     public static String STORM_OCI_READONLY_BINDMOUNTS = "storm.oci.readonly.bindmounts";
 
     /**
+     * A list of read-write bind mounted directories.
+     */
+    @isStringList
+    public static String STORM_OCI_READWRITE_BINDMOUNTS = "storm.oci.readwrite.bindmounts";
+
+    /**
      * The cgroup root for oci container. (Also a --cgroup-parent config for docker command)
      * Must follow the constraints of the docker command.
      * The path will be made as absolute path if it's a relative path

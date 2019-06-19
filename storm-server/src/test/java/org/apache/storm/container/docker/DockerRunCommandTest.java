@@ -14,6 +14,7 @@ package org.apache.storm.container.docker;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
@@ -37,7 +38,7 @@ public class DockerRunCommandTest {
     }
 
     @Test
-    public void getCommandOption() {
+    public void getCommandOption() throws IOException {
         String sourcePath = "source";
         String destPath = "dest";
         dockerRunCommand.detachOnRun()

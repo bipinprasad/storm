@@ -111,19 +111,20 @@ public class DockerManager extends OciContainerManager {
             .addReadOnlyMountLocation(cgroupRootPath, cgroupRootPath, false)
             .addReadOnlyMountLocation(stormHome, stormHome, false)
             .addReadOnlyMountLocation(supervisorLocalDir, supervisorLocalDir, false)
-            .addMountLocation(workerRootDir, workerRootDir, false)
-            .addMountLocation(workerArtifactsRoot, workerArtifactsRoot, false)
-            .addMountLocation(workerUserFile, workerUserFile, false)
+            .addReadWriteMountLocation(workerRootDir, workerRootDir, false)
+            .addReadWriteMountLocation(workerArtifactsRoot, workerArtifactsRoot, false)
+            .addReadWriteMountLocation(workerUserFile, workerUserFile, false)
             //nscd must be running so that profiling can work properly
-            .addMountLocation(nscdPath, nscdPath, false)
+            .addReadWriteMountLocation(nscdPath, nscdPath, false)
             //This is to make /tmp directory in container writable. This is very important.
             // For example
             // 1. jvm needs to write to /tmp/hsperfdata_<user> directory so that jps can work
             // 2. jstack needs to create a socket under /tmp directory.
             //Otherwise profiling will not work properly.
-            .addMountLocation(sharedByTopologyTmpDir, TMP_DIR, false)
+            .addReadWriteMountLocation(sharedByTopologyTmpDir, TMP_DIR, false)
             //a list of read-only bind mount locations
-            .addAllReadOnlyMountLocations(readonlyBindmounts, false);
+            .addAllReadOnlyMountLocations(readonlyBindmounts, false)
+            .addAllReadWriteMountLocations(readwriteBindmounts, false);
 
         if (workerToCores.containsKey(workerId)) {
             dockerRunCommand.addCpuSetBindings(

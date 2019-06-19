@@ -319,6 +319,10 @@ public class RuncLibContainerManager extends OciContainerManager {
             addOciMountLocation(mounts, readonlyMount, readonlyMount, false, false);
         }
 
+        for (String readwriteMount : readwriteBindmounts) {
+            addOciMountLocation(mounts, readwriteMount, readwriteMount, false, true);
+        }
+
         addOciMountLocation(mounts, RESOLV_CONF, RESOLV_CONF, false, false);
         addOciMountLocation(mounts, HOSTNAME, HOSTNAME, false, false);
         addOciMountLocation(mounts, HOSTS, HOSTS, false, false);
@@ -407,11 +411,11 @@ public class RuncLibContainerManager extends OciContainerManager {
     }
 
     private void addOciMountLocation(List<OciMount> mounts, String srcPath,
-                                     String dstPath, boolean createSource, boolean isReadWrite) {
+                                     String dstPath, boolean createSource, boolean isReadWrite) throws IOException {
         if (!createSource) {
             boolean sourceExists = new File(srcPath).exists();
             if (!sourceExists) {
-                return;
+                throw new IOException("SourcePath " + srcPath + " doesn't exit");
             }
         }
 

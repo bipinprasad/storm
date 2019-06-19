@@ -342,6 +342,7 @@ Then you need to set up storm with the following configs:
 | `storm.oci.cgroup.root`                | The root path of cgroup for docker to use. On RHEL7, it should be "/sys/fs/cgroup".
 | `storm.oci.cgroup.parent`              | --cgroup-parent config for docker command. It must follow the constraints of docker commands. The path will be made as absolute path if it's a relative path because we saw some weird bugs ((the cgroup memory directory disappears after a while) when a relative path is used.
 | `storm.oci.readonly.bindmounts`        | A list of read only bind mounted directories.
+| `storm.oci.readwrite.bindmounts`       | A list of read-write bind mounted directories.
 | `storm.oci.nscd.dir`                   | The directory of nscd (name service cache daemon), e.g. "/var/run/nscd/". nscd must be running so that profiling can work properly.
 | `storm.oci.seccomp.profile`            | White listed syscalls seccomp Json file to be used as a seccomp filter
 | `supervisor.worker.launcher`              | Full path to the worker-launcher executable.

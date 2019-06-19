@@ -13,6 +13,7 @@
 package org.apache.storm.container.docker;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -86,21 +87,21 @@ public class DockerRunCommand extends DockerCommand {
      * @param createSource if createSource is false and the source path doesn't exist, do nothing
      * @return the self
      */
-    public DockerRunCommand addMountLocation(String sourcePath, String
-        destinationPath, boolean createSource) {
-        boolean sourceExists = new File(sourcePath).exists();
-        if (!sourceExists && !createSource) {
-            LOG.warn("Path {} doesn't exit. Skip bind mounting it", sourcePath);
-            return this;
+    public DockerRunCommand addReadWriteMountLocation(String sourcePath, String
+        destinationPath, boolean createSource) throws IOException {
+        if (!createSource) {
+            boolean sourceExists = new File(sourcePath).exists();
+            if (!sourceExists) {
+                throw new IOException("SourcePath " + sourcePath + " doesn't exit.");
+            }
         }
         super.addCommandArguments("-v", sourcePath + ":" + destinationPath);
         return this;
     }
 
     public DockerRunCommand addReadWriteMountLocation(String sourcePath, String
-        destinationPath) {
-        super.addCommandArguments("-v", sourcePath + ":" + destinationPath);
-        return this;
+        destinationPath) throws IOException {
+        return addReadWriteMountLocation(sourcePath, destinationPath, true);
     }
 
     /**
@@ -108,9 +109,20 @@ public class DockerRunCommand extends DockerCommand {
      * @param paths the locations
      * @return the self
      */
-    public DockerRunCommand addAllReadWriteMountLocations(List<String> paths) {
+    public DockerRunCommand addAllReadWriteMountLocations(List<String> paths) throws IOException {
+        return addAllReadWriteMountLocations(paths, true);
+    }
+
+    /**
+     * Add all the rw bind mount locations.
+     * @param paths the locations
+     * @param createSource if createSource is false and the source path doesn't exist, do nothing
+     * @return the self
+     */
+    public DockerRunCommand addAllReadWriteMountLocations(List<String> paths,
+                                                          boolean createSource) throws IOException {
         for (String dir: paths) {
-            this.addReadWriteMountLocation(dir, dir);
+            this.addReadWriteMountLocation(dir, dir, createSource);
         }
         return this;
     }
@@ -122,12 +134,13 @@ public class DockerRunCommand extends DockerCommand {
      * @param createSource if createSource is false and the source path doesn't exist, do nothing
      * @return the self
      */
-    public DockerRunCommand addReadOnlyMountLocation(String sourcePath, String
-        destinationPath, boolean createSource) {
-        boolean sourceExists = new File(sourcePath).exists();
-        if (!sourceExists && !createSource) {
-            LOG.warn("Path {} doesn't exit. Skip bind mounting it", sourcePath);
-            return this;
+    public DockerRunCommand addReadOnlyMountLocation(String sourcePath, String destinationPath,
+                                                     boolean createSource) throws IOException {
+        if (!createSource) {
+            boolean sourceExists = new File(sourcePath).exists();
+            if (!sourceExists) {
+                throw new IOException("SourcePath " + sourcePath + " doesn't exit.");
+            }
         }
         super.addCommandArguments("-v", sourcePath + ":" + destinationPath + ":ro");
         return this;
@@ -139,10 +152,9 @@ public class DockerRunCommand extends DockerCommand {
      * @param destinationPath the destination path
      * @return the self
      */
-    public DockerRunCommand addReadOnlyMountLocation(String sourcePath, String
-        destinationPath) {
-        super.addCommandArguments("-v", sourcePath + ":" + destinationPath + ":ro");
-        return this;
+    public DockerRunCommand addReadOnlyMountLocation(String sourcePath,
+                                                     String destinationPath) throws IOException {
+        return addReadOnlyMountLocation(sourcePath, destinationPath, true);
     }
 
     /**
@@ -150,11 +162,8 @@ public class DockerRunCommand extends DockerCommand {
      * @param paths the locations
      * @return the self
      */
-    public DockerRunCommand addAllReadOnlyMountLocations(List<String> paths) {
-        for (String dir: paths) {
-            this.addReadOnlyMountLocation(dir, dir);
-        }
-        return this;
+    public DockerRunCommand addAllReadOnlyMountLocations(List<String> paths) throws IOException {
+        return addAllReadOnlyMountLocations(paths, true);
     }
 
     /**
@@ -164,7 +173,7 @@ public class DockerRunCommand extends DockerCommand {
      * @return the self
      */
     public DockerRunCommand addAllReadOnlyMountLocations(List<String> paths,
-                                                         boolean createSource) {
+                                                         boolean createSource) throws IOException {
         for (String dir: paths) {
             this.addReadOnlyMountLocation(dir, dir, createSource);
         }

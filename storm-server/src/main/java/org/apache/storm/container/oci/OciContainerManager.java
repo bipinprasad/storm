@@ -55,6 +55,7 @@ public abstract class OciContainerManager implements ResourceIsolationInterface 
     protected List<String> allowedImages;
     protected Map<String, Object> conf;
     protected List<String> readonlyBindmounts;
+    protected List<String> readwriteBindmounts;
     protected String seccompJsonFile;
     protected String nscdPath;
     protected static final String TMP_DIR = File.separator + "tmp";
@@ -103,6 +104,8 @@ public abstract class OciContainerManager implements ResourceIsolationInterface 
         }
 
         readonlyBindmounts = ObjectReader.getStrings(conf.get(DaemonConfig.STORM_OCI_READONLY_BINDMOUNTS));
+
+        readwriteBindmounts = ObjectReader.getStrings(conf.get(DaemonConfig.STORM_OCI_READWRITE_BINDMOUNTS));
 
         seccompJsonFile = (String) conf.get(DaemonConfig.STORM_OCI_SECCOMP_PROFILE);
 
