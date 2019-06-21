@@ -177,6 +177,7 @@
 				"preadv",
 				"prlimit64",
 				"pselect6",
+				"ptrace",
 				"pwrite64",
 				"pwritev",
 				"read",
