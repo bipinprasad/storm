@@ -88,6 +88,13 @@ void print_res_uid_gid(char* log_prefix);
 
 int setup_dir_permissions(const char* local_dir, int for_blob_permission, boolean setgid_on_dir);
 
+/**
+ * /tmp inside the container is bind mounted to worker-id/tmp directory
+ * remove setgid on worker-id/tmp directory so that java profiling can work
+ * This is not required for non-container workers. But better to keep them consistent
+ */ 
+int setup_worker_tmp_permissions(const char *worker_dir);
+
 int exec_as_user(const char * working_dir, const char * args);
 
 int fork_as_user(const char * working_dir, const char * args);
