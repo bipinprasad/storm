@@ -210,7 +210,10 @@ int main(int argc, char **argv) {
     working_dir = argv[optind++];
     exit_code = setup_dir_permissions(working_dir, 1, TRUE);
     if (exit_code == 0) {
-      exit_code = exec_as_user(working_dir, argv[optind]);
+      exit_code = setup_worker_tmp_permissions(working_dir);
+      if (exit_code == 0) {
+        exit_code = exec_as_user(working_dir, argv[optind]);
+      }
     }
   } else if (strcasecmp("launch-docker-container", command) == 0) {
     if (argc != 5) {
@@ -221,7 +224,10 @@ int main(int argc, char **argv) {
     working_dir = argv[optind++];
     exit_code = setup_dir_permissions(working_dir, 1, TRUE);
     if (exit_code == 0) {
-      exit_code = run_docker_cmd(working_dir, argv[optind]);
+      exit_code = setup_worker_tmp_permissions(working_dir);
+      if (exit_code == 0) {
+        exit_code = run_docker_cmd(working_dir, argv[optind]);
+      }
     }
   } else if (strcasecmp("run-docker-cmd", command) == 0) {
     if (argc != 5) {
@@ -281,8 +287,12 @@ int main(int argc, char **argv) {
     working_dir = argv[optind++];
     exit_code = setup_dir_permissions(working_dir, 1, TRUE);
     if (exit_code == 0) {
-      //At this point, real, effective and saved user id are all root.
-      exit_code = run_oci_container(argv[optind]);
+      exit_code = setup_worker_tmp_permissions(working_dir);
+      if (exit_code == 0) {
+        //becomes root.
+        setuid(0);
+        exit_code = run_oci_container(argv[optind]);
+      }
     }
   } else if (strcasecmp("reap-oci-container", command) == 0) {
     if (argc != 5) {

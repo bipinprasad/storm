@@ -596,7 +596,6 @@ static int setup_permissions(FTSENT *entry, uid_t euser, int user_write, boolean
   return 0;
 }
 
-//Attention: the effective user becomes root after this function.
 int setup_dir_permissions(const char *local_dir, int user_writable, boolean setgid_on_dir)
 {
   //This is the same as
@@ -690,8 +689,34 @@ int setup_dir_permissions(const char *local_dir, int user_writable, boolean setg
     }
     free(paths[0]);
     paths[0] = NULL;
+
+    if (seteuid(euser) != 0)
+    {
+      fprintf(ERRORFILE, "Could not switch euid back to %d\n", euser);
+      return -1;
+    }
   }
   return exit_code;
+}
+
+/**
+ * /tmp inside the container is bind mounted to worker-id/tmp directory
+ * remove setgid on worker-id/tmp directory so that java profiling can work
+ * This is not required for non-container workers. But better to keep them consistent
+ */ 
+int setup_worker_tmp_permissions(const char *worker_dir)
+{
+  char* worker_tmp = concatenate("%s/tmp", "worker tmp dir", 1, worker_dir);
+  if (worker_tmp != NULL) {
+    int exit_code = setup_dir_permissions(worker_tmp, 1, FALSE);
+    if (exit_code != 0) {
+      fprintf(ERRORFILE, "setup_dir_permissions on %s failed\n", worker_tmp);
+      fflush(ERRORFILE);
+    } 
+    return exit_code;
+  } else {
+    return -1;
+  }
 }
 
 int signal_container_as_user(const char *user, int pid, int sig)
