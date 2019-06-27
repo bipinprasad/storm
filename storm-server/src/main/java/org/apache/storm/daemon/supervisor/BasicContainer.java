@@ -440,7 +440,7 @@ public class BasicContainer extends Container {
         return CPJ.join(workercp);
     }
 
-    private String substituteChildOptsInternal(String string, int memOnheap) {
+    private String substituteChildOptsInternal(String string, int memOnheap, int memOffheap) {
         if (StringUtils.isNotBlank(string)) {
             String p = String.valueOf(_port);
             string = string.replace("%ID%", p);
@@ -450,6 +450,9 @@ public class BasicContainer extends Container {
             if (memOnheap > 0) {
                 string = string.replace("%HEAP-MEM%", String.valueOf(memOnheap));
             }
+            if (memOffheap > 0) {
+                string = string.replace("%OFF-HEAP-MEM%", String.valueOf(memOffheap));
+            }
             if (memoryLimitMB > 0) {
                 string = string.replace("%LIMIT-MEM%", String.valueOf(memoryLimitMB));
             }
@@ -458,13 +461,13 @@ public class BasicContainer extends Container {
     }
 
     protected List<String> substituteChildopts(Object value) {
-        return substituteChildopts(value, -1);
+        return substituteChildopts(value, -1, -1);
     }
 
-    protected List<String> substituteChildopts(Object value, int memOnheap) {
+    protected List<String> substituteChildopts(Object value, int memOnheap, int memOffHeap) {
         List<String> rets = new ArrayList<>();
         if (value instanceof String) {
-            String string = substituteChildOptsInternal((String) value, memOnheap);
+            String string = substituteChildOptsInternal((String) value, memOnheap, memOffHeap);
             if (StringUtils.isNotBlank(string)) {
                 String[] strings = string.split("\\s+");
                 for (String s : strings) {
@@ -477,7 +480,7 @@ public class BasicContainer extends Container {
             @SuppressWarnings("unchecked")
             List<String> objects = (List<String>) value;
             for (String object : objects) {
-                String str = substituteChildOptsInternal(object, memOnheap);
+                String str = substituteChildOptsInternal(object, memOnheap, memOffHeap);
                 if (StringUtils.isNotBlank(str)) {
                     rets.add(str);
                 }
@@ -561,10 +564,21 @@ public class BasicContainer extends Container {
         return memOnheap;
     }
 
-    private List<String> getWorkerProfilerChildOpts(int memOnheap) {
+    private int getMemOffHeap(WorkerResources resources) {
+        int memOffheap = 0;
+        if (resources != null && resources.is_set_mem_off_heap() &&
+                resources.get_mem_off_heap() > 0) {
+            memOffheap = (int) Math.ceil(resources.get_mem_off_heap());
+        }
+        return memOffheap;
+    }
+
+    private List<String> getWorkerProfilerChildOpts(int memOnheap, int memOffheap) {
         List<String> workerProfilerChildopts = new ArrayList<>();
         if (ObjectReader.getBoolean(_conf.get(DaemonConfig.WORKER_PROFILER_ENABLED), false)) {
-            workerProfilerChildopts = substituteChildopts(_conf.get(DaemonConfig.WORKER_PROFILER_CHILDOPTS), memOnheap);
+            workerProfilerChildopts = substituteChildopts(
+                    _conf.get(DaemonConfig.WORKER_PROFILER_CHILDOPTS), memOnheap, memOffheap
+            );
         }
         return workerProfilerChildopts;
     }
@@ -590,7 +604,7 @@ public class BasicContainer extends Container {
      *
      * @throws IOException on any error.
      */
-    private List<String> mkLaunchCommand(final int memOnheap, final String stormRoot,
+    private List<String> mkLaunchCommand(final int memOnheap, final int memOffheap, final String stormRoot,
                                          final String jlp, final String numaId) throws IOException {
         final String javaCmd = javaCmd("java");
         final String stormOptions = ConfigUtils.concatIfNotNull(System.getProperty("storm.options"));
@@ -628,12 +642,12 @@ public class BasicContainer extends Container {
         commandList.add("-server");
         commandList.addAll(commonParams);
         commandList.add("-Dlog4j.configurationFile=" + workerLog4jConfig);
-        commandList.addAll(substituteChildopts(_conf.get(Config.WORKER_CHILDOPTS), memOnheap));
-        commandList.addAll(substituteChildopts(_topoConf.get(Config.TOPOLOGY_WORKER_CHILDOPTS), memOnheap));
+        commandList.addAll(substituteChildopts(_conf.get(Config.WORKER_CHILDOPTS), memOnheap, memOffheap));
+        commandList.addAll(substituteChildopts(_topoConf.get(Config.TOPOLOGY_WORKER_CHILDOPTS), memOnheap, memOffheap));
         commandList.addAll(substituteChildopts(Utils.OR(
             _topoConf.get(Config.TOPOLOGY_WORKER_GC_CHILDOPTS),
-            _conf.get(Config.WORKER_GC_CHILDOPTS)), memOnheap));
-        commandList.addAll(getWorkerProfilerChildOpts(memOnheap));
+            _conf.get(Config.WORKER_GC_CHILDOPTS)), memOnheap, memOffheap));
+        commandList.addAll(getWorkerProfilerChildOpts(memOnheap, memOffheap));
         commandList.add("-Djava.library.path=" + jlp);
         commandList.add("-Dstorm.conf.file=" + topoConfFile);
         commandList.add("-Dstorm.options=" + stormOptions);
@@ -812,6 +826,7 @@ public class BasicContainer extends Container {
 
         final WorkerResources resources = _assignment.get_resources();
         final int memOnHeap = getMemOnHeap(resources);
+        final int memOffHeap = getMemOffHeap(resources);
         memoryLimitMB = calculateMemoryLimit(resources, memOnHeap);
         final String stormRoot = ConfigUtils.supervisorStormDistRoot(_conf, _topologyId);
         String jlp = javaLibraryPath(stormRoot, _conf);
@@ -836,7 +851,7 @@ public class BasicContainer extends Container {
             resourceIsolationManager.reserveResourcesForWorker(_workerId, (int) memoryLimitMB, cpu, numaId);
         }
 
-        List<String> commandList = mkLaunchCommand(memOnHeap, stormRoot, jlp, numaId);
+        List<String> commandList = mkLaunchCommand(memOnHeap, memOffHeap, stormRoot, jlp, numaId);
 
         LOG.info("Launching worker with command: {}. ", ServerUtils.shellCmd(commandList));
 

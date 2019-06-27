@@ -619,6 +619,7 @@ public class BasicContainerTest {
         int supervisorPort = 6628;
         int port = 9999;
         int memOnheap = 512;
+        int memOffheap = 256;
 
         LocalAssignment la = new LocalAssignment();
         la.set_topology_id(topoId);
@@ -638,10 +639,10 @@ public class BasicContainerTest {
         assertListEquals(Arrays.asList(
             "-Xloggc:/tmp/storm/logs/gc.worker-9999-s-01-w-01-9999.log",
             "-Xms256m",
-            "-Xmx512m"),
+            "-Xmx512m", "-XX:MaxDirectMemorySize=256m"),
                          mc.substituteChildopts(
-                             "-Xloggc:/tmp/storm/logs/gc.worker-%ID%-%TOPOLOGY-ID%-%WORKER-ID%-%WORKER-PORT%.log -Xms256m -Xmx%HEAP-MEM%m",
-                             memOnheap));
+                             "-Xloggc:/tmp/storm/logs/gc.worker-%ID%-%TOPOLOGY-ID%-%WORKER-ID%-%WORKER-PORT%.log -Xms256m -Xmx%HEAP-MEM%m -XX:MaxDirectMemorySize=%OFF-HEAP-MEM%m",
+                             memOnheap, memOffheap));
 
         assertListEquals(Arrays.asList(
             "-Xloggc:/tmp/storm/logs/gc.worker-9999-s-01-w-01-9999.log",
@@ -649,7 +650,7 @@ public class BasicContainerTest {
             "-Xmx512m"),
                          mc.substituteChildopts(Arrays.asList(
                              "-Xloggc:/tmp/storm/logs/gc.worker-%ID%-%TOPOLOGY-ID%-%WORKER-ID%-%WORKER-PORT%.log", "-Xms256m",
-                             "-Xmx%HEAP-MEM%m"), memOnheap));
+                             "-Xmx%HEAP-MEM%m"), memOnheap, memOffheap));
 
         assertListEquals(Collections.emptyList(),
                          mc.substituteChildopts(null));
@@ -691,8 +692,8 @@ public class BasicContainerTest {
         }
 
         @Override
-        public List<String> substituteChildopts(Object value, int memOnheap) {
-            return super.substituteChildopts(value, memOnheap);
+        public List<String> substituteChildopts(Object value, int memOnheap, int memOffHeap) {
+            return super.substituteChildopts(value, memOnheap, memOffHeap);
         }
 
         @Override
