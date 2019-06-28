@@ -34,9 +34,9 @@ cat <<XML
             <pattern>\${pattern}</pattern>
         </PatternLayout>
         <Policies>
-            <SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
+            <SizeBasedTriggeringPolicy size="${daemon_log_rollover_size_mb} MB"/> <!-- Or every 100 MB -->
         </Policies>
-        <DefaultRolloverStrategy max="9"/>
+        <DefaultRolloverStrategy max="${daemon_log_rollover_count}"/>
     </RollingFile>
     <RollingFile name="WEB-ACCESS"
                  fileName="\${sys:storm.log.dir}/access-web-\${sys:daemon.name}.log"
@@ -45,9 +45,9 @@ cat <<XML
             <pattern>\${pattern}</pattern>
         </PatternLayout>
         <Policies>
-            <SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
+            <SizeBasedTriggeringPolicy size="${daemon_log_rollover_size_mb} MB"/> <!-- Or every 100 MB -->
         </Policies>
-        <DefaultRolloverStrategy max="9"/>
+        <DefaultRolloverStrategy max="${daemon_log_rollover_count}"/>
     </RollingFile>
     <RollingFile name="THRIFT-ACCESS"
                  fileName="\${sys:storm.log.dir}/access-\${sys:logfile.name}"
@@ -56,9 +56,9 @@ cat <<XML
             <pattern>\${pattern}</pattern>
         </PatternLayout>
         <Policies>
-            <SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
+            <SizeBasedTriggeringPolicy size="${daemon_log_rollover_size_mb} MB"/> <!-- Or every 100 MB -->
         </Policies>
-        <DefaultRolloverStrategy max="9"/>
+        <DefaultRolloverStrategy max="${daemon_log_rollover_count}"/>
     </RollingFile>
     <RollingFile name="METRICS"
                  fileName="\${sys:storm.log.dir}/\${sys:logfile.name}.metrics"
@@ -67,9 +67,9 @@ cat <<XML
             <pattern>\${patternMetrics}</pattern>
         </PatternLayout>
         <Policies>
-            <SizeBasedTriggeringPolicy size="100 MB"/>
+            <SizeBasedTriggeringPolicy size="${daemon_log_rollover_size_mb} MB"/>
         </Policies>
-        <DefaultRolloverStrategy max="9"/>
+        <DefaultRolloverStrategy max="${daemon_log_rollover_count}"/>
     </RollingFile>
     <RollingFile name="SCHEDULER" immediateFlush="false"
                  fileName="\${sys:storm.log.dir}/scheduler.log"
@@ -78,9 +78,9 @@ cat <<XML
             <pattern>\${pattern}</pattern>
         </PatternLayout>
         <Policies>
-            <SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
+            <SizeBasedTriggeringPolicy size="${daemon_log_rollover_size_mb} MB"/> <!-- Or every 100 MB -->
         </Policies>
-        <DefaultRolloverStrategy max="18"/>
+        <DefaultRolloverStrategy max="${daemon_log_rollover_count}"/>
     </RollingFile>
     <Syslog name="syslog" format="RFC5424" charset="UTF-8" host="${syslog_host}" port="514"
         protocol="UDP" appName="[\${sys:daemon.name}]" mdcId="mdc" includeMDC="true"
