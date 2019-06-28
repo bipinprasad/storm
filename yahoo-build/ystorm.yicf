@@ -20,7 +20,7 @@ YINST requires pkg python36              3.6.6.8     3.6.99999.99999
 YINST requires pkg yjava_jdk             1.8.0       1.8.999999
 YINST requires pkg bouncer_auth_java     0.17.9      *
 YINST requires pkg yjava_servlet_filters 0.22.495    *
-YINST requires pkg yjava_yca             0.23.218    *
+YINST requires pkg yjava_yca             0.23.218    0.99.999
 YINST requires pkg bycookieauthkey       1.0.4.1     *
 YINST requires pkg zts_java_client       1.4.45      *
 
