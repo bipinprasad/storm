@@ -37,6 +37,8 @@ YINST set logviewer_cleanup_interval_secs 1440
 YINST set drpc_http_port                  -1
 YINST set drpc_authorizer_acl_strict      true
 YINST set daemon_max_rolled_logs          9
+YINST set daemon_log_rollover_size_mb     100
+YINST set daemon_log_rollover_count       9
 
 # DRPC HTTP Filter Configuration
 #YINST set drpc_http_filter yjava.servlet.filter.YCAFilter
