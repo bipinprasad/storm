@@ -252,6 +252,11 @@ public class StormCommon {
 
     @SuppressWarnings("unchecked")
     public static void addAcker(Map<String, Object> conf, StormTopology topology) {
+        Map<String, StreamInfo> outputStreams = new HashMap<String, StreamInfo>();
+        outputStreams.put(Acker.ACKER_ACK_STREAM_ID, Thrift.directOutputFields(Arrays.asList("id", "time-delta-ms")));
+        outputStreams.put(Acker.ACKER_FAIL_STREAM_ID, Thrift.directOutputFields(Arrays.asList("id", "time-delta-ms")));
+        outputStreams.put(Acker.ACKER_RESET_TIMEOUT_STREAM_ID, Thrift.directOutputFields(Arrays.asList("id", "time-delta-ms")));
+
         //conf.get(Config.TOPOLOGY_ACKER_EXECUTORS) can be a double value when we do rolling upgrade from 0.10 to 2.x,
         //because in some cases Config.TOPOLOGY_ACKER_EXECUTORS is set to the estimated worker count
         //and the corresponding clojure function in 0.10 returns a double value.
@@ -259,17 +264,11 @@ public class StormCommon {
             ObjectReader.getDouble(conf.get(Config.TOPOLOGY_WORKERS)));
         int ackerNum = (int) Math.ceil(ackerNumDouble);
 
-        Map<GlobalStreamId, Grouping> inputs = ackerInputs(topology);
-
-        Map<String, StreamInfo> outputStreams = new HashMap<String, StreamInfo>();
-        outputStreams.put(Acker.ACKER_ACK_STREAM_ID, Thrift.directOutputFields(Arrays.asList("id", "time-delta-ms")));
-        outputStreams.put(Acker.ACKER_FAIL_STREAM_ID, Thrift.directOutputFields(Arrays.asList("id", "time-delta-ms")));
-        outputStreams.put(Acker.ACKER_RESET_TIMEOUT_STREAM_ID, Thrift.directOutputFields(Arrays.asList("id", "time-delta-ms")));
-
         Map<String, Object> ackerConf = new HashMap<>();
         ackerConf.put(Config.TOPOLOGY_TASKS, ackerNum);
         ackerConf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, ObjectReader.getInt(conf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS)));
 
+        Map<GlobalStreamId, Grouping> inputs = ackerInputs(topology);
         Bolt acker = Thrift.prepareSerializedBoltDetails(inputs, makeAckerBolt(), outputStreams, ackerNum, ackerConf);
 
         for (Bolt bolt : topology.get_bolts().values()) {
