@@ -34,6 +34,9 @@
         <jersey.version>2.27</jersey.version>
         <grizzly.version>2.4.3</grizzly.version>
         <jersey-grizzly2.version>1.19.4</jersey-grizzly2.version>
+        <io-jsonwebtoken.version>0.10.6</io-jsonwebtoken.version>
+        <io-jjwt.version>0.9.0</io-jjwt.version>
+        <okta-jwt.version>0.4.0</okta-jwt.version>
     </properties>
     <dependencies>
         <!-- storm-webapp is based on storm-core -->
@@ -280,33 +283,33 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
-            <version>0.9.0</version>
+            <version>${io-jjwt.version}</version>
         </dependency>
         <dependency>
             <groupId>com.okta.jwt</groupId>
             <artifactId>okta-jwt-verifier</artifactId>
-            <version>0.4.0</version>
+            <version>${okta-jwt.version}</version>
         </dependency>
         <dependency>
             <groupId>com.okta.jwt</groupId>
             <artifactId>okta-jwt-verifier-impl</artifactId>
-            <version>0.4.0</version>
+            <version>${okta-jwt.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.10.5</version>
+            <version>${io-jsonwebtoken.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.10.6</version>
+            <version>${io-jsonwebtoken.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.10.5</version>
+            <version>${io-jsonwebtoken.version}</version>
             <scope>runtime</scope>
         </dependency>
     </dependencies>

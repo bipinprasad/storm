@@ -29,28 +29,12 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.lang.Strings;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
 import io.jsonwebtoken.impl.TextCodec;
 import io.jsonwebtoken.lang.Strings;
-import org.apache.storm.DaemonConfig;
-import org.apache.storm.utils.ConfigUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -61,6 +45,20 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.time.Duration;
 import java.util.Map;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.storm.DaemonConfig;
+import org.apache.storm.utils.ConfigUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class OktaFilter implements Filter {
 
@@ -85,8 +83,7 @@ public class OktaFilter implements Filter {
     Map<String, Object> conf;
 
 
-    private void initJwtVerifier()
-    {
+    private void initJwtVerifier() {
         if (oktaAppIssuer != null && oktaAppAudience != null) {
             LOG.debug("Setting up fetching of OKTA public keys from " + oktaAppIssuer);
             jwtVerifier = JwtVerifiers.accessTokenVerifierBuilder()
@@ -95,15 +92,15 @@ public class OktaFilter implements Filter {
                     .setConnectionTimeout(Duration.ofSeconds(1))
                     .setReadTimeout(Duration.ofSeconds(1))
                     .build();
-        }
-        else {
-            throw new IllegalStateException("KeyStore/Okta App parameters missing for Okta Authentication");
+        } else {
+            throw new IllegalStateException(
+                    "KeyStore/Okta App parameters missing for Okta Authentication"
+            );
         }
     }
 
 
-    private PublicKey getOktaServerPublicKeyFromKeyStore(String keyId) throws Exception
-    {
+    private PublicKey getOktaServerPublicKeyFromKeyStore(String keyId) throws Exception {
         Key key = keyStore.getKey(keyId, keyStorePassword.toCharArray());
         PublicKey oktaServerPublicKey = null;
         if (key instanceof PrivateKey) {
@@ -118,13 +115,11 @@ public class OktaFilter implements Filter {
                 reloadKeyStore = false;
                 loadKeyStore();
                 getOktaServerPublicKeyFromKeyStore(keyId);
-            }
-            else {
+            } else {
                 LOG.warn("Unable to retrieve okta server public key after keystore reload");
                 return null;
             }
-        }
-        else if (oktaServerPublicKey != null) {
+        } else {
             reloadKeyStore = true;
             return oktaServerPublicKey;
         }
@@ -132,7 +127,7 @@ public class OktaFilter implements Filter {
     }
 
 
-    private String getOKTAAccessToken(HttpServletRequest request) {
+    private String getOktaAccessToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -153,8 +148,7 @@ public class OktaFilter implements Filter {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             return (Map) objectMapper.readValue(val, Map.class);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new MalformedJwtException("Unable to read JSON value: " + val, e);
         }
     }
@@ -171,8 +165,7 @@ public class OktaFilter implements Filter {
                 CharSequence tokenSeq = Strings.clean(sb);
                 base64UrlEncodedHeader = tokenSeq != null ? tokenSeq.toString() : null;
                 break;
-            }
-            else {
+            } else {
                 sb.append(c);
             }
         }
@@ -186,12 +179,13 @@ public class OktaFilter implements Filter {
     }
 
     private boolean loadKeyStore()
-            throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException
-    {
+            throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
         if (keyStore != null && keyStorePassword != null) {
             LOG.debug("Loading OKTA public keys from keystore" + keyStoreFile.getAbsolutePath());
             FileInputStream is = new FileInputStream(keyStoreFile);
-            keyStore = KeyStore.getInstance(keyStoreFile.getAbsolutePath().endsWith(".p12") ? "PKCS12" : "jks");
+            keyStore = KeyStore.getInstance(
+                    keyStoreFile.getAbsolutePath().endsWith(".p12") ? "PKCS12" : "jks"
+            );
             keyStore.load(is, keyStorePassword.toCharArray());
             return true;
         }
@@ -215,7 +209,7 @@ public class OktaFilter implements Filter {
      * <li>Does not return within a time period defined by the web container
      * </ol>
      *
-     * @param filterConfig
+     * @param filterConfig servlet filter config
      */
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -230,11 +224,9 @@ public class OktaFilter implements Filter {
             if (!loadKeyStore()) {
                 initJwtVerifier();
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error while initializing Okta authentication", e);
         }
-
     }
 
     /**
@@ -265,9 +257,9 @@ public class OktaFilter implements Filter {
      * next entity in the filter chain.
      * </ol>
      *
-     * @param servletRequest
-     * @param servletResponse
-     * @param filterChain
+     * @param servletRequest request
+     * @param servletResponse response
+     * @param filterChain rest of the filter chain
      */
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
@@ -278,7 +270,7 @@ public class OktaFilter implements Filter {
         String principal;
         String clientId;
         try {
-            String accessToken = getOKTAAccessToken(request);
+            String accessToken = getOktaAccessToken(request);
             if (accessToken == null) {
                 oktaRedirect(response);
                 return;
@@ -287,15 +279,17 @@ public class OktaFilter implements Filter {
                 Jwt jwt = jwtVerifier.decode(accessToken);
                 principal = (String) jwt.getClaims().get(SUBJECT);
                 clientId = (String) jwt.getClaims().get(CLIENT_ID);
-            }
-            else {
-                PublicKey oktaServerPublicKey = getOktaServerPublicKeyFromKeyStore(getKeyIdFromJwt(accessToken));
+            } else {
+                PublicKey oktaServerPublicKey =
+                        getOktaServerPublicKeyFromKeyStore(getKeyIdFromJwt(accessToken));
                 if (oktaServerPublicKey != null) {
-                    Jws<Claims> jws = Jwts.parser().setSigningKey(oktaServerPublicKey).parseClaimsJws(accessToken);
+                    Jws<Claims> jws =
+                            Jwts.parser().setSigningKey(
+                                    oktaServerPublicKey
+                            ).parseClaimsJws(accessToken);
                     principal = jws.getBody().getSubject();
                     clientId = (String) jws.getBody().get(CLIENT_ID);
-                }
-                else {
+                } else {
                     throw new RuntimeException("No public key found for Okta Authentication");
                 }
             }
@@ -305,11 +299,9 @@ public class OktaFilter implements Filter {
             if (principal != null) {
                 filterChain.doFilter(request, response);
             }
-        }
-        catch (ExpiredJwtException | JwtVerificationException e) {
+        } catch (ExpiredJwtException | JwtVerificationException e) {
             throw new ServletException("OKTA JWT token has expired: " + e.getMessage());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             LOG.error(e.getMessage());
             throw new ServletException(e.getMessage());
         }
@@ -337,9 +329,7 @@ public class OktaFilter implements Filter {
     private void oktaRedirect(HttpServletResponse response)
             throws IOException {
         String redirectUrl = response.encodeRedirectURL(oktaUrl);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("redirecting to url: " + redirectUrl);
-        }
+        LOG.debug("redirecting to url: " + redirectUrl);
 
         response.sendRedirect(redirectUrl);
     }
