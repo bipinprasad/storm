@@ -470,6 +470,24 @@ public class DaemonConfig implements Validated {
     @isStringList
     public static final String LOGS_GROUPS = "logs.groups";
 
+    @isString
+    public static final String OKTA_HTTPS_KEYSTORE_PATH = "okta.https.keystore.path";
+
+    @isString
+    public static final String OKTA_HTTPS_KEYSTORE_KEY = "okta.https.keystore.key";
+
+    @isString
+    public static final String OKTA_APP_ISSUER = "okta.app.issuer";
+
+    @isString
+    public static final String OKTA_APP_AUDIENCE = "okta.app.audience";
+
+    @isString
+    public static final String OKTA_APP_CLIENT_ID = "okta.app.client.id";
+
+    @isString
+    public static final String OKTA_URL = "okta.url";
+
     /**
      * Appender name used by log viewer to determine log directory.
      */
