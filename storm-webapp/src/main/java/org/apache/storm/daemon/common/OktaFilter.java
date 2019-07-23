@@ -64,6 +64,14 @@ public class OktaFilter implements Filter {
 
     public static final Logger LOG = LoggerFactory.getLogger(OktaFilter.class);
 
+    private static final String OKTA_HTTPS_KEYSTORE_PATH = "okta.https.keystore.path";
+    private static final String OKTA_HTTPS_KEYSTORE_KEY = "okta.https.keystore.key";
+    private static final String OKTA_APP_ISSUER = "okta.app.issuer";
+    private static final String OKTA_APP_AUDIENCE = "okta.app.audience";
+    private static final String OKTA_APP_CLIENT_ID = "okta.app.client.id";
+    private static final String OKTA_URL = "okta.url";
+
+
     // Cookie name ref: https://git.ouroath.com/CorporateIdentity/okta_sso_java/blob/63b6b23e106ec20a08c371136776d6cb439d27db/okta_sso_java_example_server/src/main/java/com/oath/okta/sso/webapp/OktaTestServlet.java#L86
     private static final String COOKIE_NAME_OKTA_AT = "okta_at";
     private static final String COOKIE_NAME_OKTA_IT = "okta_it";
@@ -214,12 +222,12 @@ public class OktaFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         conf = ConfigUtils.readStormConfig();
-        keyStoreFile = new File((String) conf.get(DaemonConfig.OKTA_HTTPS_KEYSTORE_PATH));
-        keyStorePassword = (String) conf.get(DaemonConfig.OKTA_HTTPS_KEYSTORE_KEY);
-        oktaAppIssuer = (String) conf.get(DaemonConfig.OKTA_APP_ISSUER);
-        oktaAppAudience = (String) conf.get(DaemonConfig.OKTA_APP_AUDIENCE);
-        oktaAppClientId = (String) conf.get(DaemonConfig.OKTA_APP_CLIENT_ID);
-        oktaUrl = (String) conf.get(DaemonConfig.OKTA_URL);
+        keyStoreFile = new File(filterConfig.getInitParameter(OKTA_HTTPS_KEYSTORE_PATH));
+        keyStorePassword = filterConfig.getInitParameter(OKTA_HTTPS_KEYSTORE_KEY);
+        oktaAppIssuer = filterConfig.getInitParameter(OKTA_APP_ISSUER);
+        oktaAppAudience = filterConfig.getInitParameter(OKTA_APP_AUDIENCE);
+        oktaAppClientId = filterConfig.getInitParameter(OKTA_APP_CLIENT_ID);
+        oktaUrl = filterConfig.getInitParameter(OKTA_URL);
         try {
             if (!loadKeyStore()) {
                 initJwtVerifier();
