@@ -195,6 +195,48 @@ public class TestConstraintSolverStrategy {
     }
 
     @Test
+    public void testScheduleLargeExecutorCount() {
+        // All tests have sufficient cluster resources to succeed.
+        // Failure to schedule can be caused by (1) StackOverflow or (2) scheduling time timeout
+        Assert.assertTrue(testScheduleLargeExecutorCount(1));
+        Assert.assertTrue(testScheduleLargeExecutorCount(5));
+
+        // For default JVM, scheduling currently fails due to StackOverflow.
+        // For now just log the results of the test. Change to assert when StackOverflow issue is fixed.
+        boolean success = testScheduleLargeExecutorCount(20);
+        LOG.info("testScheduleLargeExecutorCount scheduling {} with multiplier 20", success ? "succeeds" : "fails");
+    }
+
+    private boolean testScheduleLargeExecutorCount(int executorMultiplier)
+    {
+        // Add 1 topology with large number of executors. Too many executors causes a java.lang.StackOverflowError
+        Config config = createCSSClusterConfig(10, 10, 0, null);
+        config.put(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_STATE_SEARCH, 50000);
+
+        List<List<String>> constraints = new LinkedList<>();
+        addContraints("spout-0", "spout-0", constraints);
+        addContraints("bolt-1", "bolt-1", constraints);
+        addContraints("spout-0", "bolt-0", constraints);
+        addContraints("bolt-2", "spout-0", constraints);
+        addContraints("bolt-1", "bolt-2", constraints);
+        addContraints("bolt-1", "bolt-0", constraints);
+        addContraints("bolt-1", "spout-0", constraints);
+
+        config.put(Config.TOPOLOGY_RAS_CONSTRAINTS, constraints);
+        TopologyDetails topo = genTopology("testTopo-" + executorMultiplier, config, 10, 10, 30 * executorMultiplier, 30 * executorMultiplier, 31414, 0, "user");
+        Topologies topologies = new Topologies(topo);
+
+        Map<String, SupervisorDetails> supMap = genSupervisors(30 * executorMultiplier, 30, 3500, 35000);
+        Cluster cluster = new Cluster(new INimbusTest(), new ResourceMetrics(new StormMetricsRegistry()), supMap, new HashMap<String, SchedulerAssignmentImpl>(), topologies, config);
+
+        ResourceAwareScheduler scheduler = new ResourceAwareScheduler();
+        scheduler.prepare(config);
+        scheduler.schedule(topologies, cluster);
+
+        return isStatusSuccess(cluster.getStatus(topo.getId()));
+    }
+
+    @Test
     public void testIntegrationWithRAS() {
         Map<String, SupervisorDetails> supMap = genSupervisors(30, 16, 400, 1024 * 4);
 
