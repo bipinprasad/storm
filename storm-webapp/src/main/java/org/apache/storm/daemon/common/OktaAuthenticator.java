@@ -51,18 +51,16 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.storm.DaemonConfig;
 import org.apache.storm.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class OktaFilter implements Filter {
+public class OktaAuthenticator {
 
-    public static final Logger LOG = LoggerFactory.getLogger(OktaFilter.class);
+    public static final Logger LOG = LoggerFactory.getLogger(OktaAuthenticator.class);
 
     private static final String OKTA_HTTPS_KEYSTORE_PATH = "okta.https.keystore.path";
     private static final String OKTA_HTTPS_KEYSTORE_KEY = "okta.https.keystore.key";
@@ -73,8 +71,6 @@ public class OktaFilter implements Filter {
 
 
     // Cookie name ref: https://git.ouroath.com/CorporateIdentity/okta_sso_java/blob/63b6b23e106ec20a08c371136776d6cb439d27db/okta_sso_java_example_server/src/main/java/com/oath/okta/sso/webapp/OktaTestServlet.java#L86
-    private static final String COOKIE_NAME_OKTA_AT = "okta_at";
-    private static final String COOKIE_NAME_OKTA_IT = "okta_it";
     private static final String SUBJECT = "sub";
     private static final String CLIENT_ID = "cid";
 
@@ -135,23 +131,6 @@ public class OktaFilter implements Filter {
     }
 
 
-    private String getOktaAccessToken(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                LOG.debug(cookie.getName());
-                if (cookie.getName().equals(COOKIE_NAME_OKTA_AT)) {
-                    return cookie.getValue();
-                }
-                if (cookie.getName().equals(COOKIE_NAME_OKTA_IT)) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
-
-
     private Map<String, Object> readValue(String val) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -200,27 +179,11 @@ public class OktaFilter implements Filter {
         return false;
     }
 
-
     /**
-     * Called by the web container to indicate to a filter that it is
-     * being placed into service.
-     *
-     * <p>The servlet container calls the init
-     * method exactly once after instantiating the filter. The init
-     * method must complete successfully before the filter is asked to do any
-     * filtering work.
-     *
-     * <p>The web container cannot place the filter into service if the init
-     * method either
-     * <ol>
-     * <li>Throws a ServletException
-     * <li>Does not return within a time period defined by the web container
-     * </ol>
-     *
-     * @param filterConfig servlet filter config
+     * OktaAuthenticator constructor.
+     * @param filterConfig filterConfig from Jersey
      */
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public OktaAuthenticator(FilterConfig filterConfig) {
         conf = ConfigUtils.readStormConfig();
         keyStoreFile = new File(filterConfig.getInitParameter(OKTA_HTTPS_KEYSTORE_PATH));
         keyStorePassword = filterConfig.getInitParameter(OKTA_HTTPS_KEYSTORE_KEY);
@@ -267,21 +230,19 @@ public class OktaFilter implements Filter {
      *
      * @param servletRequest request
      * @param servletResponse response
-     * @param filterChain rest of the filter chain
      */
-    @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
-                         FilterChain filterChain) throws IOException, ServletException {
+    public boolean authenticate(ServletRequest servletRequest,
+                             ServletResponse servletResponse) throws ServletException {
         final HttpServletResponse response = (HttpServletResponse) servletResponse;
         final HttpServletRequest request = (HttpServletRequest) servletRequest;
 
         String principal;
         String clientId;
         try {
-            String accessToken = getOktaAccessToken(request);
+            String accessToken = OktaAuthUtils.getOKTAAccessToken(request);
             if (accessToken == null) {
                 oktaRedirect(response);
-                return;
+                return false;
             }
             if (jwtVerifier != null) {
                 Jwt jwt = jwtVerifier.decode(accessToken);
@@ -305,7 +266,7 @@ public class OktaFilter implements Filter {
                 throw new ServletException("Invalid client id: " + clientId);
             }
             if (principal != null) {
-                filterChain.doFilter(request, response);
+                return true;
             }
         } catch (ExpiredJwtException | JwtVerificationException e) {
             throw new ServletException("OKTA JWT token has expired: " + e.getMessage());
@@ -313,25 +274,7 @@ public class OktaFilter implements Filter {
             LOG.error(e.getMessage());
             throw new ServletException(e.getMessage());
         }
-    }
-
-    /**
-     * Called by the web container to indicate to a filter that it is being
-     * taken out of service.
-     *
-     * <p>This method is only called once all threads within the filter's
-     * doFilter method have exited or after a timeout period has passed.
-     * After the web container calls this method, it will not call the
-     * doFilter method again on this instance of the filter.
-     *
-     * <p>This method gives the filter an opportunity to clean up any
-     * resources that are being held (for example, memory, file handles,
-     * threads) and make sure that any persistent state is synchronized
-     * with the filter's current state in memory.
-     */
-    @Override
-    public void destroy() {
-
+        return false;
     }
 
     private void oktaRedirect(HttpServletResponse response)

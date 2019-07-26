@@ -1134,6 +1134,14 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>oath-artifactory</id>
+            <name>oath-artifactory</name>
+            <url>https://artifactory.ouroath.com/artifactory/corp-identity-releases/</url>
+        </repository>
     </repositories>
 
     <build>

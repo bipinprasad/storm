@@ -29,7 +29,6 @@
     <packaging>jar</packaging>
     <name>Storm Webapp</name>
     <description>Webapp Servers for Apache Storm</description>
-
     <properties>
         <jersey.version>2.27</jersey.version>
         <grizzly.version>2.4.3</grizzly.version>
@@ -37,6 +36,8 @@
         <io-jsonwebtoken.version>0.10.6</io-jsonwebtoken.version>
         <io-jjwt.version>0.9.0</io-jjwt.version>
         <okta-jwt.version>0.4.0</okta-jwt.version>
+        <dep.oath.okta.java_sso.version>3.1.1</dep.oath.okta.java_sso.version>
+        <dep.okta.commons.version>1.1.0</dep.okta.commons.version>
     </properties>
     <dependencies>
         <!-- storm-webapp is based on storm-core -->
@@ -312,6 +313,23 @@
             <version>${io-jsonwebtoken.version}</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>com.oath.okta_sso_java</groupId>
+            <artifactId>okta_sso_java_common</artifactId>
+            <version>${dep.oath.okta.java_sso.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.okta.commons</groupId>
+            <artifactId>okta-commons-lang</artifactId>
+            <version>${dep.okta.commons.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.okta.commons</groupId>
+            <artifactId>okta-config-check</artifactId>
+            <version>${dep.okta.commons.version}</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
     <build>
         <resources>
@@ -344,7 +362,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <!--Note - the version would be inherited-->
                 <configuration>
-                    <maxAllowedViolations>23</maxAllowedViolations>
+                    <maxAllowedViolations>27</maxAllowedViolations>
                 </configuration>
             </plugin>
             <plugin>
