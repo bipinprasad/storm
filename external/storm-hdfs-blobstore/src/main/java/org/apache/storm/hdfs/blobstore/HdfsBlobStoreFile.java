@@ -124,12 +124,6 @@ public class HdfsBlobStoreFile extends BlobStoreFile {
     }
 
     @Override
-    public boolean exists() throws IOException {
-        checkIsTmp();
-        return fileSystem.exists(path);
-    }
-
-    @Override
     public InputStream getInputStream() throws IOException {
         checkIsTmp();
         return _fs.open(_path);
