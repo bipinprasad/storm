@@ -167,7 +167,7 @@ public class OktaAuthenticator {
 
     private boolean loadKeyStore()
             throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
-        if (keyStore != null && keyStorePassword != null) {
+        if (keyStoreFile != null && keyStorePassword != null) {
             LOG.debug("Loading OKTA public keys from keystore" + keyStoreFile.getAbsolutePath());
             FileInputStream is = new FileInputStream(keyStoreFile);
             keyStore = KeyStore.getInstance(
