@@ -18,20 +18,14 @@
 
 package org.apache.storm.daemon.common;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.okta.jwt.AccessTokenVerifier;
-import com.okta.jwt.Jwt;
-import com.okta.jwt.JwtVerificationException;
-
-import com.okta.jwt.JwtVerifiers;
+import com.google.common.base.Splitter;
+import com.oath.okta.client.v1.keys.KeysService;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.impl.DefaultJwsHeader;
-import io.jsonwebtoken.impl.TextCodec;
-import io.jsonwebtoken.lang.Strings;
+import io.jsonwebtoken.SigningKeyResolverAdapter;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -43,16 +37,15 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.time.Duration;
+import java.util.List;
 import java.util.Map;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
+import javax.naming.AuthenticationException;
 import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.storm.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,139 +58,29 @@ public class OktaAuthenticator {
     private static final String OKTA_HTTPS_KEYSTORE_PATH = "okta.https.keystore.path";
     private static final String OKTA_HTTPS_KEYSTORE_KEY = "okta.https.keystore.key";
     private static final String OKTA_APP_ISSUER = "okta.app.issuer";
-    private static final String OKTA_APP_AUDIENCE = "okta.app.audience";
-    private static final String OKTA_APP_CLIENT_ID = "okta.app.client.id";
-    private static final String OKTA_URL = "okta.url";
-
-
-    // Cookie name ref: https://git.ouroath.com/CorporateIdentity/okta_sso_java/blob/63b6b23e106ec20a08c371136776d6cb439d27db/okta_sso_java_example_server/src/main/java/com/oath/okta/sso/webapp/OktaTestServlet.java#L86
-    private static final String SUBJECT = "sub";
-    private static final String CLIENT_ID = "cid";
-
-    private File keyStoreFile;
-    private String keyStorePassword;
-    private String oktaAppIssuer;
-    private String oktaAppAudience;
-    private String oktaAppClientId;
-    private String oktaUrl;
-    private boolean reloadKeyStore = true;
-    private KeyStore keyStore;
-    private AccessTokenVerifier jwtVerifier;
+    private static final String OKTA_APP_PUBLIC_KEYS_URI = "okta.app.public.keys.uri";
+    private static final String OKTA_APP_CLIENT_IDS = "okta.app.client.ids";
 
     Map<String, Object> conf;
 
+    private static final String CLIENT_ID = "aud";
 
-    private void initJwtVerifier() {
-        if (oktaAppIssuer != null && oktaAppAudience != null) {
-            LOG.debug("Setting up fetching of OKTA public keys from " + oktaAppIssuer);
-            jwtVerifier = JwtVerifiers.accessTokenVerifierBuilder()
-                    .setIssuer(oktaAppIssuer)
-                    .setAudience(oktaAppAudience)
-                    .setConnectionTimeout(Duration.ofSeconds(1))
-                    .setReadTimeout(Duration.ofSeconds(1))
-                    .build();
-        } else {
-            throw new IllegalStateException(
-                    "KeyStore/Okta App parameters missing for Okta Authentication"
-            );
-        }
-    }
-
-
-    private PublicKey getOktaServerPublicKeyFromKeyStore(String keyId) throws Exception {
-        Key key = keyStore.getKey(keyId, keyStorePassword.toCharArray());
-        PublicKey oktaServerPublicKey = null;
-        if (key instanceof PrivateKey) {
-            // Get certificate of public key
-            Certificate cert = keyStore.getCertificate(keyId);
-            // Get public key
-            oktaServerPublicKey = cert.getPublicKey();
-            jwtVerifier = null;
-        }
-        if (oktaServerPublicKey == null) {
-            if (reloadKeyStore) {
-                reloadKeyStore = false;
-                loadKeyStore();
-                getOktaServerPublicKeyFromKeyStore(keyId);
-            } else {
-                LOG.warn("Unable to retrieve okta server public key after keystore reload");
-                return null;
-            }
-        } else {
-            reloadKeyStore = true;
-            return oktaServerPublicKey;
-        }
-        return null;
-    }
-
-
-    private Map<String, Object> readValue(String val) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return (Map) objectMapper.readValue(val, Map.class);
-        } catch (IOException e) {
-            throw new MalformedJwtException("Unable to read JSON value: " + val, e);
-        }
-    }
-
-
-    private String getKeyIdFromJwt(String jwt) {
-        String base64UrlEncodedHeader = null;
-        DefaultJwsHeader header;
-        StringBuilder sb = new StringBuilder(128);
-        char[] jwtArray = jwt.toCharArray();
-        for (int i = 0; i < jwtArray.length; ++i) {
-            char c = jwtArray[i];
-            if (c == '.') {
-                CharSequence tokenSeq = Strings.clean(sb);
-                base64UrlEncodedHeader = tokenSeq != null ? tokenSeq.toString() : null;
-                break;
-            } else {
-                sb.append(c);
-            }
-        }
-        if (base64UrlEncodedHeader != null) {
-            String payload = TextCodec.BASE64URL.decodeToString(base64UrlEncodedHeader);
-            Map<String, Object> m = readValue(payload);
-            header = new DefaultJwsHeader(m);
-            return header.getKeyId();
-        }
-        return null;
-    }
-
-    private boolean loadKeyStore()
-            throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
-        if (keyStoreFile != null && keyStorePassword != null) {
-            LOG.debug("Loading OKTA public keys from keystore" + keyStoreFile.getAbsolutePath());
-            FileInputStream is = new FileInputStream(keyStoreFile);
-            keyStore = KeyStore.getInstance(
-                    keyStoreFile.getAbsolutePath().endsWith(".p12") ? "PKCS12" : "jks"
-            );
-            keyStore.load(is, keyStorePassword.toCharArray());
-            return true;
-        }
-        return false;
-    }
+    private String oktaAppIssuer;
+    private List<String> oktaAppClientIds;
+    private OktaJwtsSigningKeyResolver jwtsSigningKeyResolver;
 
     /**
-     * OktaAuthenticator constructor.
-     * @param filterConfig filterConfig from Jersey
+     * Initializes OktaAuthenticator.OktaJwtsSigningKeyResolver
+     * @param filterConfig filterConfig from Jersey server
      */
     public OktaAuthenticator(FilterConfig filterConfig) {
         conf = ConfigUtils.readStormConfig();
-        keyStoreFile = new File(filterConfig.getInitParameter(OKTA_HTTPS_KEYSTORE_PATH));
-        keyStorePassword = filterConfig.getInitParameter(OKTA_HTTPS_KEYSTORE_KEY);
+        oktaAppClientIds =
+                Splitter.on(',').omitEmptyStrings().trimResults().splitToList(
+                        filterConfig.getInitParameter(OKTA_APP_CLIENT_IDS)
+                );
         oktaAppIssuer = filterConfig.getInitParameter(OKTA_APP_ISSUER);
-        oktaAppAudience = filterConfig.getInitParameter(OKTA_APP_AUDIENCE);
-        oktaAppClientId = filterConfig.getInitParameter(OKTA_APP_CLIENT_ID);
-        oktaUrl = filterConfig.getInitParameter(OKTA_URL);
-        try {
-            if (!loadKeyStore()) {
-                initJwtVerifier();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Error while initializing Okta authentication", e);
-        }
+        jwtsSigningKeyResolver = new OktaJwtsSigningKeyResolver(filterConfig);
     }
 
     /**
@@ -232,57 +115,118 @@ public class OktaAuthenticator {
      * @param servletResponse response
      */
     public boolean authenticate(ServletRequest servletRequest,
-                             ServletResponse servletResponse) throws ServletException {
+                             ServletResponse servletResponse) {
         final HttpServletResponse response = (HttpServletResponse) servletResponse;
         final HttpServletRequest request = (HttpServletRequest) servletRequest;
 
-        String principal;
-        String clientId;
         try {
             String accessToken = OktaAuthUtils.getOKTAAccessToken(request);
             if (accessToken == null) {
-                oktaRedirect(response);
                 return false;
             }
-            if (jwtVerifier != null) {
-                Jwt jwt = jwtVerifier.decode(accessToken);
-                principal = (String) jwt.getClaims().get(SUBJECT);
-                clientId = (String) jwt.getClaims().get(CLIENT_ID);
-            } else {
-                PublicKey oktaServerPublicKey =
-                        getOktaServerPublicKeyFromKeyStore(getKeyIdFromJwt(accessToken));
-                if (oktaServerPublicKey != null) {
-                    Jws<Claims> jws =
-                            Jwts.parser().setSigningKey(
-                                    oktaServerPublicKey
-                            ).parseClaimsJws(accessToken);
-                    principal = jws.getBody().getSubject();
-                    clientId = (String) jws.getBody().get(CLIENT_ID);
+
+            Jws<Claims> jws = Jwts.parser()
+                    .setSigningKeyResolver(jwtsSigningKeyResolver)
+                    .parseClaimsJws(accessToken);
+            Claims claims = jws.getBody();
+            String clientId = (String) claims.get(CLIENT_ID);
+            String issuer = claims.getIssuer();
+
+            if (!issuer.equals(oktaAppIssuer)) {
+                throw new AuthenticationException("Invalid okta issuer: " + issuer);
+            }
+
+            if (!oktaAppClientIds.contains(clientId)) {
+                throw new AuthenticationException("Invalid client id: " + clientId);
+            }
+
+            return true;
+        } catch (Exception ex) {
+            LOG.debug("Failed to validate oauth2 token", ex);
+            return false;
+        }
+
+    }
+
+    private static class OktaJwtsSigningKeyResolver extends SigningKeyResolverAdapter {
+        private File keyStoreFile;
+        private String keyStorePassword;
+        private KeyStore keyStore;
+        private KeysService keyService;
+        private boolean reloadKeyStore = true;
+
+        public OktaJwtsSigningKeyResolver(FilterConfig filterConfig) {
+            keyStoreFile = new File(filterConfig.getInitParameter(OKTA_HTTPS_KEYSTORE_PATH));
+            keyStorePassword = filterConfig.getInitParameter(OKTA_HTTPS_KEYSTORE_KEY);
+            keyService = new KeysService(
+                    filterConfig.getInitParameter(OKTA_APP_PUBLIC_KEYS_URI)
+            );
+        }
+
+        private Key resolveSigningKey(JwsHeader jwsHeader) throws Exception {
+            Key publicKey = keyService.getKey(jwsHeader.getKeyId()).toSecurityKey();
+            if (publicKey == null) {
+                if (keyStore == null) {
+                    loadKeyStore();
+                }
+                if (keyStore != null) {
+                    publicKey = getOktaServerPublicKeyFromKeyStore(jwsHeader.getKeyId());
                 } else {
-                    throw new RuntimeException("No public key found for Okta Authentication");
+                    LOG.error("Unable to find public key for kid: {}", jwsHeader.getKeyId());
                 }
             }
-            if (clientId != oktaAppClientId) {
-                throw new ServletException("Invalid client id: " + clientId);
+            return publicKey;
+        }
+
+        @Override
+        public Key resolveSigningKey(JwsHeader jwsHeader, Claims claims) {
+            try {
+                return resolveSigningKey(jwsHeader);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
             }
-            if (principal != null) {
+        }
+
+        private PublicKey getOktaServerPublicKeyFromKeyStore(String keyId) throws Exception {
+            Key key = keyStore.getKey(keyId, keyStorePassword.toCharArray());
+            PublicKey oktaServerPublicKey = null;
+            if (key instanceof PrivateKey) {
+                // Get certificate of public key
+                Certificate cert = keyStore.getCertificate(keyId);
+                // Get public key
+                oktaServerPublicKey = cert.getPublicKey();
+            }
+
+            // incase where the keystore got the new version of keys, we need to reload the keystore
+            if (oktaServerPublicKey == null) {
+                if (reloadKeyStore) {
+                    reloadKeyStore = false;
+                    loadKeyStore();
+                    getOktaServerPublicKeyFromKeyStore(keyId);
+                } else {
+                    LOG.warn("Unable to retrieve okta server public key after keystore reload");
+                    return null;
+                }
+            } else {
+                reloadKeyStore = true;
+                return oktaServerPublicKey;
+            }
+            return null;
+        }
+
+        private boolean loadKeyStore()
+                throws KeyStoreException, IOException,
+                CertificateException, NoSuchAlgorithmException {
+            if (keyStoreFile != null && keyStorePassword != null) {
+                LOG.debug(
+                        "Loading OKTA public keys from keystore {}", keyStoreFile.getAbsolutePath()
+                );
+                FileInputStream is = new FileInputStream(keyStoreFile);
+                keyStore = KeyStore.getInstance(keyStoreFile.getAbsolutePath().endsWith(".p12") ? "PKCS12" : "jks");
+                keyStore.load(is, keyStorePassword.toCharArray());
                 return true;
             }
-        } catch (ExpiredJwtException | JwtVerificationException e) {
-            throw new ServletException("OKTA JWT token has expired: " + e.getMessage());
-        } catch (Exception e) {
-            LOG.error(e.getMessage());
-            throw new ServletException(e.getMessage());
+            return false;
         }
-        return false;
     }
-
-    private void oktaRedirect(HttpServletResponse response)
-            throws IOException {
-        String redirectUrl = response.encodeRedirectURL(oktaUrl);
-        LOG.debug("redirecting to url: " + redirectUrl);
-
-        response.sendRedirect(redirectUrl);
-    }
-
 }
