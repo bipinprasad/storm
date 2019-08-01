@@ -229,14 +229,13 @@ public class UIHelpers {
                                                   Boolean needClientAuth, Boolean wantClientAuth,
                                                   Integer headerBufferSize) {
         SslContextFactory factory = new SslContextFactory();
-        factory.setExcludeCipherSuites("SSL_RSA_WITH_RC4_128_MD5", "SSL_RSA_WITH_RC4_128_SHA");
-        factory.setExcludeProtocols("SSLv3");
+        // factory.setExcludeCipherSuites("SSL_RSA_WITH_RC4_128_MD5", "SSL_RSA_WITH_RC4_128_SHA");
+        // factory.setExcludeProtocols("SSLv3");
         factory.setRenegotiationAllowed(false);
         factory.setKeyStorePath(ksPath);
         factory.setKeyStoreType(ksType);
         factory.setKeyStorePassword(ksPassword);
         factory.setKeyManagerPassword(keyPassword);
-
         if (tsPath != null && tsPassword != null && tsType != null) {
             factory.setTrustStorePath(tsPath);
             factory.setTrustStoreType(tsType);

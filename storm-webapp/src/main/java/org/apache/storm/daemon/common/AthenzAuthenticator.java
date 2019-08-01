@@ -97,6 +97,21 @@ public class AthenzAuthenticator {
     public boolean authenticate(HttpServletRequest request, HttpServletResponse response) {
         try {
             X509Certificate[] certs = (X509Certificate[]) request.getAttribute(X509_ATTRIBUTE);
+            LOG.debug(request.toString());
+
+            Enumeration headers = request.getAttributeNames();
+            while (headers.hasMoreElements()) {
+                LOG.debug((String) headers.nextElement());
+
+            }
+            Enumeration attributes = request.getAttributeNames();
+            while (attributes.hasMoreElements()) {
+                LOG.debug(String.valueOf(request.getAttribute((String) attributes.nextElement())));
+
+            }
+            //LOG.debug(request.getAttribute(X509_ATTRIBUTE).toString());
+            //LOG.debug(OktaAuthUtils.getOKTAAccessToken(request));
+
             if ((certs == null) || (certs.length == 0)) {
                 return false;
             }
