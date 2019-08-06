@@ -252,7 +252,7 @@ public class ConstraintSolverStrategy extends BaseResourceAwareStrategy {
         boolean is2xTopology = stormVersionString != null && stormVersionString.startsWith("2");
 
         Object confMaxStateSearch = null;
-        if (is2xTopology == false) {
+        if (!is2xTopology) {
             //backward compatibility
             confMaxStateSearch = td.getConf().getOrDefault(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_STATE_TRAVERSAL, 10_000);
         }
@@ -262,8 +262,7 @@ public class ConstraintSolverStrategy extends BaseResourceAwareStrategy {
         }
         int daemonMaxStateSearch = ObjectReader.getInt(cluster.getConf().get(DaemonConfig.RESOURCE_AWARE_SCHEDULER_MAX_STATE_SEARCH));
         final int maxStateSearch = Math.min(daemonMaxStateSearch, ObjectReader.getInt(confMaxStateSearch));
-        final long maxTimeMs =
-            ObjectReader.getInt(td.getConf().get(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_TIME_SECS), -1).intValue() * 1000L;
+        final long maxTimeMs = ObjectReader.getInt(td.getConf().get(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_TIME_SECS), -1) * 1000L;
 
         favoredNodeIds = makeHostToNodeIds((List<String>) td.getConf().get(Config.TOPOLOGY_SCHEDULER_FAVORED_NODES));
         unFavoredNodeIds = makeHostToNodeIds((List<String>) td.getConf().get(Config.TOPOLOGY_SCHEDULER_UNFAVORED_NODES));
