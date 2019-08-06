@@ -254,13 +254,13 @@ public class ConstraintSolverStrategy extends BaseResourceAwareStrategy {
         Object confMaxStateSearch = null;
         if (is2xTopology == false) {
             //backward compatibility
-            confMaxStateSearch = td.getConf().get(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_STATE_TRAVERSAL);
+            confMaxStateSearch = td.getConf().getOrDefault(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_STATE_TRAVERSAL, 10_000);
         }
         if (confMaxStateSearch == null) {
             //new topology or old topology using new config
             confMaxStateSearch = td.getConf().get(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_STATE_SEARCH);
         }
-        int daemonMaxStateSearch = ObjectReader.getInt(td.getConf().get(DaemonConfig.RESOURCE_AWARE_SCHEDULER_MAX_STATE_SEARCH));
+        int daemonMaxStateSearch = ObjectReader.getInt(cluster.getConf().get(DaemonConfig.RESOURCE_AWARE_SCHEDULER_MAX_STATE_SEARCH));
         final int maxStateSearch = Math.min(daemonMaxStateSearch, ObjectReader.getInt(confMaxStateSearch));
         final long maxTimeMs =
             ObjectReader.getInt(td.getConf().get(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_TIME_SECS), -1).intValue() * 1000L;

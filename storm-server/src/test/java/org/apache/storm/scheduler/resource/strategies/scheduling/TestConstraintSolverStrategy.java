@@ -70,7 +70,6 @@ public class TestConstraintSolverStrategy {
         spread.add("spout-0");
 
         Map<String, Object> config = Utils.readDefaultConfig();
-        config.put(DaemonConfig.RESOURCE_AWARE_SCHEDULER_MAX_STATE_SEARCH, MAX_TRAVERSAL_DEPTH);
         config.put(Config.TOPOLOGY_SPREAD_COMPONENTS, spread);
         config.put(Config.TOPOLOGY_RAS_CONSTRAINTS, constraints);
         config.put(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_STATE_SEARCH, MAX_TRAVERSAL_DEPTH);
@@ -87,10 +86,16 @@ public class TestConstraintSolverStrategy {
         return genTopology("testTopo", config, 1, 4, 4, boltParallel, 0, 0, "user");
     }
 
-    public Cluster makeCluster(TopologyDetails topo) {
-        Topologies topologies = new Topologies(topo);
-        Map<String, SupervisorDetails> supMap = genSupervisors(4, 2, 120, 1200);
-        return new Cluster(new INimbusTest(), new ResourceMetrics(new StormMetricsRegistry()), supMap, new HashMap<>(), topologies, new Config());
+    public Cluster makeCluster(Topologies topologies) {
+        return makeCluster(topologies, null);
+    }
+
+    public Cluster makeCluster(Topologies topologies, Map<String, SupervisorDetails> supMap) {
+        if (supMap == null) {
+            supMap = genSupervisors(4, 2, 120, 1200);
+        }
+        Map<String, Object> daemonConfig = Utils.readDefaultConfig();
+        return new Cluster(new INimbusTest(), new ResourceMetrics(new StormMetricsRegistry()), supMap, new HashMap<>(), topologies, daemonConfig);
     }
 
     public void basicUnitTestWithKillAndRecover(ConstraintSolverStrategy cs, int boltParallel) {
@@ -98,7 +103,8 @@ public class TestConstraintSolverStrategy {
         cs.prepare(config);
 
         TopologyDetails topo = makeTopology(config, boltParallel);
-        Cluster cluster = makeCluster(topo);
+        Topologies topologies = new Topologies(topo);
+        Cluster cluster = makeCluster(topologies);
 
         LOG.info("Scheduling...");
         SchedulingResult result = cs.schedule(cluster, topo);
@@ -164,7 +170,8 @@ public class TestConstraintSolverStrategy {
         cs.prepare(config);
 
         TopologyDetails topo = makeTopology(config, NORMAL_BOLT_PARALLEL);
-        Cluster cluster = makeCluster(topo);
+        Topologies topologies = new Topologies(topo);
+        Cluster cluster = makeCluster(topologies);
 
         LOG.info("Scheduling...");
         SchedulingResult result = cs.schedule(cluster, topo);
@@ -225,9 +232,8 @@ public class TestConstraintSolverStrategy {
         config.put(Config.TOPOLOGY_RAS_CONSTRAINTS, constraints);
         TopologyDetails topo = genTopology("testTopo-" + executorMultiplier, config, 10, 10, 30 * executorMultiplier, 30 * executorMultiplier, 31414, 0, "user");
         Topologies topologies = new Topologies(topo);
-
         Map<String, SupervisorDetails> supMap = genSupervisors(30 * executorMultiplier, 30, 3500, 35000);
-        Cluster cluster = new Cluster(new INimbusTest(), new ResourceMetrics(new StormMetricsRegistry()), supMap, new HashMap<String, SchedulerAssignmentImpl>(), topologies, config);
+        Cluster cluster = makeCluster(topologies, supMap);
 
         ResourceAwareScheduler scheduler = new ResourceAwareScheduler();
         scheduler.prepare(config);
