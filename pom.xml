@@ -1142,6 +1142,14 @@
             <name>oath-artifactory</name>
             <url>https://artifactory.ouroath.com/artifactory/corp-identity-releases/</url>
         </repository>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-yahoo-maven</id>
+            <name>bintray</name>
+            <url>http://yahoo.bintray.com/maven</url>
+        </repository>
     </repositories>
 
     <build>
