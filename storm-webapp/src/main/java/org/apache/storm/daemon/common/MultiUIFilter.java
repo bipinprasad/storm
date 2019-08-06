@@ -19,6 +19,7 @@
 package org.apache.storm.daemon.common;
 
 import java.io.IOException;
+import java.util.Objects;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -28,10 +29,22 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import yjava.servlet.filter.BouncerFilter;
+
 public class MultiUIFilter implements Filter {
 
     private AthenzAuthenticator athenzAuthenticator;
     private OktaAuthenticator oktaAuthenticator;
+    private BouncerFilter yahooBouncerFilter;
+
+    /** No-op filter chain. */
+    private final FilterChain noOpFilterChain = new FilterChain() {
+        @Override
+        public void doFilter(final ServletRequest request,
+                             final ServletResponse response) {
+            // do nothing
+        }
+    };
 
     /**
      * Called by the web container to indicate to a filter that it is
@@ -55,6 +68,8 @@ public class MultiUIFilter implements Filter {
     public void init(FilterConfig filterConfig) throws ServletException {
         this.athenzAuthenticator = new AthenzAuthenticator(filterConfig);
         this.oktaAuthenticator = new OktaAuthenticator(filterConfig);
+        this.yahooBouncerFilter = new BouncerFilter();
+        this.yahooBouncerFilter.init(filterConfig);
     }
 
     /**
@@ -68,14 +83,26 @@ public class MultiUIFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
                          FilterChain chain) throws IOException, ServletException {
+        boolean allowThrough = false;
         if (
                 this.athenzAuthenticator.authenticate(
                         (HttpServletRequest) request,
                         (HttpServletResponse) response
-                )
-                || this.oktaAuthenticator.authenticate(request, response)) {
+                ) || this.oktaAuthenticator.authenticate(request, response)
+        ) {
+            allowThrough = true;
+        } else {
+            yahooBouncerFilter.doFilter(request, response, noOpFilterChain);
+            if (Objects.equals(request.getAttribute("bouncer.bypassthru"), Integer.valueOf(1))) {
+                allowThrough = true;
+            }
+        }
+
+        if (allowThrough) {
             chain.doFilter(request, response);
         }
+
+        ((HttpServletResponse) response).sendError(HttpServletResponse.SC_FORBIDDEN);
 
     }
 
