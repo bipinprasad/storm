@@ -33,6 +33,7 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
@@ -46,7 +47,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.storm.security.auth.ReqContext;
 import org.apache.storm.utils.ConfigUtils;
+import org.apache.storm.utils.ServerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,6 +143,10 @@ public class OktaAuthenticator {
                 throw new AuthenticationException("Invalid client id: " + clientId);
             }
 
+            String principal = getPrincipal((String) claims.get("short_id"));
+            ReqContext reqContext = ReqContext.context();
+            reqContext.setSubject(ServerUtils.principalNameToSubject(principal));
+
             return true;
         } catch (Exception ex) {
             LOG.debug("Failed to validate oauth2 token", ex);
@@ -147,6 +154,19 @@ public class OktaAuthenticator {
         }
 
     }
+
+    private String getPrincipal(String userName) {
+        if (userName != null) {
+            if (userName.contains("@")) {
+                String[] parts = userName.split("@");
+                if (parts.length > 1) {
+                    return parts[0];
+                }
+            }
+        }
+        return userName;
+    }
+
 
     private static class OktaJwtsSigningKeyResolver extends SigningKeyResolverAdapter {
         private File keyStoreFile;
