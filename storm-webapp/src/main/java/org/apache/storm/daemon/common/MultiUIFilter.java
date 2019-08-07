@@ -29,9 +29,14 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import yjava.servlet.filter.BouncerFilter;
 
 public class MultiUIFilter implements Filter {
+
+    public static final Logger LOG = LoggerFactory.getLogger(MultiUIFilter.class);
+
 
     private AthenzAuthenticator athenzAuthenticator;
     private OktaAuthenticator oktaAuthenticator;
@@ -99,11 +104,11 @@ public class MultiUIFilter implements Filter {
         }
 
         if (allowThrough) {
+            LOG.debug("Auth succeeded");
             chain.doFilter(request, response);
+        } else {
+            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_FORBIDDEN);
         }
-
-        ((HttpServletResponse) response).sendError(HttpServletResponse.SC_FORBIDDEN);
-
     }
 
     /**
