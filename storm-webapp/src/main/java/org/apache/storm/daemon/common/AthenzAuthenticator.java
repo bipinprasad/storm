@@ -102,6 +102,7 @@ public class AthenzAuthenticator {
     public Principal authenticate(HttpServletRequest request, HttpServletResponse response) {
         try {
             X509Certificate[] certs = (X509Certificate[]) request.getAttribute(X509_ATTRIBUTE);
+            LOG.debug(request.getAttributeNames().toString());
             if ((certs == null) || (certs.length == 0)) {
                 return null;
             }
