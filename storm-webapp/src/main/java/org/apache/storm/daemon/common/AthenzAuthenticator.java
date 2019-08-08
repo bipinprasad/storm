@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Key;
 import java.security.KeyStore;
+import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -45,6 +46,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.storm.security.auth.ReqContext;
+import org.apache.storm.security.auth.SingleUserPrincipal;
 import org.apache.storm.utils.ServerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,13 +97,13 @@ public class AthenzAuthenticator {
      * Adapted from Presto Athenz authenticator.
      * @param request servletRequest
      * @param response servletResponse
-     * @return true if to be passed through or false if otherwise
+     * @return userPrincipal if to be passed through or null if otherwise
      */
-    public boolean authenticate(HttpServletRequest request, HttpServletResponse response) {
+    public Principal authenticate(HttpServletRequest request, HttpServletResponse response) {
         try {
             X509Certificate[] certs = (X509Certificate[]) request.getAttribute(X509_ATTRIBUTE);
             if ((certs == null) || (certs.length == 0)) {
-                return false;
+                return null;
             }
 
             if (trustedX509Issuers.contains(certs[0].getIssuerX500Principal().getName())) {
@@ -125,12 +127,12 @@ public class AthenzAuthenticator {
 
                                 if (!issuer.equals(athenzIssuer)) {
                                     LOG.info("Invalid athenz issuer: " + issuer);
-                                    return false;
+                                    return null;
                                 }
 
                                 if (!audience.equals(athenzAudience)) {
                                     LOG.info("Invalid athenz audience: " + audience);
-                                    return false;
+                                    return null;
                                 }
 
                                 // cn in mTLS and sub/uid/client_id in oauth2 token
@@ -141,7 +143,7 @@ public class AthenzAuthenticator {
                                             "The subject {} in Athenz oauth2 token does not match the CN {}"
                                             + " in the service cert used for mutual TLS".format(subject, cn)
                                     );
-                                    return false;
+                                    return null;
                                 }
 
                                 List<String> scopes = (List<String>) claims.get(ATHENZ_SCP);
@@ -150,20 +152,18 @@ public class AthenzAuthenticator {
                             }
                         }
 
-                        ReqContext reqContext = ReqContext.context();
-                        reqContext.setSubject(ServerUtils.principalNameToSubject(athenzPrincipal));
-                        return true;
+                        SingleUserPrincipal singleUserPrincipal = new SingleUserPrincipal(athenzPrincipal);
+                        return singleUserPrincipal;
                     }
                 }
             }
         } catch (InvalidNameException e) {
             LOG.error(e.getMessage());
         }
-        return false;
+        return null;
     }
 
-    private String getAthenzPrincipalFromScope(String... roles)
-    {
+    private String getAthenzPrincipalFromScope(String... roles) {
         for (String role : roles) {
             if (role.startsWith(rolePrefix)) {
                 return role.substring(rolePrefix.length());
@@ -172,8 +172,7 @@ public class AthenzAuthenticator {
         return null;
     }
 
-    private String getAthenzPrincipalFromCN(String principalOrRole)
-    {
+    private String getAthenzPrincipalFromCN(String principalOrRole) {
         if (principalOrRole.startsWith(USER_PREFIX)) {
             return principalOrRole.substring(USER_PREFIX.length());
         }

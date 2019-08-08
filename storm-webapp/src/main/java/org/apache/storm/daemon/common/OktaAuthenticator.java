@@ -48,10 +48,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.storm.security.auth.ReqContext;
+import org.apache.storm.security.auth.SingleUserPrincipal;
 import org.apache.storm.utils.ConfigUtils;
 import org.apache.storm.utils.ServerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import yjava.servlet.YJavaHttpServletRequestWrapper;
 
 
 public class OktaAuthenticator {
@@ -117,15 +119,15 @@ public class OktaAuthenticator {
      * @param servletRequest request
      * @param servletResponse response
      */
-    public boolean authenticate(ServletRequest servletRequest,
+    public Principal authenticate(ServletRequest servletRequest,
                              ServletResponse servletResponse) {
         final HttpServletResponse response = (HttpServletResponse) servletResponse;
-        final HttpServletRequest request = (HttpServletRequest) servletRequest;
+        final YJavaHttpServletRequestWrapper request = YJavaHttpServletRequestWrapper.wrap((HttpServletRequest) servletRequest);
 
         try {
             String accessToken = OktaAuthUtils.getOKTAAccessToken(request);
             if (accessToken == null) {
-                return false;
+                return null;
             }
 
             Jws<Claims> jws = Jwts.parser()
@@ -144,13 +146,14 @@ public class OktaAuthenticator {
             }
 
             String principal = getPrincipal((String) claims.get("short_id"));
-            ReqContext reqContext = ReqContext.context();
-            reqContext.setSubject(ServerUtils.principalNameToSubject(principal));
-
-            return true;
+            if (principal != null) {
+                LOG.debug("Got request with principal " + principal);
+            }
+            SingleUserPrincipal singleUserPrincipal = new SingleUserPrincipal(principal);
+            return singleUserPrincipal;
         } catch (Exception ex) {
             LOG.debug("Failed to validate oauth2 token", ex);
-            return false;
+            return null;
         }
 
     }
