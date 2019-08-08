@@ -33,6 +33,7 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
@@ -46,9 +47,13 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.storm.security.auth.ReqContext;
+import org.apache.storm.security.auth.SingleUserPrincipal;
 import org.apache.storm.utils.ConfigUtils;
+import org.apache.storm.utils.ServerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import yjava.servlet.YJavaHttpServletRequestWrapper;
 
 
 public class OktaAuthenticator {
@@ -114,15 +119,15 @@ public class OktaAuthenticator {
      * @param servletRequest request
      * @param servletResponse response
      */
-    public boolean authenticate(ServletRequest servletRequest,
+    public Principal authenticate(ServletRequest servletRequest,
                              ServletResponse servletResponse) {
         final HttpServletResponse response = (HttpServletResponse) servletResponse;
-        final HttpServletRequest request = (HttpServletRequest) servletRequest;
+        final YJavaHttpServletRequestWrapper request = YJavaHttpServletRequestWrapper.wrap((HttpServletRequest) servletRequest);
 
         try {
             String accessToken = OktaAuthUtils.getOKTAAccessToken(request);
             if (accessToken == null) {
-                return false;
+                return null;
             }
 
             Jws<Claims> jws = Jwts.parser()
@@ -140,13 +145,31 @@ public class OktaAuthenticator {
                 throw new AuthenticationException("Invalid client id: " + clientId);
             }
 
-            return true;
+            String principal = getPrincipal((String) claims.get("short_id"));
+            if (principal != null) {
+                LOG.debug("Got request with principal " + principal);
+            }
+            SingleUserPrincipal singleUserPrincipal = new SingleUserPrincipal(principal);
+            return singleUserPrincipal;
         } catch (Exception ex) {
             LOG.debug("Failed to validate oauth2 token", ex);
-            return false;
+            return null;
         }
 
     }
+
+    private String getPrincipal(String userName) {
+        if (userName != null) {
+            if (userName.contains("@")) {
+                String[] parts = userName.split("@");
+                if (parts.length > 1) {
+                    return parts[0];
+                }
+            }
+        }
+        return userName;
+    }
+
 
     private static class OktaJwtsSigningKeyResolver extends SigningKeyResolverAdapter {
         private File keyStoreFile;

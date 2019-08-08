@@ -19,6 +19,7 @@
 package org.apache.storm.daemon.common;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.Objects;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -31,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import yjava.servlet.YJavaHttpServletRequestWrapper;
 import yjava.servlet.filter.BouncerFilter;
 
 public class MultiUIFilter implements Filter {
@@ -88,24 +90,29 @@ public class MultiUIFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
                          FilterChain chain) throws IOException, ServletException {
-        boolean allowThrough = false;
-        if (
-                this.athenzAuthenticator.authenticate(
-                        (HttpServletRequest) request,
-                        (HttpServletResponse) response
-                ) || this.oktaAuthenticator.authenticate(request, response)
-        ) {
-            allowThrough = true;
-        } else {
+        Principal userPrincipal =  this.athenzAuthenticator.authenticate(
+                (HttpServletRequest) request,
+                (HttpServletResponse) response
+        );
+
+        if (userPrincipal == null) {
+            userPrincipal = this.oktaAuthenticator.authenticate(request, response);
+        }
+
+        if (userPrincipal == null) {
             yahooBouncerFilter.doFilter(request, response, noOpFilterChain);
             if (Objects.equals(request.getAttribute("bouncer.bypassthru"), Integer.valueOf(1))) {
-                allowThrough = true;
+                userPrincipal = ((HttpServletRequest) request).getUserPrincipal();
             }
         }
 
-        if (allowThrough) {
-            LOG.debug("Auth succeeded");
-            chain.doFilter(request, response);
+        if (userPrincipal != null) {
+            LOG.debug("Auth succeeded, got principal " + userPrincipal.toString() + " " + userPrincipal.getName());
+            final YJavaHttpServletRequestWrapper requestWrapper =
+                    YJavaHttpServletRequestWrapper.wrap((HttpServletRequest) request);
+            requestWrapper.setRemoteUser(userPrincipal.getName());
+            requestWrapper.setUserPrincipal(userPrincipal);
+            chain.doFilter(requestWrapper, response);
         } else {
             ((HttpServletResponse) response).sendError(HttpServletResponse.SC_FORBIDDEN);
         }
