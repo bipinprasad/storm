@@ -99,23 +99,25 @@ public class MultiUIFilter implements Filter {
             userPrincipal = this.oktaAuthenticator.authenticate(request, response);
         }
 
-        if (userPrincipal == null) {
-            yahooBouncerFilter.doFilter(request, response, noOpFilterChain);
-            if (Objects.equals(request.getAttribute("bouncer.bypassthru"), Integer.valueOf(1))) {
-                userPrincipal = ((HttpServletRequest) request).getUserPrincipal();
-            }
-        }
-
         if (userPrincipal != null) {
-            LOG.debug("Auth succeeded, got principal " + userPrincipal.toString() + " " + userPrincipal.getName());
             final YJavaHttpServletRequestWrapper requestWrapper =
                     YJavaHttpServletRequestWrapper.wrap((HttpServletRequest) request);
+            LOG.debug("Auth succeeded, got principal " + userPrincipal.toString() + " " + userPrincipal.getName());
             requestWrapper.setRemoteUser(userPrincipal.getName());
             requestWrapper.setUserPrincipal(userPrincipal);
             chain.doFilter(requestWrapper, response);
-        } else {
-            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
         }
+
+        if (userPrincipal == null) {
+            yahooBouncerFilter.doFilter(request, response, chain);
+            if (Objects.equals(request.getAttribute("bouncer.bypassthru"), Integer.valueOf(1))) {
+                return;
+            }
+        }
+
+        ((HttpServletResponse) response).sendError(HttpServletResponse.SC_FORBIDDEN);
+
     }
 
     /**
