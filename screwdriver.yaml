@@ -11,6 +11,7 @@ shared:
           - print_env: set
           - set_metadata: meta set "${YSTORM_DIST_OS}".build_id "${SD_BUILD_ID}"
           - build: gmake ${SD_SETTING_MAKE_ARGS} platforms
+          - test: gmake ${SD_SETTING_MAKE_ARGS} testcoverageplatforms
           - package: gmake ${SD_SETTING_MAKE_ARGS} package-release
           - save_artifacts: ./yahoo-build/screwdriver/save_artifacts.sh "${YSTORM_DIST_OS}"
   environment:
