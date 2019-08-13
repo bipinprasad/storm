@@ -45,9 +45,7 @@ import javax.servlet.FilterConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.storm.security.auth.ReqContext;
 import org.apache.storm.security.auth.SingleUserPrincipal;
-import org.apache.storm.utils.ServerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +56,7 @@ public class AthenzAuthenticator {
     private static final String X509_ATTRIBUTE = "javax.servlet.request.X509Certificate";
     private static final String USER_PREFIX = "user.";
     private static final String ROLE = "role.";
-    private static final String ATHENZ_SCP = "scp";
+    private static final String ATHENZ_CLIENT_ID = "client_id";
 
     private static final String ATHENZ_ROLE_PREFIX = "athenz.auth.role.prefix";
     private static final String ATHENZ_DOMAIN = "athenz.auth.domain";
@@ -113,6 +111,7 @@ public class AthenzAuthenticator {
                 for (Rdn rdn : rdns) {
                     if (rdn.getType().equalsIgnoreCase("cn")) {
                         String cn = rdn.getValue().toString();
+                        LOG.debug(cn);
                         String athenzPrincipal = getAthenzPrincipalFromCN(cn);
                         if (athenzPrincipal == null) {
                             String accessToken = OktaAuthUtils.getOKTAAccessToken(request);
@@ -145,10 +144,8 @@ public class AthenzAuthenticator {
                                     );
                                     return null;
                                 }
-
-                                List<String> scopes = (List<String>) claims.get(ATHENZ_SCP);
-                                athenzPrincipal = getAthenzPrincipalFromScope(scopes.toArray(new String[scopes.size()]));
-
+                                LOG.debug(claims.toString());
+                                athenzPrincipal = (String) claims.get(ATHENZ_CLIENT_ID);
                             }
                         }
 
@@ -163,15 +160,6 @@ public class AthenzAuthenticator {
         return null;
     }
 
-    private String getAthenzPrincipalFromScope(String... roles) {
-        for (String role : roles) {
-            if (role.startsWith(rolePrefix)) {
-                return role.substring(rolePrefix.length());
-            }
-        }
-        return null;
-    }
-
     private String getAthenzPrincipalFromCN(String principalOrRole) {
         if (principalOrRole.startsWith(USER_PREFIX)) {
             return principalOrRole.substring(USER_PREFIX.length());
@@ -180,16 +168,6 @@ public class AthenzAuthenticator {
             return principalOrRole.substring(domainRolePrefix.length());
         }
         return null;
-    }
-
-    private boolean isAthenzPrincipalInCn(String principalOrRole) {
-        if (principalOrRole.startsWith(USER_PREFIX)) {
-            return true;
-        }
-        if (principalOrRole.startsWith(domainRolePrefix)) {
-            return true;
-        }
-        return false;
     }
 
     private static class AthenzJwtsSigningKeyResolver
