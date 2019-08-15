@@ -34,7 +34,6 @@
         <grizzly.version>2.4.3</grizzly.version>
         <jersey-grizzly2.version>1.19.4</jersey-grizzly2.version>
         <io-jsonwebtoken.version>0.10.6</io-jsonwebtoken.version>
-        <io-jjwt.version>0.9.0</io-jjwt.version>
         <okta-jwt.version>0.4.0</okta-jwt.version>
         <dep.oath.okta.java_sso.version>3.1.1</dep.oath.okta.java_sso.version>
         <dep.okta.commons.version>1.1.0</dep.okta.commons.version>
@@ -284,11 +283,6 @@
             <version>${grizzly.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>${io-jjwt.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.okta.jwt</groupId>
             <artifactId>okta-jwt-verifier</artifactId>
             <version>${okta-jwt.version}</version>
@@ -319,6 +313,12 @@
             <groupId>com.oath.okta_sso_java</groupId>
             <artifactId>okta_sso_java_common</artifactId>
             <version>${dep.oath.okta.java_sso.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.jsonwebtoken</groupId>
+                    <artifactId>jjwt</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.okta.commons</groupId>
