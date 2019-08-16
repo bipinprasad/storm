@@ -169,7 +169,15 @@ public class AutoYCA implements IAutoCredentials {
             if (entry.getKey().startsWith(YCA_CRED_PREFIX)) {
                 String appId = coanonicalAppId(entry.getKey().substring(YCA_CRED_PREFIX.length()));
                 String cert = entry.getValue();
-                LOG.info("Adding cert for {}", appId);
+                if (ycaCerts.get(appId) == null) {
+                    // this log entry may be due to a worker restart, and not due to
+                    // credential upload.
+                    LOG.info("Adding initial YCA cert for {}", appId);
+                } else if (cert.equals(ycaCerts.get(appId))) {
+                    LOG.info("YCA cert for {} identical to previous version", appId);
+                } else {
+                    LOG.info("Updating new YCA cert for {}", appId);
+                }
                 ycaCerts.put(appId, cert); 
             }
         }
