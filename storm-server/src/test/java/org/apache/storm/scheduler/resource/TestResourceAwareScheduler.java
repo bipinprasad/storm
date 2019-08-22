@@ -1069,21 +1069,29 @@ public class TestResourceAwareScheduler {
     }
 
     protected static class TimeBlockResult {
-        long firstBlockTime;
-        long lastBlockTime;
+        List<Long> firstBlockTime;
+        List<Long> lastBlockTime;
+
+        TimeBlockResult() {
+            firstBlockTime = new ArrayList<>();
+            lastBlockTime = new ArrayList<>();
+        }
+
+        void append(TimeBlockResult other) {
+            this.firstBlockTime.addAll(other.firstBlockTime);
+            this.lastBlockTime.addAll(other.lastBlockTime);
+        }
     }
 
-    private long getMedianBlockTime(TimeBlockResult[] runResults, boolean firstBlock) {
-        final int numRuns = runResults.length;
-        assert(numRuns % 2 == 1);     // number of runs must be odd to compute median as below
-        long[] times = new long[numRuns];
-        for (int i = 0; i < numRuns; ++i) {
-            times[i] = firstBlock ? runResults[i].firstBlockTime : runResults[i].lastBlockTime;
-        }
-        Arrays.sort(times);
+    private long getMedianValue(List<Long> values) {
+        final int numValues = values.size();
+        assert(numValues % 2 == 1);     // number of values must be odd to compute median as below
+        List<Long> sortedValues = new ArrayList<Long>();
+        sortedValues.addAll(values);
+        Collections.sort(sortedValues);
 
-        final int medianIndex = (int) Math.floor(numRuns / 2);
-        return times[medianIndex];
+        final int medianIndex = (int) Math.floor(numValues / 2);
+        return sortedValues.get(medianIndex);
     }
 
     /**
@@ -1139,51 +1147,59 @@ public class TestResourceAwareScheduler {
         */
 
         final int numNodes = 500;
-        final String[] strategies = new String[]{
-                DefaultResourceAwareStrategy.class.getName(),
-                GenericResourceAwareStrategy.class.getName(),
-                ConstraintSolverStrategy.class.getName()
-        };
-
-        final int numStrategies = strategies.length;
         final int numRuns = 5;
-        TimeBlockResult testResults[][] = new TimeBlockResult[numStrategies][numRuns];
+
+        Map<String, Config> strategyToConfigs = new HashMap<>();
+        strategyToConfigs.put(DefaultResourceAwareStrategy.class.getName(), createClusterConfig(10, 10, 0, null));
+        strategyToConfigs.put(GenericResourceAwareStrategy.class.getName(), createGrasClusterConfig(10, 10, 0, null, null));
+        strategyToConfigs.put(ConstraintSolverStrategy.class.getName(), createCSSClusterConfig(10, 10, 0, null));
+
+        Map<String, TimeBlockResult> strategyToTimeBlockResults = new HashMap<>();
+
+        // AcceptedBlockTimeRatios obtained by empirical testing (see comment block above)
+        Map<String, Double> strategyToAcceptedBlockTimeRatios = new HashMap<>();
+        strategyToAcceptedBlockTimeRatios.put(DefaultResourceAwareStrategy.class.getName(), 6.96);
+        strategyToAcceptedBlockTimeRatios.put(GenericResourceAwareStrategy.class.getName(), 7.78);
+        strategyToAcceptedBlockTimeRatios.put(ConstraintSolverStrategy.class.getName(), 7.75);
 
         // Get first and last block times for multiple runs and strategies
         long startTime = Time.currentTimeMillis();
-        for (int strategyIdx = 0; strategyIdx < numStrategies; ++strategyIdx) {
-            String strategy = strategies[strategyIdx];
-
+        for (Entry<String, Config> strategyConfig : strategyToConfigs.entrySet()) {
+            TimeBlockResult strategyTimeBlockResult = strategyToTimeBlockResults.computeIfAbsent(strategyConfig.getKey(), (k) -> new TimeBlockResult());
             for (int run = 0; run < numRuns; ++run) {
-                testResults[strategyIdx][run] = testLargeClusterSchedulingTiming(numNodes, strategy);
+                TimeBlockResult result = testLargeClusterSchedulingTiming(numNodes, strategyConfig.getValue());
+                strategyTimeBlockResult.append(result);
             }
         }
 
         // Log median ratios for different strategies
         LOG.info("TestLargeFragmentedClusterScheduling took {} ms", Time.currentTimeMillis() - startTime);
-        for (int strategyIdx = 0; strategyIdx < numStrategies; ++strategyIdx) {
-            double medianFirstBlockTime = getMedianBlockTime(testResults[strategyIdx], true);
-            double medianLastBlockTime = getMedianBlockTime(testResults[strategyIdx], false);
+        for (Entry<String, TimeBlockResult> strategyResult : strategyToTimeBlockResults.entrySet()) {
+            TimeBlockResult strategyTimeBlockResult = strategyResult.getValue();
+            double medianFirstBlockTime = getMedianValue(strategyTimeBlockResult.firstBlockTime);
+            double medianLastBlockTime = getMedianValue(strategyTimeBlockResult.lastBlockTime);
             double ratio = medianLastBlockTime / medianFirstBlockTime;
-            LOG.info("{}, FirstBlock {}, LastBlock {} ratio {}", strategies[strategyIdx], medianFirstBlockTime, medianLastBlockTime, ratio);
+            LOG.info("{}, FirstBlock {}, LastBlock {} ratio {}", strategyResult.getKey(), medianFirstBlockTime, medianLastBlockTime, ratio);
         }
 
         // Check last block scheduling time does not get significantly slower
-        final double[] acceptedStrategyTimeRatios = {6.96, 7.78, 7.75};
-        for (int strategyIdx = 0; strategyIdx < numStrategies; ++strategyIdx) {
-            double medianFirstBlockTime = getMedianBlockTime(testResults[strategyIdx], true);
-            double medianLastBlockTime = getMedianBlockTime(testResults[strategyIdx], false);
+        for (Entry<String, TimeBlockResult> strategyResult : strategyToTimeBlockResults.entrySet()) {
+            TimeBlockResult strategyTimeBlockResult = strategyResult.getValue();
+            double medianFirstBlockTime = getMedianValue(strategyTimeBlockResult.firstBlockTime);
+            double medianLastBlockTime = getMedianValue(strategyTimeBlockResult.lastBlockTime);
             double ratio = medianLastBlockTime / medianFirstBlockTime;
 
             double slowSchedulingThreshold = 1.5;
-            assert(ratio < slowSchedulingThreshold * acceptedStrategyTimeRatios[strategyIdx]);
+            String msg = "Strategy " + strategyResult.getKey() + " scheduling is significantly slower for mostly full fragmented cluster\n";
+            msg += "Ratio was " + ratio + " Max allowed is " + (slowSchedulingThreshold * ratio);
+            assertTrue(msg, ratio < slowSchedulingThreshold * strategyToAcceptedBlockTimeRatios.get(strategyResult.getKey()));
         }
     }
 
     // Create multiple copies of a test topology
     private void addTopologyBlockToMap(Map<String, TopologyDetails> topologyMap, String baseName, Config config,
                                        double spoutMemoryLoad, int[] blockIndices) {
-        TopologyBuilder builder = new TopologyBuilder(); // a topology with multiple spouts
+        TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("testSpout", new TestSpout(), 1).setMemoryLoad(spoutMemoryLoad);
         StormTopology stormTopology = builder.createTopology();
         Map<ExecutorDetails, String> executorMap = genExecsAndComps(stormTopology);
@@ -1197,16 +1213,7 @@ public class TestResourceAwareScheduler {
     /*
      * Test time to schedule large cluster scheduling with fragmentation
      */
-    private TimeBlockResult testLargeClusterSchedulingTiming(int numNodes, String Strategy) {
-        Config config = null;
-        if (Strategy.equals(DefaultResourceAwareStrategy.class.getName())) {
-            config = createClusterConfig(10, 10, 0, null);
-        } else if (Strategy.equals(GenericResourceAwareStrategy.class.getName())) {
-            config = createGrasClusterConfig(10, 10, 0, null, null);
-        } else if (Strategy.equals(ConstraintSolverStrategy.class.getName())) {
-            config = createCSSClusterConfig(10, 10, 0, null);
-        }
-
+    private TimeBlockResult testLargeClusterSchedulingTiming(int numNodes, Config config) {
         // Attempt to schedule multiple copies of 2 different topologies (topo-t0 and topo-t1) in 3 blocks.
         // Without fragmentation it is possible to schedule all topologies, but fragmentation causes topologies to not
         // schedule for the last block.
@@ -1240,7 +1247,7 @@ public class TestResourceAwareScheduler {
 
             long time = Time.currentTimeMillis();
             scheduler.schedule(topologies, cluster);
-            timeBlockResult.firstBlockTime = Time.currentTimeMillis() - time;
+            timeBlockResult.firstBlockTime.add(Time.currentTimeMillis() - time);
         }
 
         // schedule mid block (10% - 90%)
@@ -1264,7 +1271,7 @@ public class TestResourceAwareScheduler {
 
             long time = Time.currentTimeMillis();
             scheduler.schedule(topologies, cluster);
-            timeBlockResult.lastBlockTime = Time.currentTimeMillis() - time;
+            timeBlockResult.lastBlockTime.add(Time.currentTimeMillis() - time);
         }
 
         return timeBlockResult;
