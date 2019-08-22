@@ -18,23 +18,6 @@
 
 package org.apache.storm;
 
-import java.util.ArrayList;
-import java.util.Map;
-import org.apache.storm.container.docker.DockerManager;
-import org.apache.storm.container.oci.OciImageTagToManifestPluginInterface;
-import org.apache.storm.container.oci.OciManifestToResourcesPluginInterface;
-import org.apache.storm.container.oci.OciResourcesLocalizerInterface;
-import org.apache.storm.nimbus.ITopologyActionNotifierPlugin;
-import org.apache.storm.scheduler.blacklist.reporters.IReporter;
-import org.apache.storm.scheduler.blacklist.strategies.IBlacklistStrategy;
-import org.apache.storm.scheduler.resource.strategies.priority.ISchedulingPriorityStrategy;
-import org.apache.storm.scheduler.resource.strategies.scheduling.IStrategy;
-import org.apache.storm.security.auth.IAuthorizer;
-import org.apache.storm.security.auth.IHttpCredentialsPlugin;
-import org.apache.storm.validation.ConfigValidation;
-import org.apache.storm.validation.Validated;
-
-import static org.apache.storm.validation.ConfigValidationAnnotations.NotNull;
 import static org.apache.storm.validation.ConfigValidationAnnotations.IsBoolean;
 import static org.apache.storm.validation.ConfigValidationAnnotations.IsImplementationOfClass;
 import static org.apache.storm.validation.ConfigValidationAnnotations.IsInteger;
@@ -47,14 +30,28 @@ import static org.apache.storm.validation.ConfigValidationAnnotations.IsPositive
 import static org.apache.storm.validation.ConfigValidationAnnotations.IsString;
 import static org.apache.storm.validation.ConfigValidationAnnotations.IsStringList;
 import static org.apache.storm.validation.ConfigValidationAnnotations.IsStringOrStringList;
+import static org.apache.storm.validation.ConfigValidationAnnotations.NotNull;
 import static org.apache.storm.validation.ConfigValidationAnnotations.Password;
+
+import java.util.ArrayList;
+import java.util.Map;
+import org.apache.storm.container.ResourceIsolationInterface;
+import org.apache.storm.nimbus.ITopologyActionNotifierPlugin;
+import org.apache.storm.scheduler.blacklist.reporters.IReporter;
+import org.apache.storm.scheduler.blacklist.strategies.IBlacklistStrategy;
+import org.apache.storm.scheduler.resource.strategies.priority.ISchedulingPriorityStrategy;
+import org.apache.storm.scheduler.resource.strategies.scheduling.IStrategy;
+import org.apache.storm.security.auth.IAuthorizer;
+import org.apache.storm.security.auth.IHttpCredentialsPlugin;
+import org.apache.storm.validation.ConfigValidation;
+import org.apache.storm.validation.Validated;
 
 /**
  * Storm configs are specified as a plain old map. This class provides constants for all the configurations possible on a Storm cluster.
  * Each constant is paired with an annotation that defines the validity criterion of the corresponding field. Default values for these
  * configs can be found in defaults.yaml.
  *
- * This class extends {@link org.apache.storm.Config} for supporting Storm Daemons.
+ * <p>This class extends {@link org.apache.storm.Config} for supporting Storm Daemons.
  */
 public class DaemonConfig implements Validated {
 
@@ -92,7 +89,8 @@ public class DaemonConfig implements Validated {
 
     /**
      * A global task scheduler used to assign topologies's tasks to supervisors' workers.
-     * If this is not set, a default system scheduler will be used.
+     *
+     * <p>If this is not set, a default system scheduler will be used.
      */
     @IsString
     public static final String STORM_SCHEDULER = "storm.scheduler";
@@ -148,7 +146,8 @@ public class DaemonConfig implements Validated {
      * Otherwise, the scheduler will assume a supervisor is bad only when it does not receive supervisor heartbeat in time.
      */
     @IsBoolean
-    public static final String BLACKLIST_SCHEDULER_ASSUME_SUPERVISOR_BAD_BASED_ON_BAD_SLOT = "blacklist.scheduler.assume.supervisor.bad.based.on.bad.slot";
+    public static final String BLACKLIST_SCHEDULER_ASSUME_SUPERVISOR_BAD_BASED_ON_BAD_SLOT
+            = "blacklist.scheduler.assume.supervisor.bad.based.on.bad.slot";
 
     /**
      * Whether we want to display all the resource capacity and scheduled usage on the UI page. You MUST have this variable set if you are
@@ -213,9 +212,9 @@ public class DaemonConfig implements Validated {
     /**
      * The length of time a jar file lives in the inbox before being deleted by the cleanup thread.
      *
-     * Probably keep this value greater than or equal to NIMBUS_CLEANUP_INBOX_JAR_EXPIRATION_SECS. Note that the time it takes to delete an
-     * inbox jar file is going to be somewhat more than NIMBUS_CLEANUP_INBOX_JAR_EXPIRATION_SECS (depending on how often
-     * NIMBUS_CLEANUP_FREQ_SECS is set to).
+     * <p>Probably keep this value greater than or equal to NIMBUS_CLEANUP_INBOX_JAR_EXPIRATION_SECS. Note that the time
+     * it takes to delete an inbox jar file is going to be somewhat more than NIMBUS_CLEANUP_INBOX_JAR_EXPIRATION_SECS
+     * (depending on how often NIMBUS_CLEANUP_FREQ_SECS is set to).
      *
      * @see #NIMBUS_CLEANUP_INBOX_FREQ_SECS
      */

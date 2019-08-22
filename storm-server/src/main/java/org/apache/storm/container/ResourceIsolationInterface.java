@@ -26,6 +26,7 @@ public interface ResourceIsolationInterface {
 
     /**
      * Called when starting up.
+     *
      * @param conf the cluster config
      * @throws IOException on I/O exception.
      */

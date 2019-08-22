@@ -110,10 +110,10 @@ public class BasicContainerTest {
             new HashMap<>(), ops, "profile");
         //null worker id means generate one...
 
-        assertNotNull(mc._workerId);
+        assertNotNull(mc.workerId);
         verify(ls).getApprovedWorkers();
         Map<String, Integer> expectedNewState = new HashMap<String, Integer>();
-        expectedNewState.put(mc._workerId, port);
+        expectedNewState.put(mc.workerId, port);
         verify(ls).setApprovedWorkers(expectedNewState);
     }
 
@@ -142,7 +142,7 @@ public class BasicContainerTest {
             "SUPERVISOR", supervisorPort, port, la, iso, ls, null, new StormMetricsRegistry(),
             new HashMap<>(), ops, "profile");
 
-        assertEquals(workerId, mc._workerId);
+        assertEquals(workerId, mc.workerId);
     }
 
     @Test
@@ -196,7 +196,7 @@ public class BasicContainerTest {
 
         mc.cleanUp();
 
-        assertNull(mc._workerId);
+        assertNull(mc.workerId);
         verify(ls).getApprovedWorkers();
         Map<String, Integer> expectedNewState = new HashMap<String, Integer>();
         verify(ls).setApprovedWorkers(expectedNewState);

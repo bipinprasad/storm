@@ -92,7 +92,7 @@ public class BlacklistScheduler implements IScheduler {
         cachedSupervisors = new HashMap<>();
         blacklistedSupervisorIds = new HashSet<>();
         blacklistOnBadSlots = ObjectReader.getBoolean(
-                this.conf.get(DaemonConfig.BLACKLIST_SCHEDULER_ASSUME_SUPERVISOR_BAD_BASED_ON_BAD_SLOT), 
+                this.conf.get(DaemonConfig.BLACKLIST_SCHEDULER_ASSUME_SUPERVISOR_BAD_BASED_ON_BAD_SLOT),
                 true);
 
         //nimbus:num-blacklisted-supervisor + non-blacklisted supervisor = nimbus:num-supervisors
