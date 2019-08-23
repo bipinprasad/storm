@@ -113,44 +113,44 @@ public class AthenzAuthenticator {
                         String cn = rdn.getValue().toString();
                         LOG.debug(cn);
                         String athenzPrincipal = getAthenzPrincipalFromCN(cn);
-                        if (athenzPrincipal == null) {
-                            String accessToken = OktaAuthUtils.getOKTAAccessToken(request);
-                            if (accessToken != null) {
-                                Jws<Claims> jws = Jwts.parser()
-                                        .setSigningKeyResolver(jwtsSigningKeyResolver)
-                                        .parseClaimsJws(accessToken);
-                                Claims claims = jws.getBody();
-                                String audience = claims.getAudience();
-                                String issuer = claims.getIssuer();
-                                String subject = claims.getSubject();
+                        String accessToken = OktaAuthUtils.getOKTAAccessToken(request);
+                        if (accessToken != null) {
+                            Jws<Claims> jws = Jwts.parser()
+                                    .setSigningKeyResolver(jwtsSigningKeyResolver)
+                                    .parseClaimsJws(accessToken);
+                            Claims claims = jws.getBody();
+                            String audience = claims.getAudience();
+                            String issuer = claims.getIssuer();
+                            String subject = claims.getSubject();
 
-                                if (!issuer.equals(athenzIssuer)) {
-                                    LOG.info("Invalid athenz issuer: " + issuer);
-                                    return null;
-                                }
-
-                                if (!audience.equals(athenzAudience)) {
-                                    LOG.info("Invalid athenz audience: " + audience);
-                                    return null;
-                                }
-
-                                // cn in mTLS and sub/uid/client_id in oauth2 token
-                                // should refer to same service identity
-                                // https://git.ouroath.com/pages/athens/athenz-guide/zts_oauth2_guide/
-                                if (!cn.equals(subject)) {
-                                    LOG.info(
-                                            "The subject {} in Athenz oauth2 token does not match the CN {}"
-                                            + " in the service cert used for mutual TLS".format(subject, cn)
-                                    );
-                                    return null;
-                                }
-                                LOG.debug(claims.toString());
-                                athenzPrincipal = (String) claims.get(ATHENZ_CLIENT_ID);
+                            if (!issuer.equals(athenzIssuer)) {
+                                LOG.info("Invalid athenz issuer: " + issuer);
+                                return null;
                             }
+
+                            if (!audience.equals(athenzAudience)) {
+                                LOG.info("Invalid athenz audience: " + audience);
+                                return null;
+                            }
+
+                            // cn in mTLS and sub/uid/client_id in oauth2 token
+                            // should refer to same service identity
+                            // https://git.ouroath.com/pages/athens/athenz-guide/zts_oauth2_guide/
+                            if (!cn.equals(subject)) {
+                                LOG.info(
+                                        "The subject {} in Athenz oauth2 token does not match the CN {}"
+                                        + " in the service cert used for mutual TLS".format(subject, cn)
+                                );
+                                return null;
+                            }
+                            LOG.debug(claims.toString());
+                            athenzPrincipal = (String) claims.get(ATHENZ_CLIENT_ID);
                         }
 
-                        SingleUserPrincipal singleUserPrincipal = new SingleUserPrincipal(athenzPrincipal);
-                        return singleUserPrincipal;
+                        if (athenzPrincipal != null) {
+                            SingleUserPrincipal singleUserPrincipal = new SingleUserPrincipal(athenzPrincipal);
+                            return singleUserPrincipal;
+                        }
                     }
                 }
             }
@@ -161,13 +161,14 @@ public class AthenzAuthenticator {
     }
 
     private String getAthenzPrincipalFromCN(String principalOrRole) {
+        LOG.debug(principalOrRole);
         if (principalOrRole.startsWith(USER_PREFIX)) {
             return principalOrRole.substring(USER_PREFIX.length());
         }
         if (principalOrRole.startsWith(domainRolePrefix)) {
             return principalOrRole.substring(domainRolePrefix.length());
         }
-        return null;
+        return principalOrRole;
     }
 
     private static class AthenzJwtsSigningKeyResolver
