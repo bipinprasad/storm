@@ -18,6 +18,7 @@
 
 package org.apache.storm.daemon.common;
 
+import com.google.common.base.Splitter;
 import com.oath.okta.client.v1.keys.KeysService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -33,6 +34,7 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +66,7 @@ public class AthenzAuthenticator {
     private static final String ATHENZ_TRUST_STORE_PASSWORD = "athenz.auth.truststore.password";
     private static final String ATHENZ_ISSUER = "athenz.auth.issuer";
     private static final String ATHENZ_URI = "athenz.auth.uri";
+    private static final String ATHENZ_ALLOWED_PROXY_IPS = "athenz.allowed.proxy.ips";
 
     private AthenzJwtsSigningKeyResolver jwtsSigningKeyResolver;
     private String athenzIssuer;
@@ -71,6 +74,7 @@ public class AthenzAuthenticator {
     private String domainRolePrefix;
     private String rolePrefix;
     private static Set<String> trustedX509Issuers = new HashSet<>();
+    private static List<String> allowedProxyIps = Collections.EMPTY_LIST;
 
     /**
      * AthenzAuthenticator constructor.
@@ -89,6 +93,12 @@ public class AthenzAuthenticator {
         athenzIssuer = filterConfig.getInitParameter(ATHENZ_ISSUER);
         // audience and domain are same in case of Athenz
         athenzAudience = filterConfig.getInitParameter(ATHENZ_DOMAIN);
+
+        String allowedProxyIpsString = filterConfig.getInitParameter(ATHENZ_ALLOWED_PROXY_IPS);
+
+        if (allowedProxyIpsString != null) {
+            allowedProxyIps = Splitter.on(",").omitEmptyStrings().trimResults().splitToList(allowedProxyIpsString);
+        }
     }
 
     /**
@@ -99,60 +109,70 @@ public class AthenzAuthenticator {
      */
     public Principal authenticate(HttpServletRequest request, HttpServletResponse response) {
         try {
-            X509Certificate[] certs = (X509Certificate[]) request.getAttribute(X509_ATTRIBUTE);
-            if ((certs == null) || (certs.length == 0)) {
-                return null;
-            }
+            boolean skipCertCheck = allowedProxyIps.contains(request.getRemoteAddr());
+            String athenzPrincipal = null;
+            String cn = null;
+            if (!skipCertCheck) {
+                X509Certificate[] certs = (X509Certificate[]) request.getAttribute(X509_ATTRIBUTE);
+                if ((certs == null) || (certs.length == 0)) {
+                    return null;
+                }
 
-            if (trustedX509Issuers.contains(certs[0].getIssuerX500Principal().getName())) {
-                X500Principal principal = certs[0].getSubjectX500Principal();
-                LdapName ldapName = new LdapName(principal.getName());
-                List<Rdn> rdns = ldapName.getRdns();
-                for (Rdn rdn : rdns) {
-                    if (rdn.getType().equalsIgnoreCase("cn")) {
-                        String cn = rdn.getValue().toString();
-                        LOG.debug(cn);
-                        String athenzPrincipal = getAthenzPrincipalFromCN(cn);
-                        String accessToken = OktaAuthUtils.getOKTAAccessToken(request);
-                        if (accessToken != null) {
-                            Jws<Claims> jws = Jwts.parser()
-                                    .setSigningKeyResolver(jwtsSigningKeyResolver)
-                                    .parseClaimsJws(accessToken);
-                            Claims claims = jws.getBody();
-                            String audience = claims.getAudience();
-                            String issuer = claims.getIssuer();
-                            String subject = claims.getSubject();
-
-                            if (!issuer.equals(athenzIssuer)) {
-                                LOG.info("Invalid athenz issuer: " + issuer);
-                                return null;
-                            }
-
-                            if (!audience.equals(athenzAudience)) {
-                                LOG.info("Invalid athenz audience: " + audience);
-                                return null;
-                            }
-
-                            // cn in mTLS and sub/uid/client_id in oauth2 token
-                            // should refer to same service identity
-                            // https://git.ouroath.com/pages/athens/athenz-guide/zts_oauth2_guide/
-                            if (!cn.equals(subject)) {
-                                LOG.info(
-                                        "The subject {} in Athenz oauth2 token does not match the CN {}"
-                                        + " in the service cert used for mutual TLS".format(subject, cn)
-                                );
-                                return null;
-                            }
-                            LOG.debug(claims.toString());
-                            athenzPrincipal = (String) claims.get(ATHENZ_CLIENT_ID);
-                        }
-
-                        if (athenzPrincipal != null) {
-                            SingleUserPrincipal singleUserPrincipal = new SingleUserPrincipal(athenzPrincipal);
-                            return singleUserPrincipal;
+                if (trustedX509Issuers.contains(certs[0].getIssuerX500Principal().getName())) {
+                    X500Principal principal = certs[0].getSubjectX500Principal();
+                    LdapName ldapName = new LdapName(principal.getName());
+                    List<Rdn> rdns = ldapName.getRdns();
+                    for (Rdn rdn : rdns) {
+                        if (rdn.getType().equalsIgnoreCase("cn")) {
+                            cn = rdn.getValue().toString();
+                            LOG.debug(cn);
+                            athenzPrincipal = getAthenzPrincipalFromCN(cn);
                         }
                     }
                 }
+            }
+
+            // If request came through the OktaProxy and doesn't have a cert or didn't but has a cert
+            // check for the service token and override the principal if applicable
+            if (skipCertCheck || cn != null) {
+                String accessToken = OktaAuthUtils.getOKTAAccessToken(request);
+                if (accessToken != null) {
+                    Jws<Claims> jws = Jwts.parser()
+                            .setSigningKeyResolver(jwtsSigningKeyResolver)
+                            .parseClaimsJws(accessToken);
+                    Claims claims = jws.getBody();
+                    String audience = claims.getAudience();
+                    String issuer = claims.getIssuer();
+                    String subject = claims.getSubject();
+
+                    if (!issuer.equals(athenzIssuer)) {
+                        LOG.info("Invalid athenz issuer: " + issuer);
+                        return null;
+                    }
+
+                    if (!audience.equals(athenzAudience)) {
+                        LOG.info("Invalid athenz audience: " + audience);
+                        return null;
+                    }
+
+                    // cn in mTLS and sub/uid/client_id in oauth2 token
+                    // should refer to same service identity
+                    // https://git.ouroath.com/pages/athens/athenz-guide/zts_oauth2_guide/
+                    if (cn != null && !cn.equals(subject)) {
+                        LOG.info(
+                                "The subject {} in Athenz oauth2 token does not match the CN {}"
+                                        + " in the service cert used for mutual TLS".format(subject, cn)
+                        );
+                        return null;
+                    }
+                    LOG.debug(claims.toString());
+                    athenzPrincipal = (String) claims.get(ATHENZ_CLIENT_ID);
+                }
+            }
+
+            if (athenzPrincipal != null) {
+                SingleUserPrincipal singleUserPrincipal = new SingleUserPrincipal(athenzPrincipal);
+                return singleUserPrincipal;
             }
         } catch (InvalidNameException e) {
             LOG.error(e.getMessage());
