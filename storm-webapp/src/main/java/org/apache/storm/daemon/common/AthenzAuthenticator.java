@@ -174,7 +174,7 @@ public class AthenzAuthenticator {
                 SingleUserPrincipal singleUserPrincipal = new SingleUserPrincipal(athenzPrincipal);
                 return singleUserPrincipal;
             }
-        } catch (InvalidNameException e) {
+        } catch (Exception e) {
             LOG.error(e.getMessage());
         }
         return null;
