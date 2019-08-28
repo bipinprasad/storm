@@ -1260,7 +1260,7 @@ public class LocalCluster implements ILocalClusterTrackedTopologyAware, Iface {
 
         private final String id;
 
-        public TrackedStormCommon(String id) {
+        TrackedStormCommon(String id) {
             this.id = id;
         }
 
