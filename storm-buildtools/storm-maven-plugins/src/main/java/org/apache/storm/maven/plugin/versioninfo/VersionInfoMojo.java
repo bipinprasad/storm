@@ -193,6 +193,11 @@ public class VersionInfoMojo extends AbstractMojo {
                     }
                 }
                 break;
+            case NONE:
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("SCM %s is not supported",
+                        scm));
         }
         return uri.trim();
     }
@@ -216,6 +221,11 @@ public class VersionInfoMojo extends AbstractMojo {
                     }
                 }
                 break;
+            case NONE:
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("SCM %s is not supported",
+                        scm));
         }
         return commit.trim();
     }
@@ -240,6 +250,11 @@ public class VersionInfoMojo extends AbstractMojo {
                     }
                 }
                 break;
+            case NONE:
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("SCM %s is not supported",
+                        scm));
         }
         return branch.trim();
     }
