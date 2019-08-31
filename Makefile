@@ -61,5 +61,6 @@ git_tag: internal RELEASE DIST_TAG
 	git push origin `cat RELEASE`
 	${SD_SOURCE_DIR}/internal/QATools/storm_tag_master_launcher
 	./yahoo-build/screwdriver/update_package_info.sh `cat RELEASE`
-
 	
+upload_to_artifactory:
+	$(MAKE) -C yahoo-build upload_to_artifactory

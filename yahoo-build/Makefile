@@ -92,3 +92,7 @@ clean:
 	cd .. && $(MVN) -Pyahoo -Pexternals,examples clean ${MVN_MAKE_OPTS}
 	$(revert-versions)
 	rm -rf *_build.ruleset ystorm*.tgz BASE_VERSION RELEASE BASE_VERSION_UNDERSCORE WEB-INF DATE
+
+upload_to_artifactory: shaded-deps-install RELEASE
+	cd .. && $(MVN) -fae -Pnative -Pyahoo -Pcoverage -Pall-tests '-P!include-shaded-deps' -Pexternals,examples -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} deploy ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE) -DskipTests
+

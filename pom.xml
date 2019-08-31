@@ -693,6 +693,10 @@
             <name>Storm Website</name>
             <url>file:///tmp/site</url>
         </site>
+        <repository>
+            <id>ssh-repository</id>
+            <url>scpexe://artifactory-ssh-proxy.corp.yahoo.com:4443/hadoop-maven-release/</url>
+        </repository>
     </distributionManagement>
 
     <dependencyManagement>
@@ -1412,6 +1416,14 @@
                 </executions>
             </plugin>
         </plugins>
+
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh-external</artifactId>
+                <version>3.3.3</version>
+            </extension>
+        </extensions>
     </build>
 
     <reporting>
