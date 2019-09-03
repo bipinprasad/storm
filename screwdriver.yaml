@@ -46,4 +46,4 @@ jobs:
       - fetch_artifacts: ./yahoo-build/screwdriver/fetch_artifacts.sh
       - dist_force_push: gmake dist_force_push
       - git_tag: gmake git_tag
-      - upload_to_artifactory: gamke upload_to_artifactory
+      - upload_to_artifactory: gmake upload_to_artifactory
