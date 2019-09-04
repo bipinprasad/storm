@@ -48,6 +48,7 @@ RELEASE:
 	diff ${SD_SOURCE_DIR}/yahoo-build/packages/rhel-?.x/RELEASE
 	# Copy one of the files.
 	cp -nv `ls ${SD_SOURCE_DIR}/yahoo-build/packages/rhel-?.x/RELEASE | head -n 1` RELEASE
+	cp -nv RELEASE yahoo-build/RELEASE
 
 # DIST_TAG files are assumed to exist per-OS.
 DIST_TAG:
@@ -62,5 +63,5 @@ git_tag: internal RELEASE DIST_TAG
 	${SD_SOURCE_DIR}/internal/QATools/storm_tag_master_launcher
 	./yahoo-build/screwdriver/update_package_info.sh `cat RELEASE`
 	
-upload_to_artifactory:
+upload_to_artifactory: RELEASE
 	$(MAKE) -C yahoo-build upload_to_artifactory
