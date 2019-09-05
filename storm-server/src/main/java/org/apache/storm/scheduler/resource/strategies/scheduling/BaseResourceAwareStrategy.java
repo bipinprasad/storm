@@ -56,7 +56,6 @@ import org.slf4j.LoggerFactory;
 public abstract class BaseResourceAwareStrategy implements IStrategy {
     private static final Logger LOG = LoggerFactory.getLogger(BaseResourceAwareStrategy.class);
     protected Cluster cluster;
-    private boolean oneExecutorPerWorker = false;
     // Rack id to list of host names in that rack
     private Map<String, List<String>> networkTopography;
     private final Map<String, String> superIdToRack = new HashMap<>();
@@ -87,10 +86,6 @@ public abstract class BaseResourceAwareStrategy implements IStrategy {
             rackIdToNodes.computeIfAbsent(rackId, (hn) -> new ArrayList<>()).add(node);
         }
         logClusterInfo();
-    }
-
-    protected void setOneExecutorPerWorker(boolean oneExecutorPerWorker) {
-        this.oneExecutorPerWorker = oneExecutorPerWorker;
     }
 
     @Override
@@ -155,12 +150,9 @@ public abstract class BaseResourceAwareStrategy implements IStrategy {
         for (String id : sortedNodes) {
             RAS_Node node = nodes.getNodeById(id);
             if (node.couldEverFit(exec, td)) {
-                Collection<WorkerSlot> topologyUsedSlots = oneExecutorPerWorker ? node.getUsedSlots(td.getId()) : Collections.emptySet();
                 for (WorkerSlot ws : node.getSlotsAvailableToScheduleOn()) {
-                    if (!topologyUsedSlots.contains(ws)) {
-                        if (node.wouldFit(ws, exec, td)) {
-                            return ws;
-                        }
+                    if (node.wouldFit(ws, exec, td)) {
+                        return ws;
                     }
                 }
             }
