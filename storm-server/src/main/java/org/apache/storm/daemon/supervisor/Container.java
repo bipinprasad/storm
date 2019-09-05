@@ -327,6 +327,14 @@ public abstract class Container implements Killable {
         }
         data.put(DaemonConfig.LOGS_USERS, logsUsers.toArray());
 
+
+        if (_topoConf.get(Config.TOPOLOGY_WORKER_TIMEOUT_SECS) != null) {
+            int topoTimeout = ObjectReader.getInt(_topoConf.get(Config.TOPOLOGY_WORKER_TIMEOUT_SECS));
+            int defaultWorkerTimeout = ObjectReader.getInt(_conf.get(Config.SUPERVISOR_WORKER_TIMEOUT_SECS));
+            topoTimeout = Math.max(topoTimeout, defaultWorkerTimeout);
+            data.put(Config.TOPOLOGY_WORKER_TIMEOUT_SECS, topoTimeout);
+        }
+
         File file = ServerConfigUtils.getLogMetaDataFile(_conf, _topologyId, _port);
 
         Yaml yaml = new Yaml();
