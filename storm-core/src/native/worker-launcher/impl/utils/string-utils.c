@@ -25,7 +25,7 @@
 #include "string-utils.h"
 
 //we expect input to be NUL-terminated.
-static bool all_hexdigit(const char* input) {
+static bool all_uuid_digit(const char* input) {
   if (0 == strlen(input)) {
     return false;
   }
@@ -33,7 +33,8 @@ static bool all_hexdigit(const char* input) {
   for (i = 0; i < strlen(input); ++i) {
     if ((input[i] < '0' || input[i] > '9')
       && (input[i] < 'a' || input[i] > 'f')
-      && (input[i] < 'A' || input[i] > 'F')) {
+      && (input[i] < 'A' || input[i] > 'F')
+      && (input[i] != '-')) {
       return false;
     }
   }
@@ -42,37 +43,24 @@ static bool all_hexdigit(const char* input) {
 
 
 bool validate_container_id(const char* input) {
-  // The container id will be the same as the worker id. 
+  // The container id will be the same as the worker id, with a prefix of "PORTNUM-"
   // Worker id is a type 4 UUID, e.g. 85afb30b-286e-4d32-ab7a-9d5aad89bb88
-  int length = 36;
+  // Container id for a this worker on port 6702 would be: 6702-85afb30b-286e-4d32-ab7a-9d5aad89bb88
+  int min_length = 36;
+  int max_length = min_length + 6; // max port number plus dash
   //using strnlen to avoid walking across memory.
-  if (strnlen(input, length + 1) != length) {
+  int actual_length = strnlen(input, max_length + 1);
+  if (actual_length < min_length) {
+    return false;
+  }
+  if (actual_length > max_length) {
     return false;
   }
 
-  char* input_cpy = strndup(input, length);
-  char* p = strtok(input_cpy, "-");
-  int idx = 0;
-  while (p != NULL) {
-    if ((0 == idx && strlen(p) != 8) 
-      || (1 <= idx && idx <=3 && strlen(p) != 4)
-      || (4 == idx && strlen(p) != 12)
-      || (idx > 4)) {
-
-      free(input_cpy);
-      return false;
-    }
-
-    if (!all_hexdigit(p)) {
-      free(input_cpy);
-      return false;
-    }
-
-    p = strtok(NULL, "-");
-    idx++;
+  if (!all_uuid_digit(input)) {
+    return false;
   }
 
-  free(input_cpy);
   return true;
 }
 

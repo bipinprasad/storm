@@ -727,9 +727,11 @@ int cleanup_oci_container(const char* container_id, const char* mount_path, cons
     return 1;
   }
 
-  fprintf(LOGFILE, "command: %s\n", cmd);
-
-  system(cmd);
-
-  return 0;
+  fprintf(LOGFILE, "oci cleanup container command: %s\n", cmd);
+  if (system(cmd) != 0) {
+    fprintf(ERRORFILE, "ERROR: oci cleanup container command %s failed\n", cmd);
+    return 1;
+  } else {
+    return 0;
+  }
 }

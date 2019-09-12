@@ -68,10 +68,11 @@ public interface ResourceIsolationInterface {
      * Get the current memory usage of the a given worker.
      * @param user the user that the worker is running as
      * @param workerId the id of the worker
+     * @param port the port of the worker
      * @return the amount of memory the worker is using in bytes or -1 if not supported
      * @throws IOException on I/O exception
      */
-    long getMemoryUsage(String user, String workerId) throws IOException;
+    long getMemoryUsage(String user, String workerId, int port) throws IOException;
 
     /**
      * Get the amount of free memory in MB.
@@ -122,7 +123,7 @@ public interface ResourceIsolationInterface {
                                 String logPrefix, File targetDir) throws IOException, InterruptedException;
 
 
-    void cleanup(String user, String workerId) throws IOException;
+    void cleanup(String user, String workerId, int port) throws IOException;
 
     /**
      * Return true if resources are being managed.

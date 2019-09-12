@@ -200,7 +200,7 @@ public class CgroupManager extends DefaultResourceIsolationManager {
         }
 
         if (numaId != null) {
-           workerToNumaId.put(workerId, numaId);
+            workerToNumaId.put(workerId, numaId);
         }
     }
 
@@ -342,7 +342,7 @@ public class CgroupManager extends DefaultResourceIsolationManager {
     }
 
     @Override
-    public long getMemoryUsage(String user, String workerId) throws IOException {
+    public long getMemoryUsage(String user, String workerId, int port) throws IOException {
         CgroupCommon workerGroup = new CgroupCommon(workerId, this.hierarchy, this.rootCgroup);
         MemoryCore memCore = (MemoryCore) workerGroup.getCores().get(SubSystemType.memory);
         return memCore.getPhysicalUsage();

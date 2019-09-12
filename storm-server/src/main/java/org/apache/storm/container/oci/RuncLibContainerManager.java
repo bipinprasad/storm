@@ -216,13 +216,13 @@ public class RuncLibContainerManager extends OciContainerManager {
         args.add("bash");
         args.add(workerScriptPath);
 
-        //set container ID to worker ID
-        String containerId = workerId;
         //The container PID (on the host) will be written to this file.
-        String containerPidFilePath = containerPidFile(containerId);
+        String containerPidFilePath = containerPidFile(workerId);
 
         OciProcessConfig processConfig = createOciProcessConfig(workerDir, ociEnv, args);
 
+        //set container ID to port + worker ID
+        String containerId = getContainerId(workerId, port);
         OciLinuxConfig linuxConfig = createOciLinuxConfig(
                         cpusQuotas, memoryInBytes,
                         cgroupParent + "/" + containerId, seccomp, workerId
@@ -243,7 +243,7 @@ public class RuncLibContainerManager extends OciContainerManager {
         List<String> cmdArgs = Arrays.asList(CmdType.RUN_OCI_CONTAINER.toString(), workerDir, executorConfigToJsonFile);
 
         ClientSupervisorUtils.processLauncher(conf, user, null, cmdArgs, env,
-            logPrefix, null, targetDir);
+            logPrefix, new RuncProcessExitCallback("LaunchWorker-" + containerId), targetDir);
 
         //check if this process exits.
         Long monitorFreqMs = ObjectReader.getInt(conf.get(DaemonConfig.SUPERVISOR_MONITOR_FREQUENCY_SECS)) * 1000L;
@@ -277,6 +277,10 @@ public class RuncLibContainerManager extends OciContainerManager {
                 return monitorFreqMs; // sleep, then re-run.
                 }
             }, "CheckContainerAlive_SLOT_" + port, null);
+    }
+
+    private String getContainerId(String workerId, int port) {
+        return port + "-" + workerId;
     }
 
     // save runc.yaml in artifacts dir so we can track which image the worker was launched with
@@ -434,11 +438,12 @@ public class RuncLibContainerManager extends OciContainerManager {
     }
 
     @Override
-    public long getMemoryUsage(String user, String workerId) throws IOException {
-        // "/sys/fs/cgroup/memory/storm/workerId/"
-        String memoryCgroupPath = memoryCgroupRootPath + File.separator  + workerId;
+    public long getMemoryUsage(String user, String workerId, int port) throws IOException {
+        // "/sys/fs/cgroup/memory/storm/containerId/"
+        String containerId = getContainerId(workerId, port);
+        String memoryCgroupPath = memoryCgroupRootPath + File.separator  + containerId;
         MemoryCore memoryCore = new MemoryCore(memoryCgroupPath);
-        LOG.debug("WorkerId {} : Got memory getPhysicalUsage {} from {}", workerId, memoryCore.getPhysicalUsage(), memoryCgroupPath);
+        LOG.debug("WorkerId {} : Got memory getPhysicalUsage {} from {}", containerId, memoryCore.getPhysicalUsage(), memoryCgroupPath);
         return memoryCore.getPhysicalUsage();
     }
 
@@ -519,11 +524,15 @@ public class RuncLibContainerManager extends OciContainerManager {
     }
 
     @Override
-    public void cleanup(String user, String workerId) throws IOException {
+    public void cleanup(String user, String workerId, int port) throws IOException {
         LOG.debug("clean up worker {}", workerId);
-        List<String> commands = Arrays.asList(CmdType.REAP_OCI_CONTAINER.toString(), workerId, String.valueOf(layersToKeep));
+        String containerId = getContainerId(workerId, port);
+        List<String> commands = Arrays.asList(CmdType.REAP_OCI_CONTAINER.toString(), containerId, String.valueOf(layersToKeep));
         String logPrefix = "Worker Process " + workerId;
-        ClientSupervisorUtils.processLauncherAndWait(conf, user, commands, null, logPrefix);
+        int result = ClientSupervisorUtils.processLauncherAndWait(conf, user, commands, null, logPrefix);
+        if (result != 0) {
+            LOG.warn("Failed cleaning up RuncWorker {}", workerId);
+        }
 
         //remove from the watched list
         LOG.debug("Removing {} from the watchedWorkers list", workerId);
@@ -562,7 +571,7 @@ public class RuncLibContainerManager extends OciContainerManager {
         List<String> args = Arrays.asList(CmdType.PROFILE_OCI_CONTAINER.toString(), containerPid.toString(), nsenterScriptPath);
 
         Process process = ClientSupervisorUtils.processLauncher(conf, user, null, args,
-            env, logPrefix, null, targetDir);
+            env, logPrefix, new RuncProcessExitCallback("Profile-" + workerId), targetDir);
 
         process.waitFor();
 
@@ -575,5 +584,20 @@ public class RuncLibContainerManager extends OciContainerManager {
     @Override
     public boolean isResourceManaged() {
         return true;
+    }
+
+    private class RuncProcessExitCallback implements ExitCodeCallback {
+        String tag;
+
+        public RuncProcessExitCallback(String tag) {
+            this.tag = tag;
+        }
+
+        @Override
+        public void call(int exitCode) {
+            if (exitCode != 0) {
+                LOG.warn("RuncCommand {} exited with code: {}", tag, exitCode);
+            }
+        }
     }
 }
