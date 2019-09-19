@@ -37,7 +37,6 @@
         <okta-jwt.version>0.4.0</okta-jwt.version>
         <dep.oath.okta.java_sso.version>3.1.1</dep.oath.okta.java_sso.version>
         <dep.okta.commons.version>1.1.0</dep.okta.commons.version>
-        <yahoo.bouncer.version>0.101.6</yahoo.bouncer.version>
         <servlet.filter.version>0.77.23</servlet.filter.version>
     </properties>
     <dependencies>
@@ -331,12 +330,6 @@
             <artifactId>okta-config-check</artifactId>
             <version>${dep.okta.commons.version}</version>
             <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>yahoo.yinst.bouncer_auth_java</groupId>
-            <artifactId>bouncer_auth_java</artifactId>
-            <version>${yahoo.bouncer.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>yahoo.yinst.yjava_servlet_filters</groupId>

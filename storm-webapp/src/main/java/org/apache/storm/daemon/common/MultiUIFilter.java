@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import yjava.servlet.YJavaHttpServletRequestWrapper;
-import yjava.servlet.filter.BouncerFilter;
 
 public class MultiUIFilter implements Filter {
 
@@ -42,7 +41,6 @@ public class MultiUIFilter implements Filter {
 
     private AthenzAuthenticator athenzAuthenticator;
     private OktaAuthenticator oktaAuthenticator;
-    private BouncerFilter yahooBouncerFilter;
 
     /** No-op filter chain. */
     private final FilterChain noOpFilterChain = new FilterChain() {
@@ -75,12 +73,10 @@ public class MultiUIFilter implements Filter {
     public void init(FilterConfig filterConfig) throws ServletException {
         this.athenzAuthenticator = new AthenzAuthenticator(filterConfig);
         this.oktaAuthenticator = new OktaAuthenticator(filterConfig);
-        this.yahooBouncerFilter = new BouncerFilter();
-        this.yahooBouncerFilter.init(filterConfig);
     }
 
     /**
-     * Currently we check for Athenz and then Okta. TODO: Fallback to bouncer if none work
+     * Currently we check for Athenz and then Okta.
      *
      *
      * @param request request
@@ -109,15 +105,7 @@ public class MultiUIFilter implements Filter {
             return;
         }
 
-        if (userPrincipal == null) {
-            yahooBouncerFilter.doFilter(request, response, chain);
-            if (Objects.equals(request.getAttribute("bouncer.bypassthru"), Integer.valueOf(1))) {
-                return;
-            }
-        }
-
         ((HttpServletResponse) response).sendError(HttpServletResponse.SC_FORBIDDEN);
-
     }
 
     /**
