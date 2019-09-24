@@ -19,7 +19,6 @@ public class YamasStoreTest {
         config.put(YamasStore.YAMAS_STORE_STORM_CLUSTER_CONFIG, "unitTestCluster1");
         config.put(YamasStore.YAMAS_STORE_NAMESPACE_CONFIG, "TEST-Ystorm-integration");
         config.put(YamasStore.YAMAS_STORE_PROXY_CONFIG, "httpproxy-res.blue.ygrid.yahoo.com");
-        config.put(YamasStore.YAMAS_STORE_BOUNCER_USER_CONFIG, "hadoop_re");
         YamasStore store = new YamasStore();
         store.prepare(config, new StormMetricsRegistry());
     }
