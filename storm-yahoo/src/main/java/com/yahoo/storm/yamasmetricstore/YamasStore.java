@@ -32,7 +32,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import yjava.byauth.jaas.HttpClientBouncerAuth;
 
 public class YamasStore implements MetricStore, AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(YamasStore.class);
@@ -42,23 +41,17 @@ public class YamasStore implements MetricStore, AutoCloseable {
     public static final String YAMAS_STORE_STORM_CLUSTER_CONFIG = "yamas.store.storm.cluster";
     public static final String YAMAS_STORE_NAMESPACE_CONFIG = "yamas.store.namespace";
     public static final String YAMAS_STORE_PROXY_CONFIG = "yamas.store.http.proxy";
-    public static final String YAMAS_STORE_BOUNCER_USER_CONFIG = "yamas.store.bouncer.user";
 
     /* optional config options */
     public static final String YAMAS_STORE_INSERTION_URL_CONFIG = "yamas.store.insert.url";
     public static final String YAMAS_STORE_QUERY_URL_CONFIG = "yamas.store.query.url";
     public static final String YAMAS_STORE_PROXY_PORT_CONFIG = "yamas.store.http.proxy.port";
-    public static final String YAMAS_STORE_BOUNCER_URL_CONFIG = "yamas.store.bouncer.url";
 
     private String stormCluster = null;
     private String yamasInsertUrl = null;
     private String namespace = null;
     private String yamasQueryUrl = null;
-    private String bouncerUser = null;
-    private String bouncerLoginUrl = null;
     private HttpHost httpProxy = null;
-    private long nextBouncerLogin = 0L;
-    private Header YBYCookieHeader = null;
 
     /**
      * Create metric store instance using the configurations provided via the config map.
@@ -89,13 +82,6 @@ public class YamasStore implements MetricStore, AutoCloseable {
         }
         int proxyPort = ObjectReader.getInt(config.get(YAMAS_STORE_PROXY_PORT_CONFIG), 4080);
         httpProxy = new HttpHost(proxyHost, proxyPort);
-
-        bouncerUser = ObjectReader.getString(config.get(YAMAS_STORE_BOUNCER_USER_CONFIG));
-        if (bouncerUser == null) {
-            throw new MetricException(YAMAS_STORE_BOUNCER_USER_CONFIG + " configuration is not set");
-        }
-
-        bouncerLoginUrl = ObjectReader.getString(config.get(YAMAS_STORE_BOUNCER_URL_CONFIG), "https://gh.bouncer.login.yahoo.com/login/");
     }
 
     /**
@@ -141,6 +127,7 @@ public class YamasStore implements MetricStore, AutoCloseable {
             throw new MetricException("Failed to post metric " + metricJson.toString(), e);
         }
         input.setContentType("application/json");
+        // TODO: Replace with new YAMAS auth method YSTORM-6774
         postRequest.setEntity(input);
 
         HttpResponse response;
@@ -227,7 +214,6 @@ public class YamasStore implements MetricStore, AutoCloseable {
             }
             input.setContentType("application/json");
             postRequest.setEntity(input);
-            postRequest.addHeader(getYbyCookieHeader());
 
             try {
                 response = httpClient.execute(postRequest);
@@ -250,43 +236,6 @@ public class YamasStore implements MetricStore, AutoCloseable {
         }
 
         return output;
-    }
-
-    private Header getYbyCookieHeader() throws MetricException {
-        if (System.currentTimeMillis() > nextBouncerLogin) {
-            String password = getBouncerPassword(bouncerUser);
-            HttpClientBouncerAuth localHttpClientBouncerAuth = new HttpClientBouncerAuth();
-            String ybyCookie;
-            try {
-                ybyCookie = localHttpClientBouncerAuth.authenticate2(bouncerLoginUrl, bouncerUser,
-                        password.toCharArray(), true);
-            } catch (Exception e) {
-                throw new MetricException("Failed to get YBYCookie", e);
-            }
-            YBYCookieHeader = new BasicHeader("Cookie", ybyCookie);
-            nextBouncerLogin = System.currentTimeMillis() + 3600L * 1000L;
-        }
-        return YBYCookieHeader;
-    }
-
-    private String getBouncerPassword(String user) throws MetricException {
-        String[] args = new String[]{"ykeykeygetkey", user};
-        ProcessBuilder pb = new ProcessBuilder(args);
-        String output;
-        Process proc;
-        int rc;
-        try {
-            proc = pb.start();
-            output = IOUtils.toString(proc.getInputStream(), Charset.defaultCharset());
-            rc = proc.waitFor();
-        } catch (Exception e) {
-            throw new MetricException("Failed to login to Bouncer", e);
-        }
-        if (rc != 0) {
-            throw new MetricException("Failed to login to Bouncer");
-        }
-        proc.destroy();
-        return output.trim();
     }
 
     private List<Metric> parseQueryResult(String result, AggLevel aggLevel) throws MetricException {
