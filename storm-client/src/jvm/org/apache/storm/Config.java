@@ -342,7 +342,12 @@ public class Config extends HashMap<String, Object> {
     @isPositiveNumber
     @Deprecated
     public static final String TOPOLOGY_CONSTRAINTS_MAX_DEPTH_TRAVERSAL = "topology.constraints.max.depth.traversal";
-
+    /*
+     * Whether to limit each worker to one executor. This is useful for debugging topologies to clearly identify workers that
+     * are slow/crashing and for estimating resource requirements and capacity.
+     */
+    @isBoolean
+    public static final String TOPOLOGY_RAS_ONE_EXECUTOR_PER_WORKER = "topology.ras.one.executor.per.worker";
     /**
      * The maximum number of seconds to spend scheduling a topology using the constraint solver.  Null means no limit.
      */
