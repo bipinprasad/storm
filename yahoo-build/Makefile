@@ -11,20 +11,23 @@ OSMAJOR=$(shell yinst platform OSMAJOR)
 
 all: build
 
-shaded-deps-install:
-	cd ../shaded-deps && $(MVN) install -DskipTests
+define shaded-deps-install
+cd .. && $(MVN) install $(MVN_MAKE_OPTS) -pl storm-shaded-deps -am -DskipTests
+endef
 
-test: shaded-deps-install RELEASE
-	cd .. && $(MVN) -fae -Pnative -Pyahoo -Pcoverage -Pall-tests '-P!include-shaded-deps' -Pexternals,examples -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
+test: RELEASE
+	$(shaded-deps-install)
+	cd .. && $(MVN) -fae -Pnative -Pyahoo -Pcoverage -Pall-tests -pl '!storm-shaded-deps' -Pexternals,examples -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
 
 check: test
 	@echo "Errors or Failures:"
 	@egrep -il '<fail|<error' ../*/target/test-reports/*.xml | xargs -I '{}' bash -c "echo -n '{}':' '; egrep -ic '<fail|<error' '{}'"
-	@! egrep -iq '<fail|<error' ../*/target/test-reports/*.xml 
+	@! egrep -iq '<fail|<error' ../*/target/test-reports/*.xml
 
 
-build: shaded-deps-install RELEASE
-	cd .. && $(MVN) -Pnative -Pyahoo '-P!include-shaded-deps' -Pexternals,examples -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install -DskipTests ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
+build: RELEASE
+	$(shaded-deps-install)
+	cd .. && $(MVN) -Pnative -Pyahoo -pl '!storm-shaded-deps' -Pexternals,examples -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} install -DskipTests ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE)
 
 dist_tag: RELEASE
 	$(shell echo "ystorm_`cat RELEASE`" | sed 's/\./_/g' > DIST_TAG)
@@ -44,13 +47,13 @@ RELEASE: BASE_VERSION_UNDERSCORE
 	fi
 
 define setup-versions
-cd .. && ${MVN} -q -Pyahoo -Pexternals,examples -Pinclude-shaded-deps versions:set -DnewVersion=$(MVN_FULL_VERSION) ${MVN_MAKE_OPTS} && \
+cd .. && ${MVN} -q -Pyahoo -Pexternals,examples -pl '!storm-shaded-deps' versions:set -DnewVersion=$(MVN_FULL_VERSION) ${MVN_MAKE_OPTS} && \
 	${MVN} -q -Pyahoo -Pexternals,examples versions:update-child-modules ${MVN_MAKE_OPTS}
 if [ -e ../storm-core/dependency-reduced-pom.xml ]; then sed -e 's/'"$(BASE_VERSION)"'/'"$(FULL_VERSION)"'/g' ../storm-core/dependency-reduced-pom.xml > storm-core-dependency-reduced-pom.xml; fi
 endef
 
 define revert-versions
-cd .. && ${MVN} -q -Pyahoo -Pexternals,examples -Pinclude-shaded-deps versions:revert ${MVN_MAKE_OPTS} && \
+cd .. && ${MVN} -q -Pyahoo -Pexternals,examples -pl '!storm-shaded-deps' versions:revert ${MVN_MAKE_OPTS} && \
 	${MVN} -q -Pyahoo -Pexternals,examples versions:update-child-modules ${MVN_MAKE_OPTS}
 endef
 
@@ -75,12 +78,12 @@ testpkg: RELEASE BASE_VERSION build copy_webapp yahoo-build/packages/rhel-${OSMA
 
 ignore-pom-changes:
 	cd .. && $(find-tracked-pom-xml) | xargs git update-index --assume-unchanged
-	
+
 # This target is called from screwdriver build and leaves the poms changed for its
 # publish phase
 package-sd: RELEASE copy_webapp yahoo-build/packages/rhel-${OSMAJOR}.x
 	$(setup-versions)
-	cd ../shaded-deps && $(MVN) install -DskipTests
+	$(shaded-deps-install)
 	cd .. && $(find-tracked-pom-xml)| xargs git update-index --assume-unchanged
 	yinst_create --buildtype release --platform rhel-${OSMAJOR}.x ystorm.yicf --target yahoo-build/packages/rhel-${OSMAJOR}.x
 	cd .. && $(find-tracked-pom-xml) | xargs git update-index --no-assume-unchanged
@@ -95,6 +98,5 @@ clean:
 
 upload_to_artifactory: BASE_VERSION_UNDERSCORE BASE_VERSION
 	$(setup-versions)
-	cd ../shaded-deps && $(MVN) install -DskipTests
-	cd .. && $(MVN) -fae -Pnative -Pyahoo -Pcoverage -Pall-tests '-P!include-shaded-deps' -Pexternals,examples -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} deploy ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE) -DskipTests
-
+	$(shaded-deps-install)
+	cd .. && $(MVN) -fae -Pnative -Pyahoo -Pcoverage -Pall-tests -pl '!storm-shaded-deps' -Pexternals,examples -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} deploy ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE) -DskipTests
