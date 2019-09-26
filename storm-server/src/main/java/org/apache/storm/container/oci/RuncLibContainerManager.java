@@ -443,7 +443,7 @@ public class RuncLibContainerManager extends OciContainerManager {
         String containerId = getContainerId(workerId, port);
         String memoryCgroupPath = memoryCgroupRootPath + File.separator  + containerId;
         MemoryCore memoryCore = new MemoryCore(memoryCgroupPath);
-        LOG.debug("WorkerId {} : Got memory getPhysicalUsage {} from {}", containerId, memoryCore.getPhysicalUsage(), memoryCgroupPath);
+        LOG.debug("ContainerId {} : Got memory getPhysicalUsage {} from {}", containerId, memoryCore.getPhysicalUsage(), memoryCgroupPath);
         return memoryCore.getPhysicalUsage();
     }
 
@@ -570,12 +570,7 @@ public class RuncLibContainerManager extends OciContainerManager {
 
         List<String> args = Arrays.asList(CmdType.PROFILE_OCI_CONTAINER.toString(), containerPid.toString(), nsenterScriptPath);
 
-        Process process = ClientSupervisorUtils.processLauncher(conf, user, null, args,
-            env, logPrefix, new RuncProcessExitCallback("Profile-" + workerId), targetDir);
-
-        process.waitFor();
-
-        int exitCode = process.exitValue();
+        int exitCode = ClientSupervisorUtils.processLauncherAndWait(conf, user, args, env, logPrefix, targetDir);
         LOG.debug("WorkerId {} : exitCode from {}: {}", workerId, CmdType.PROFILE_OCI_CONTAINER.toString(), exitCode);
 
         return exitCode == 0;

@@ -45,7 +45,7 @@ static bool all_uuid_digit(const char* input) {
 bool validate_container_id(const char* input) {
   // The container id will be the same as the worker id, with a prefix of "PORTNUM-"
   // Worker id is a type 4 UUID, e.g. 85afb30b-286e-4d32-ab7a-9d5aad89bb88
-  // Container id for a this worker on port 6702 would be: 6702-85afb30b-286e-4d32-ab7a-9d5aad89bb88
+  // Container id for this worker on port 6702 would be: 6702-85afb30b-286e-4d32-ab7a-9d5aad89bb88
   int min_length = 36;
   int max_length = min_length + 6; // max port number plus dash
   //using strnlen to avoid walking across memory.
@@ -57,11 +57,7 @@ bool validate_container_id(const char* input) {
     return false;
   }
 
-  if (!all_uuid_digit(input)) {
-    return false;
-  }
-
-  return true;
+  return all_uuid_digit(input);
 }
 
 /* Returns the corresponding hexadecimal character for a nibble. */
