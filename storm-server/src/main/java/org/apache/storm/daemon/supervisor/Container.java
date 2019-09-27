@@ -465,7 +465,7 @@ public abstract class Container implements Killable {
         //clean up for resource isolation if enabled
         if (resourceIsolationManager != null) {
             resourceIsolationManager.releaseResourcesForWorker(_workerId);
-            resourceIsolationManager.cleanup(user, _workerId);
+            resourceIsolationManager.cleanup(user, _workerId, _port);
         }
 
         //Always make sure to clean up everything else before worker directory

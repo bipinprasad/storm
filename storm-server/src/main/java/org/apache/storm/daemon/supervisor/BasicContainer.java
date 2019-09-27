@@ -776,14 +776,14 @@ public class BasicContainer extends Container {
         try {
             long ret = 0;
             if (resourceIsolationManager.isResourceManaged()) {
-                long usageBytes = resourceIsolationManager.getMemoryUsage(getWorkerUser(), _workerId);
+                long usageBytes = resourceIsolationManager.getMemoryUsage(getWorkerUser(), _workerId, _port);
                 if (usageBytes >= 0) {
                     ret = usageBytes / 1024 / 1024;
                 }
             }
             return ret;
         } catch (IOException e) {
-            LOG.warn("Error trying to calculate worker memory usage {}", e);
+            LOG.warn("Error trying to calculate worker memory usage {}", e.getMessage(), e);
             return 0;
         }
     }

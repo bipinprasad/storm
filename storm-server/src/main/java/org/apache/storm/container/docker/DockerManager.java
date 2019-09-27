@@ -210,7 +210,7 @@ public class DockerManager extends OciContainerManager {
     }
 
     @Override
-    public long getMemoryUsage(String user, String workerId) throws IOException {
+    public long getMemoryUsage(String user, String workerId, int port) throws IOException {
         String memoryCgroupPath = memoryCgroupRootPath + File.separator + getCID(workerId);
         MemoryCore memoryCore = new MemoryCore(memoryCgroupPath);
         return memoryCore.getPhysicalUsage();
@@ -334,7 +334,7 @@ public class DockerManager extends OciContainerManager {
     }
 
     @Override
-    public void cleanup(String user, String workerId) throws IOException {
+    public void cleanup(String user, String workerId, int port) throws IOException {
         //NO OP
     }
 

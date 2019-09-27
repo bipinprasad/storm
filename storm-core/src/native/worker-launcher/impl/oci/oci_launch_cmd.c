@@ -450,7 +450,7 @@ static bool is_valid_oci_launch_cmd(const oci_launch_cmd* olc) {
   }
 
   if (!validate_container_id(olc->container_id)) {
-    fprintf(ERRORFILE, "Bad container id in OCI command: %s\n",
+    fprintf(ERRORFILE, "ERROR: Bad container id in OCI command: %s\n",
         olc->container_id);
     return false;
   }

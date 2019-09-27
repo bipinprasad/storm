@@ -58,7 +58,7 @@ public class DefaultResourceIsolationManager implements ResourceIsolationInterfa
     }
 
     @Override
-    public void cleanup(String user, String workerId) throws IOException {
+    public void cleanup(String user, String workerId, int port) throws IOException {
         //NO OP
     }
 
@@ -79,7 +79,7 @@ public class DefaultResourceIsolationManager implements ResourceIsolationInterfa
     }
 
     @Override
-    public long getMemoryUsage(String user, String workerId) throws IOException {
+    public long getMemoryUsage(String user, String workerId, int port) throws IOException {
         return 0;
     }
 

@@ -277,7 +277,7 @@ public class ContainerTest {
         }
 
         @Override
-        public long getMemoryUsage(String user, String workerId) throws IOException {
+        public long getMemoryUsage(String user, String workerId, int port) throws IOException {
             fail("THIS IS NOT UNDER TEST");
             return 0;
         }
@@ -311,7 +311,7 @@ public class ContainerTest {
         }
 
         @Override
-        public void cleanup(String user, String workerId) {
+        public void cleanup(String user, String workerId, int port) {
             //NO OP
         }
 
