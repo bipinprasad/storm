@@ -39,7 +39,7 @@ public class DefaultResourceAwareStrategy extends BaseResourceAwareStrategy impl
 
     @Override
     public SchedulingResult schedule(Cluster cluster, TopologyDetails td) {
-        boolean oneExecutorPerWorker = (Boolean) td.getConf().get(Config.TOPOLOGY_RAS_ONE_EXECUTOR_PER_WORKER);
+        boolean oneExecutorPerWorker = (Boolean) td.getConf().getOrDefault(Config.TOPOLOGY_RAS_ONE_EXECUTOR_PER_WORKER, false);
         setOneExecutorPerWorker(oneExecutorPerWorker);
 
         prepare(cluster);
