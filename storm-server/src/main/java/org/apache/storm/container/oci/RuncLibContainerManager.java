@@ -253,6 +253,7 @@ public class RuncLibContainerManager extends OciContainerManager {
         watchedWorkers.add(workerId);
 
         Utils.asyncLoop(new Callable<Long>() {
+            @Override
             public Long call()  {
                 //Check if this worker is still being watched
                 if (!watchedWorkers.contains(workerId)) {

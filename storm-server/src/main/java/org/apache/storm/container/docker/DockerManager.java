@@ -162,6 +162,7 @@ public class DockerManager extends OciContainerManager {
         //docker-wait for the container in another thread. processExitCallback will get the container's exit code.
         String threadName = "DockerWait_SLOT_" + port;
         Utils.asyncLoop(new Callable<Long>() {
+            @Override
             public Long call() throws IOException {
                 DockerWaitCommand dockerWaitCommand = new DockerWaitCommand(workerId);
                 try {
