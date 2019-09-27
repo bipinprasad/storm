@@ -70,7 +70,7 @@ public class ClientSupervisorUtils {
                                              final Map<String, String> environment, final String logPreFix, File dir)
         throws IOException {
         int ret = 0;
-        Process process = processLauncher(conf, user, null, args, environment, logPreFix, null, dir);
+        Process process = processLauncher(conf, user, null, args, environment, null, null, dir);
         if (StringUtils.isNotBlank(logPreFix)) {
             Utils.readAndLogStream(logPreFix, process.getInputStream());
         }
