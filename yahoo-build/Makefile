@@ -99,4 +99,4 @@ clean:
 upload_to_artifactory: BASE_VERSION_UNDERSCORE BASE_VERSION
 	$(setup-versions)
 	$(shaded-deps-install)
-	cd .. && $(MVN) -fae -Pnative -Pyahoo -Pcoverage -Pall-tests -pl '!storm-shaded-deps' -Pexternals,examples -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} deploy ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE) -DskipTests
+	cd .. && $(MVN) -fae -Pnative -Pyahoo -Pcoverage -Pall-tests -Pexternals,examples -Dworker-launcher.conf.dir=${EXEC_CONF_DIR} deploy ${MVN_MAKE_OPTS} -Dystorm.build.number=$(shell sed 's;.*\.;;' RELEASE) -DskipTests
