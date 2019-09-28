@@ -83,12 +83,12 @@ public class MigrateBlobs {
         hdfsConf.put(Config.BLOBSTORE_DIR, hdfsBlobstorePath);
         hdfsConf.put(Config.STORM_PRINCIPAL_TO_LOCAL_PLUGIN, "org.apache.storm.security.auth.DefaultPrincipalToLocal");
         if (args.length >= 3) {
-        	System.out.println("SETTING HDFS PRINCIPAL!");
-        	hdfsConf.put(Config.STORM_HDFS_LOGIN_PRINCIPAL, args[2]);
+            System.out.println("SETTING HDFS PRINCIPAL!");
+            hdfsConf.put(Config.STORM_HDFS_LOGIN_PRINCIPAL, args[2]);
         }
         if (args.length >= 4) {
-        	System.out.println("SETTING HDFS KEYTAB!");
-        	hdfsConf.put(Config.STORM_HDFS_LOGIN_KEYTAB, args[3]);
+            System.out.println("SETTING HDFS KEYTAB!");
+            hdfsConf.put(Config.STORM_HDFS_LOGIN_KEYTAB, args[3]);
         }
         hdfsConf.put(Config.STORM_BLOBSTORE_REPLICATION_FACTOR, 7);
         

@@ -179,11 +179,11 @@ public class ClientSupervisorUtils {
 
     public static void setupWorkerArtifactsDir(Map<String, Object> conf, String user, String dir, boolean setgidOnDir) throws IOException {
         if (ObjectReader.getBoolean(conf.get(Config.SUPERVISOR_RUN_WORKER_AS_USER), false)) {
-            String logPrefix = "Worker Artifacts Setup for " + dir;
             List<String> commands = new ArrayList<>();
             commands.add("artifacts-dir");
             commands.add(String.valueOf(setgidOnDir));
             commands.add(dir);
+            String logPrefix = "Worker Artifacts Setup for " + dir;
             processLauncherAndWait(conf, user, commands, null, logPrefix);
         }
     }

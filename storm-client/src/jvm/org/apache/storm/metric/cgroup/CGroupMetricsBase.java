@@ -34,6 +34,7 @@ public abstract class CGroupMetricsBase<T> implements IMetric {
     private static final Logger LOG = LoggerFactory.getLogger(CGroupMetricsBase.class);
     private boolean enabled;
     private CgroupCore core = null;
+
     public CGroupMetricsBase(Map<String, Object> conf, SubSystemType type) {
         final String simpleName = getClass().getSimpleName();
         enabled = false;

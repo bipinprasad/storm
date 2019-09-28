@@ -1983,9 +1983,9 @@ public class UIHelpers {
                                                String id, String component, Map config) throws TException {
         List<ProfileRequest> profileRequests =
                 client.getComponentPendingProfileActions(id, component, ProfileAction.JPROFILE_STOP);
-        return profileRequests.stream().map(
-                x -> UIHelpers.getActiveAction(x, config, id)).collect(Collectors.toList()
-        );
+        return profileRequests.stream()
+            .map(x -> UIHelpers.getActiveAction(x, config, id))
+            .collect(Collectors.toList());
     }
 
     /**

@@ -12,6 +12,11 @@
 
 package org.apache.storm.validation;
 
+import static org.apache.storm.utils.Utils.NUMA_CORES;
+import static org.apache.storm.utils.Utils.NUMA_GENERIC_RESOURCES_MAP;
+import static org.apache.storm.utils.Utils.NUMA_MEMORY_IN_MB;
+import static org.apache.storm.utils.Utils.NUMA_PORTS;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -34,10 +39,6 @@ import org.apache.storm.validation.ConfigValidationAnnotations.ValidatorParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.apache.storm.utils.Utils.NUMA_GENERIC_RESOURCES_MAP;
-import static org.apache.storm.utils.Utils.NUMA_PORTS;
-import static org.apache.storm.utils.Utils.NUMA_CORES;
-import static org.apache.storm.utils.Utils.NUMA_MEMORY_IN_MB;
 
 /**
  * Provides functionality for validating configuration fields.
@@ -445,7 +446,8 @@ public class ConfigValidation {
                 );
             }
             try {
-                Map<String, Double> numaGenericResources = (Map<String, Double>) numa.getOrDefault(NUMA_GENERIC_RESOURCES_MAP, Collections.EMPTY_MAP);
+                Map<String, Double> numaGenericResources =
+                    (Map<String, Double>) numa.getOrDefault(NUMA_GENERIC_RESOURCES_MAP, Collections.EMPTY_MAP);
             } catch (Exception e) {
                 throw new IllegalArgumentException(
                         "Invalid generic resources in NUMA config"
