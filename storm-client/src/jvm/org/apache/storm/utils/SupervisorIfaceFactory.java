@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,32 +16,15 @@
  * limitations under the License.
  */
 
-package org.apache.storm.mongodb.common.mapper;
+package org.apache.storm.utils;
 
-import org.apache.storm.tuple.ITuple;
-import org.bson.Document;
+import java.io.Closeable;
 
-public class SimpleMongoUpdateMapper extends SimpleMongoMapper implements MongoUpdateMapper {
+public interface SupervisorIfaceFactory extends Closeable {
 
-    private String[] fields;
-
-    public SimpleMongoUpdateMapper(String... fields) {
-        this.fields = fields;
-    }
+    org.apache.storm.generated.Supervisor.Iface getIface();
 
     @Override
-    public Document toDocument(ITuple tuple) {
-        Document document = new Document();
-        for (String field : fields) {
-            document.append(field, tuple.getValueByField(field));
-        }
-        //$set operator: Sets the value of a field in a document.
-        return new Document("$set", document);
-    }
-
-    @Override
-    public SimpleMongoUpdateMapper withFields(String... fields) {
-        this.fields = fields;
-        return this;
+    default void close() {
     }
 }

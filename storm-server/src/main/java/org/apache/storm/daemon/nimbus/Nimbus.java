@@ -84,6 +84,8 @@ import org.apache.storm.generated.AlreadyAliveException;
 import org.apache.storm.generated.Assignment;
 import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.BeginDownloadResult;
+import org.apache.storm.generated.Bolt;
+import org.apache.storm.generated.BoltAggregateStats;
 import org.apache.storm.generated.ClusterSummary;
 import org.apache.storm.generated.CommonAggregateStats;
 import org.apache.storm.generated.ComponentAggregateStats;
@@ -118,6 +120,9 @@ import org.apache.storm.generated.ProfileRequest;
 import org.apache.storm.generated.ReadableBlobMeta;
 import org.apache.storm.generated.RebalanceOptions;
 import org.apache.storm.generated.SettableBlobMeta;
+import org.apache.storm.generated.SpecificAggregateStats;
+import org.apache.storm.generated.SpoutAggregateStats;
+import org.apache.storm.generated.SpoutSpec;
 import org.apache.storm.generated.StormBase;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.generated.SubmitOptions;
@@ -4156,6 +4161,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                 setResourcesDefaultIfNotSet(spoutResources, entry.getKey(), topoConf);
                 commonStats.set_resources_map(spoutResources.get(entry.getKey()).toNormalizedMap());
             }
+            maybeAddPlaceholderSpoutAggStats(topoPageInfo, topology);
 
             Map<String, NormalizedResourceRequest> boltResources = ResourceUtils.getBoltsResources(topology, topoConf);
             for (Entry<String, ComponentAggregateStats> entry : topoPageInfo.get_id_to_bolt_agg_stats().entrySet()) {
@@ -4163,6 +4169,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                 setResourcesDefaultIfNotSet(boltResources, entry.getKey(), topoConf);
                 commonStats.set_resources_map(boltResources.get(entry.getKey()).toNormalizedMap());
             }
+            maybeAddPlaceholderBoltAggStats(topoPageInfo, topology, includeSys);
 
             if (workerSummaries != null) {
                 topoPageInfo.set_workers(workerSummaries);
@@ -4215,6 +4222,98 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
             }
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Add placeholder AggStats allowing topology page to show components before AggStats are populated.
+     *
+     * @param topoPageInfo topology page info holding spout AggStats
+     * @param topology     storm topology used to get spout names
+     */
+    private void maybeAddPlaceholderSpoutAggStats(TopologyPageInfo topoPageInfo, StormTopology topology) {
+        if (topoPageInfo.get_id_to_spout_agg_stats().isEmpty()) {
+            for (Entry<String, SpoutSpec> entry : topology.get_spouts().entrySet()) {
+                // component
+                ComponentAggregateStats placeholderComponentStats = new ComponentAggregateStats();
+                placeholderComponentStats.set_type(ComponentType.SPOUT);
+
+                // common aggregate
+                CommonAggregateStats commonStats = getPlaceholderCommonAggregateStats(entry.getValue());
+                placeholderComponentStats.set_common_stats(commonStats);
+
+                // spout aggregate
+                SpoutAggregateStats spoutAggStats = new SpoutAggregateStats();
+                spoutAggStats.set_complete_latency_ms(0);
+                SpecificAggregateStats specificStats = new SpecificAggregateStats();
+                specificStats.set_spout(spoutAggStats);
+                placeholderComponentStats.set_specific_stats(specificStats);
+
+                topoPageInfo.get_id_to_spout_agg_stats().put(entry.getKey(), placeholderComponentStats);
+            }
+        }
+    }
+
+    /**
+     * Add placeholder AggStats allowing topology page to show components before AggStats are populated.
+     *
+     * @param topoPageInfo  topology page info holding bolt AggStats
+     * @param topology      storm topology used to get bolt names
+     * @param includeSys    whether to show system bolts
+     */
+    private void maybeAddPlaceholderBoltAggStats(TopologyPageInfo topoPageInfo, StormTopology topology, boolean includeSys) {
+        if (topoPageInfo.get_id_to_bolt_agg_stats().isEmpty()) {
+            for (Entry<String, Bolt> entry : topology.get_bolts().entrySet()) {
+                String boltName = entry.getKey();
+                if ((!includeSys && Utils.isSystemId(boltName)) || boltName.equals(Constants.SYSTEM_COMPONENT_ID)) {
+                    continue;
+                }
+
+                // component
+                ComponentAggregateStats placeholderComponentStats = new ComponentAggregateStats();
+                placeholderComponentStats.set_type(ComponentType.BOLT);
+
+                // common aggregate
+                CommonAggregateStats commonStats = getPlaceholderCommonAggregateStats(entry.getValue());
+                placeholderComponentStats.set_common_stats(commonStats);
+
+                // bolt aggregate
+                BoltAggregateStats boltAggStats = new BoltAggregateStats();
+                boltAggStats.set_execute_latency_ms(0);
+                boltAggStats.set_process_latency_ms(0);
+                boltAggStats.set_executed(0);
+                boltAggStats.set_capacity(0);
+                SpecificAggregateStats specificStats = new SpecificAggregateStats();
+                specificStats.set_bolt(boltAggStats);
+                placeholderComponentStats.set_specific_stats(specificStats);
+
+                topoPageInfo.get_id_to_bolt_agg_stats().put(boltName, placeholderComponentStats);
+            }
+        }
+    }
+
+    private CommonAggregateStats getPlaceholderCommonAggregateStats(Object component) {
+        // common aggregate
+        CommonAggregateStats commonStats = new CommonAggregateStats();
+
+        // get num_executors
+        int numExecutors = 0;
+        try {
+            numExecutors = StormCommon.numStartExecutors(component);
+        } catch (InvalidTopologyException e) {
+            // ignore
+        }
+
+        // get num_tasks
+        Map<String, Object> jsonMap = StormCommon.componentConf(component);
+        int numTasks = ObjectReader.getInt(jsonMap.getOrDefault(Config.TOPOLOGY_TASKS, numExecutors));
+
+        commonStats.set_num_executors(numExecutors);
+        commonStats.set_num_tasks(numTasks);
+        commonStats.set_emitted(0);
+        commonStats.set_transferred(0);
+        commonStats.set_acked(0);
+
+        return commonStats;
     }
 
     @Override

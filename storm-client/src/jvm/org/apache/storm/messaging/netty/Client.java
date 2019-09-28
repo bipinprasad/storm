@@ -177,6 +177,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, ISa
         // netty TimerTask is already defined and hence a fully
         // qualified name
         TIMER.schedule(new java.util.TimerTask() {
+            @Override
             public void run() {
                 try {
                     LOG.debug("running timer task, address {}", dstAddress);
@@ -234,21 +235,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, ISa
                 return Status.Connecting; // need to wait until sasl channel is also ready
             }
         }
-    }
-
-    /**
-     * Receiving messages is not supported by a client.
-     *
-     * @throws java.lang.UnsupportedOperationException whenever this method is being called.
-     */
-    @Override
-    public void registerRecv(IConnectionCallback cb) {
-        throw new UnsupportedOperationException("Client connection should not receive any messages");
-    }
-
-    @Override
-    public void registerNewConnectionResponse(Supplier<Object> cb) {
-        throw new UnsupportedOperationException("Client does not accept new connections");
     }
 
     @Override
