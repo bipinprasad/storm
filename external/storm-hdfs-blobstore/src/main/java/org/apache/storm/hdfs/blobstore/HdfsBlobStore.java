@@ -22,6 +22,7 @@ import static org.apache.storm.blobstore.BlobStoreAclHandler.ADMIN;
 import static org.apache.storm.blobstore.BlobStoreAclHandler.READ;
 import static org.apache.storm.blobstore.BlobStoreAclHandler.WRITE;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -113,7 +114,7 @@ public class HdfsBlobStore extends BlobStore {
         LOG.debug("directory is: {}", overrideBase);
 
         //Login to hdfs
-        localSubject = HdfsLoginUtil.getInstance().logintoHdfs(conf);
+        localSubject = logintoHdfs(conf);
 
         aclHandler = new BlobStoreAclHandler(conf);
         Path baseDir = new Path(overrideBase, BASE_BLOBS_DIR_NAME);
@@ -126,6 +127,12 @@ public class HdfsBlobStore extends BlobStore {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    // Make this as a separate function so unit tests can mock it.
+    @VisibleForTesting
+    protected Subject logintoHdfs(Map<String, Object> conf) {
+        return HdfsLoginUtil.getInstance().logintoHdfs(conf);
     }
 
     @Override

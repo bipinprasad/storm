@@ -18,6 +18,9 @@
  */
 package org.apache.storm.hdfs.blobstore;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.storm.hdfs.testing.MiniDFSClusterExtension;
 import org.apache.commons.io.FileUtils;
 import org.apache.storm.Config;
@@ -153,13 +156,34 @@ public class BlobStoreTest {
         assertEquals(value, readInt(store, who, key));
     }
 
+    static class MockHdfsBlobStore extends HdfsBlobStore {
+        // This is the original implementation of logging in to HDFS.
+        // Use it here just for the unit tests
+        @Override
+        protected Subject logintoHdfs(Map<String, Object> conf) {
+            Subject subj;
+            try {
+                subj = UserGroupInformation.getCurrentUser().doAs(
+                    new PrivilegedAction<Subject>() {
+                        @Override
+                        public Subject run() {
+                            return Subject.getSubject(AccessController.getContext());
+                        }
+                    });
+            } catch (IOException e) {
+                throw new RuntimeException("Error creating subject and logging user in!", e);
+            }
+            return subj;
+        }
+    }
+
     private AutoCloseableBlobStoreContainer initHdfs(String dirName)
         throws Exception {
         Map<String, Object> conf = new HashMap<>();
         conf.put(Config.BLOBSTORE_DIR, dirName);
         conf.put(Config.STORM_PRINCIPAL_TO_LOCAL_PLUGIN, "org.apache.storm.security.auth.DefaultPrincipalToLocal");
         conf.put(Config.STORM_BLOBSTORE_REPLICATION_FACTOR, 3);
-        HdfsBlobStore store = new HdfsBlobStore();
+        HdfsBlobStore store = new MockHdfsBlobStore();
         store.prepareInternal(conf, null, DFS_CLUSTER_EXTENSION.getDfscluster().getConfiguration(0));
         return new AutoCloseableBlobStoreContainer(store);
     }
