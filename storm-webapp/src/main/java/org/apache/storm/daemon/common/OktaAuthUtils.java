@@ -31,6 +31,7 @@ public class OktaAuthUtils {
      * @param request servlet request
      * @return cookie if present
      */
+    @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
     public static String getOKTAAccessToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {

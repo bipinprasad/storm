@@ -43,7 +43,6 @@ public class ClientSupervisorUtils {
 
     static boolean doRequiredTopoFilesExist(Map<String, Object> conf, String stormId) throws IOException {
         String stormroot = ConfigUtils.supervisorStormDistRoot(conf, stormId);
-        String stormjarpath = ConfigUtils.supervisorStormJarPath(stormroot);
         String stormcodepath = ConfigUtils.supervisorStormCodePath(stormroot);
         String stormconfpath = ConfigUtils.supervisorStormConfPath(stormroot);
         if (!Utils.checkFileExists(stormroot)) {
@@ -55,6 +54,7 @@ public class ClientSupervisorUtils {
         if (!Utils.checkFileExists(stormconfpath)) {
             return false;
         }
+        String stormjarpath = ConfigUtils.supervisorStormJarPath(stormroot);
         if (ConfigUtils.isLocalMode(conf) || Utils.checkFileExists(stormjarpath)) {
             return true;
         }
@@ -120,8 +120,6 @@ public class ClientSupervisorUtils {
      * @param exitCodeCallback code to be called passing the exit code value when the process completes
      * @param dir              the working directory of the new process
      * @return the new process
-     * @throws IOException
-     * @see ProcessBuilder
      */
     public static Process launchProcess(List<String> command,
                                         Map<String, String> environment,
@@ -181,11 +179,11 @@ public class ClientSupervisorUtils {
 
     public static void setupWorkerArtifactsDir(Map<String, Object> conf, String user, String dir, boolean setgidOnDir) throws IOException {
         if (ObjectReader.getBoolean(conf.get(Config.SUPERVISOR_RUN_WORKER_AS_USER), false)) {
-            String logPrefix = "Worker Artifacts Setup for " + dir;
             List<String> commands = new ArrayList<>();
             commands.add("artifacts-dir");
             commands.add(String.valueOf(setgidOnDir));
             commands.add(dir);
+            String logPrefix = "Worker Artifacts Setup for " + dir;
             processLauncherAndWait(conf, user, commands, null, logPrefix);
         }
     }

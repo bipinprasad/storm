@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import yjava.servlet.YJavaHttpServletRequestWrapper;
 
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public class MultiUIFilter implements Filter {
 
     public static final Logger LOG = LoggerFactory.getLogger(MultiUIFilter.class);

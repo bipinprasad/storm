@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.storm.daemon.metrics.ClientMetricsUtils;
 import org.apache.storm.daemon.metrics.reporters.PreparableReporter;
 import org.apache.storm.utils.ObjectReader;
-import org.apache.storm.validation.ConfigValidationAnnotations.isMapEntryType;
-import org.apache.storm.validation.ConfigValidationAnnotations.isString;
+import org.apache.storm.validation.ConfigValidationAnnotations.IsMapEntryType;
+import org.apache.storm.validation.ConfigValidationAnnotations.IsString;
 import org.apache.storm.validation.Validated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,38 +21,38 @@ public class YamasDaemonMetricsReporter implements PreparableReporter, Validated
     /**
      * Namespace metrics should be sent to.
      */
-    @isString
+    @IsString
     public static final String STORM_DAEMON_METRICS_YAMAS_NAMESPACE = "storm.daemon.metrics.yamas.namespace";
 
     /**
      * Application included in yamas POST.  Not really sure how it is used by yamas.
      */
-    @isString
+    @IsString
     public static final String STORM_DAEMON_METRICS_YAMAS_APPLICATION = "storm.daemon.metrics.yamas.application";
 
     /**
      * A prefix that can be put in front of all metrics.  Dimensions are a much better choice.
      */
-    @isString
+    @IsString
     public static final String STORM_DAEMON_METRICS_YAMAS_PREFIX = "storm.daemon.metrics.yamas.prefix";
 
     /**
      * A http proxy url to send the metrics through, if needed.
      */
-    @isString
+    @IsString
     public static final String STORM_DAEMON_METRICS_YAMAS_PROXY = "storm.daemon.metrics.yamas.proxy";
 
     /**
      * For debugging purposes.  The URL to send the metrics to.
      */
-    @isString
+    @IsString
     public static final String STORM_DAEMON_METRICS_YAMAS_DEBUG_URL = "storm.daemon.metrics.yamas.debug.url";
 
     /**
      * Dimensions that are included with all of the metrics sent.  "host" and "daemon.name" are added
      * automatically.
      */
-    @isMapEntryType(keyType = String.class, valueType = String.class)
+    @IsMapEntryType(keyType = String.class, valueType = String.class)
     public static final String STORM_DAEMON_METRICS_YAMAS_DIMENSIONS = "storm.daemon.metrics.yamas.dimensions";
 
     private ScheduledYamasReporter reporter = null;

@@ -180,6 +180,7 @@ public class AthenzAuthenticator {
         return null;
     }
 
+    @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
     private String getAthenzPrincipalFromCN(String principalOrRole) {
         LOG.debug(principalOrRole);
         if (principalOrRole.startsWith(USER_PREFIX)) {
@@ -224,6 +225,7 @@ public class AthenzAuthenticator {
         }
     }
 
+    @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
     private final void setX509CAIssuers(final String issuersFileName,
                                         final String trustStorePassword) {
         if (issuersFileName == null || issuersFileName.isEmpty()) {
