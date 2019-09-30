@@ -4116,6 +4116,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
             if (base == null) {
                 throw new WrappedNotAliveException(topoId);
             }
+            String owner = base.get_owner();
             Map<WorkerSlot, WorkerResources> workerToResources = getWorkerResourcesForTopology(topoId);
             List<WorkerSummary> workerSummaries = null;
             Map<List<Long>, List<Object>> exec2NodePort = new HashMap<>();
@@ -4136,7 +4137,9 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                                                            nodeToHost,
                                                            workerToResources,
                                                            includeSys,
-                                                           true); //this is the topology page, so we know the user is authorized
+                                                           true, //this is the topology page, so we know the user is authorized
+                                                           null,
+                                                           owner);
             }
 
             TopologyPageInfo topoPageInfo = StatsUtil.aggTopoExecsStats(topoId,
@@ -4366,9 +4369,10 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                     }
                     Map<WorkerSlot, WorkerResources> workerResources = getWorkerResourcesForTopology(topoId);
                     boolean isAllowed = userTopologies.contains(topoId);
+                    String owner = (common.base == null) ? null : common.base.get_owner();
                     for (WorkerSummary workerSummary : StatsUtil.aggWorkerStats(topoId, topoName, taskToComp, beats,
                                                                                 exec2NodePort, nodeToHost, workerResources, includeSys,
-                                                                                isAllowed, sid)) {
+                                                                                isAllowed, sid, owner)) {
                         pageInfo.add_to_worker_summaries(workerSummary);
                     }
                 }

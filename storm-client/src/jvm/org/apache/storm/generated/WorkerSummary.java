@@ -43,6 +43,7 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
   private static final org.apache.storm.thrift.protocol.TField ASSIGNED_MEMONHEAP_FIELD_DESC = new org.apache.storm.thrift.protocol.TField("assigned_memonheap", org.apache.storm.thrift.protocol.TType.DOUBLE, (short)524);
   private static final org.apache.storm.thrift.protocol.TField ASSIGNED_MEMOFFHEAP_FIELD_DESC = new org.apache.storm.thrift.protocol.TField("assigned_memoffheap", org.apache.storm.thrift.protocol.TType.DOUBLE, (short)525);
   private static final org.apache.storm.thrift.protocol.TField ASSIGNED_CPU_FIELD_DESC = new org.apache.storm.thrift.protocol.TField("assigned_cpu", org.apache.storm.thrift.protocol.TType.DOUBLE, (short)526);
+  private static final org.apache.storm.thrift.protocol.TField OWNER_FIELD_DESC = new org.apache.storm.thrift.protocol.TField("owner", org.apache.storm.thrift.protocol.TType.STRING, (short)527);
 
   private static final org.apache.storm.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new WorkerSummaryStandardSchemeFactory();
   private static final org.apache.storm.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new WorkerSummaryTupleSchemeFactory();
@@ -62,6 +63,7 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
   private double assigned_memonheap; // optional
   private double assigned_memoffheap; // optional
   private double assigned_cpu; // optional
+  private java.lang.String owner; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.storm.thrift.TFieldIdEnum {
@@ -79,7 +81,8 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
     REQUESTED_CPU((short)523, "requested_cpu"),
     ASSIGNED_MEMONHEAP((short)524, "assigned_memonheap"),
     ASSIGNED_MEMOFFHEAP((short)525, "assigned_memoffheap"),
-    ASSIGNED_CPU((short)526, "assigned_cpu");
+    ASSIGNED_CPU((short)526, "assigned_cpu"),
+    OWNER((short)527, "owner");
 
     private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -124,6 +127,8 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
           return ASSIGNED_MEMOFFHEAP;
         case 526: // ASSIGNED_CPU
           return ASSIGNED_CPU;
+        case 527: // OWNER
+          return OWNER;
         default:
           return null;
       }
@@ -175,7 +180,7 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
   private static final int __ASSIGNED_MEMOFFHEAP_ISSET_ID = 8;
   private static final int __ASSIGNED_CPU_ISSET_ID = 9;
   private short __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.SUPERVISOR_ID,_Fields.HOST,_Fields.PORT,_Fields.TOPOLOGY_ID,_Fields.TOPOLOGY_NAME,_Fields.NUM_EXECUTORS,_Fields.COMPONENT_TO_NUM_TASKS,_Fields.TIME_SECS,_Fields.UPTIME_SECS,_Fields.REQUESTED_MEMONHEAP,_Fields.REQUESTED_MEMOFFHEAP,_Fields.REQUESTED_CPU,_Fields.ASSIGNED_MEMONHEAP,_Fields.ASSIGNED_MEMOFFHEAP,_Fields.ASSIGNED_CPU};
+  private static final _Fields optionals[] = {_Fields.SUPERVISOR_ID,_Fields.HOST,_Fields.PORT,_Fields.TOPOLOGY_ID,_Fields.TOPOLOGY_NAME,_Fields.NUM_EXECUTORS,_Fields.COMPONENT_TO_NUM_TASKS,_Fields.TIME_SECS,_Fields.UPTIME_SECS,_Fields.REQUESTED_MEMONHEAP,_Fields.REQUESTED_MEMOFFHEAP,_Fields.REQUESTED_CPU,_Fields.ASSIGNED_MEMONHEAP,_Fields.ASSIGNED_MEMOFFHEAP,_Fields.ASSIGNED_CPU,_Fields.OWNER};
   public static final java.util.Map<_Fields, org.apache.storm.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     java.util.Map<_Fields, org.apache.storm.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.storm.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -211,6 +216,8 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
         new org.apache.storm.thrift.meta_data.FieldValueMetaData(org.apache.storm.thrift.protocol.TType.DOUBLE)));
     tmpMap.put(_Fields.ASSIGNED_CPU, new org.apache.storm.thrift.meta_data.FieldMetaData("assigned_cpu", org.apache.storm.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.storm.thrift.meta_data.FieldValueMetaData(org.apache.storm.thrift.protocol.TType.DOUBLE)));
+    tmpMap.put(_Fields.OWNER, new org.apache.storm.thrift.meta_data.FieldMetaData("owner", org.apache.storm.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.storm.thrift.meta_data.FieldValueMetaData(org.apache.storm.thrift.protocol.TType.STRING)));
     metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
     org.apache.storm.thrift.meta_data.FieldMetaData.addStructMetaDataMap(WorkerSummary.class, metaDataMap);
   }
@@ -249,6 +256,9 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
     this.assigned_memonheap = other.assigned_memonheap;
     this.assigned_memoffheap = other.assigned_memoffheap;
     this.assigned_cpu = other.assigned_cpu;
+    if (other.is_set_owner()) {
+      this.owner = other.owner;
+    }
   }
 
   public WorkerSummary deepCopy() {
@@ -282,6 +292,7 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
     this.assigned_memoffheap = 0.0;
     set_assigned_cpu_isSet(false);
     this.assigned_cpu = 0.0;
+    this.owner = null;
   }
 
   public java.lang.String get_supervisor_id() {
@@ -630,6 +641,29 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
     __isset_bitfield = org.apache.storm.thrift.EncodingUtils.setBit(__isset_bitfield, __ASSIGNED_CPU_ISSET_ID, value);
   }
 
+  public java.lang.String get_owner() {
+    return this.owner;
+  }
+
+  public void set_owner(java.lang.String owner) {
+    this.owner = owner;
+  }
+
+  public void unset_owner() {
+    this.owner = null;
+  }
+
+  /** Returns true if field owner is set (has been assigned a value) and false otherwise */
+  public boolean is_set_owner() {
+    return this.owner != null;
+  }
+
+  public void set_owner_isSet(boolean value) {
+    if (!value) {
+      this.owner = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, java.lang.Object value) {
     switch (field) {
     case SUPERVISOR_ID:
@@ -752,6 +786,14 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
       }
       break;
 
+    case OWNER:
+      if (value == null) {
+        unset_owner();
+      } else {
+        set_owner((java.lang.String)value);
+      }
+      break;
+
     }
   }
 
@@ -802,6 +844,9 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
     case ASSIGNED_CPU:
       return get_assigned_cpu();
 
+    case OWNER:
+      return get_owner();
+
     }
     throw new java.lang.IllegalStateException();
   }
@@ -843,6 +888,8 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
       return is_set_assigned_memoffheap();
     case ASSIGNED_CPU:
       return is_set_assigned_cpu();
+    case OWNER:
+      return is_set_owner();
     }
     throw new java.lang.IllegalStateException();
   }
@@ -997,6 +1044,15 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
         return false;
     }
 
+    boolean this_present_owner = true && this.is_set_owner();
+    boolean that_present_owner = true && that.is_set_owner();
+    if (this_present_owner || that_present_owner) {
+      if (!(this_present_owner && that_present_owner))
+        return false;
+      if (!this.owner.equals(that.owner))
+        return false;
+    }
+
     return true;
   }
 
@@ -1063,6 +1119,10 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
     hashCode = hashCode * 8191 + ((is_set_assigned_cpu()) ? 131071 : 524287);
     if (is_set_assigned_cpu())
       hashCode = hashCode * 8191 + org.apache.storm.thrift.TBaseHelper.hashCode(assigned_cpu);
+
+    hashCode = hashCode * 8191 + ((is_set_owner()) ? 131071 : 524287);
+    if (is_set_owner())
+      hashCode = hashCode * 8191 + owner.hashCode();
 
     return hashCode;
   }
@@ -1225,6 +1285,16 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
         return lastComparison;
       }
     }
+    lastComparison = java.lang.Boolean.valueOf(is_set_owner()).compareTo(other.is_set_owner());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (is_set_owner()) {
+      lastComparison = org.apache.storm.thrift.TBaseHelper.compareTo(this.owner, other.owner);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -1352,6 +1422,16 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
       if (!first) sb.append(", ");
       sb.append("assigned_cpu:");
       sb.append(this.assigned_cpu);
+      first = false;
+    }
+    if (is_set_owner()) {
+      if (!first) sb.append(", ");
+      sb.append("owner:");
+      if (this.owner == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.owner);
+      }
       first = false;
     }
     sb.append(")");
@@ -1531,6 +1611,14 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
               org.apache.storm.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 527: // OWNER
+            if (schemeField.type == org.apache.storm.thrift.protocol.TType.STRING) {
+              struct.owner = iprot.readString();
+              struct.set_owner_isSet(true);
+            } else { 
+              org.apache.storm.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.storm.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -1637,6 +1725,13 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
         oprot.writeDouble(struct.assigned_cpu);
         oprot.writeFieldEnd();
       }
+      if (struct.owner != null) {
+        if (struct.is_set_owner()) {
+          oprot.writeFieldBegin(OWNER_FIELD_DESC);
+          oprot.writeString(struct.owner);
+          oprot.writeFieldEnd();
+        }
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1700,7 +1795,10 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
       if (struct.is_set_assigned_cpu()) {
         optionals.set(14);
       }
-      oprot.writeBitSet(optionals, 15);
+      if (struct.is_set_owner()) {
+        optionals.set(15);
+      }
+      oprot.writeBitSet(optionals, 16);
       if (struct.is_set_supervisor_id()) {
         oprot.writeString(struct.supervisor_id);
       }
@@ -1753,12 +1851,15 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
       if (struct.is_set_assigned_cpu()) {
         oprot.writeDouble(struct.assigned_cpu);
       }
+      if (struct.is_set_owner()) {
+        oprot.writeString(struct.owner);
+      }
     }
 
     @Override
     public void read(org.apache.storm.thrift.protocol.TProtocol prot, WorkerSummary struct) throws org.apache.storm.thrift.TException {
       org.apache.storm.thrift.protocol.TTupleProtocol iprot = (org.apache.storm.thrift.protocol.TTupleProtocol) prot;
-      java.util.BitSet incoming = iprot.readBitSet(15);
+      java.util.BitSet incoming = iprot.readBitSet(16);
       if (incoming.get(0)) {
         struct.supervisor_id = iprot.readString();
         struct.set_supervisor_id_isSet(true);
@@ -1829,6 +1930,10 @@ public class WorkerSummary implements org.apache.storm.thrift.TBase<WorkerSummar
       if (incoming.get(14)) {
         struct.assigned_cpu = iprot.readDouble();
         struct.set_assigned_cpu_isSet(true);
+      }
+      if (incoming.get(15)) {
+        struct.owner = iprot.readString();
+        struct.set_owner_isSet(true);
       }
     }
   }
