@@ -57,7 +57,6 @@ public class BlacklistScheduler implements IScheduler {
     protected volatile Set<String> blacklistedSupervisorIds;     // supervisor ids
     private boolean blacklistOnBadSlots;
     private Map<String, Object> conf;
-    private boolean blacklistOnBadSlots;
 
     public BlacklistScheduler(IScheduler underlyingScheduler, StormMetricsRegistry metricsRegistry) {
         this.underlyingScheduler = underlyingScheduler;
