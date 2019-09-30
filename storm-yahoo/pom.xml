@@ -165,6 +165,13 @@
       <groupId>org.apache.storm</groupId>
       <artifactId>storm-server</artifactId>
       <version>${project.version}</version>
+        <exclusions>
+          <!--conflicts with jersery-1.9 pulled in by hadoop-hdfs and used in WebHDFSConflictTest-->
+          <exclusion>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+          </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -209,63 +216,14 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>yahoo.yinst.yjava_jetty_core</groupId>
-      <artifactId>yjava_jetty</artifactId>
-      <version>9.2.1.v20140609_127</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency> 
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-      <version>9.2.1.v20140609</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>yahoo.yinst.yjava_filter_logic</groupId>
+      <artifactId>yjava_filter_logic</artifactId>
+      <version>1.0.1920093</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-util</artifactId>
-      <version>9.2.1.v20140609</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlets</artifactId>
-      <version>9.2.1.v20140609</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-      <version>9.2.1.v20140609</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-      </exclusions>
+      <artifactId>jetty-client</artifactId>
+      <version>${jetty.version}</version> 
     </dependency>
     <dependency>
       <groupId>yahoo.yinst.yjava_yca</groupId>
