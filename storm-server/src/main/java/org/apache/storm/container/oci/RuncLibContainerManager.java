@@ -204,8 +204,8 @@ public class RuncLibContainerManager extends OciContainerManager {
         }
 
         Long memoryInBytes = null;
-        if (workerToMemoryMB.containsKey(workerId)) {
-            memoryInBytes =  workerToMemoryMB.get(workerId) * 1024 * 1024L;
+        if (workerToMemoryMb.containsKey(workerId)) {
+            memoryInBytes =  workerToMemoryMb.get(workerId) * 1024 * 1024L;
         }
         LOG.info("workerId {}: memoryInBytes set to {}; cpusQuotas set to {}", workerId, memoryInBytes, cpusQuotas);
 
@@ -585,7 +585,7 @@ public class RuncLibContainerManager extends OciContainerManager {
     private class RuncProcessExitCallback implements ExitCodeCallback {
         String tag;
 
-        public RuncProcessExitCallback(String tag) {
+        RuncProcessExitCallback(String tag) {
             this.tag = tag;
         }
 

@@ -419,8 +419,9 @@ public abstract class Container implements Killable {
     }
 
     /**
-     * @return the user that some operations should be done as.
+     * Get the user of the worker.
      *
+     * @return the user that some operations should be done as.
      * @throws IOException on any error
      */
     protected String getWorkerUser() throws IOException {

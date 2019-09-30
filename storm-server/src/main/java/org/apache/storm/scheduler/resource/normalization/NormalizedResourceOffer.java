@@ -95,6 +95,7 @@ public class NormalizedResourceOffer implements NormalizedResourcesWithMemory {
         }
         return negativeResources;
     }
+
     /**
      * Remove the resources in other from this.
      * @param other the resources to be removed.

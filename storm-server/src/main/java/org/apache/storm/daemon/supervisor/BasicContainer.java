@@ -158,7 +158,8 @@ public class BasicContainer extends Container {
             //When we use DockerManager, we will only use the profiler configured in worker-launcher.cfg due to security reasons
             LOG.debug("Supervisor is using {} as the {}."
                 + "The profiler set at worker.profiler.script.path in worker-launcher.cfg is the only profiler to be used. "
-                + "Please make sure it is configured properly", resourceIsolationManager.getClass().getName(), ResourceIsolationInterface.class.getName());
+                + "Please make sure it is configured properly",
+                resourceIsolationManager.getClass().getName(), ResourceIsolationInterface.class.getName());
             this.profileCmd = "";
         } else {
             if (profileCmd == null) {
@@ -563,8 +564,7 @@ public class BasicContainer extends Container {
 
     private int getMemOffHeap(WorkerResources resources) {
         int memOffheap = 0;
-        if (resources != null && resources.is_set_mem_off_heap() &&
-                resources.get_mem_off_heap() > 0) {
+        if (resources != null && resources.is_set_mem_off_heap() && resources.get_mem_off_heap() > 0) {
             memOffheap = (int) Math.ceil(resources.get_mem_off_heap());
         }
         return memOffheap;
@@ -808,12 +808,11 @@ public class BasicContainer extends Container {
         type.assertFull();
         String numaId = Utils.getNumaIdForPort(port, conf);
         if (numaId == null) {
-            LOG.info("Launching worker with assignment {} for this supervisor {} on port {} with id {}", assignment,
-                    supervisorId, port, workerId);
+            LOG.info("Launching worker with assignment {} for this supervisor {} on port {} with id {}",
+                assignment, supervisorId, port, workerId);
         } else {
-            LOG.info("Launching worker with assignment {} for this supervisor {} on port {} with id {}" +
-                            " bound to numa zone {}", assignment,
-                    supervisorId, port, workerId, numaId);
+            LOG.info("Launching worker with assignment {} for this supervisor {} on port {} with id {}  bound to numa zone {}",
+                assignment, supervisorId, port, workerId, numaId);
         }
 
         exitedEarly = false;

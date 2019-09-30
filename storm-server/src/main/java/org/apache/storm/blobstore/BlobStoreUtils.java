@@ -93,7 +93,6 @@ public class BlobStoreUtils {
      * @param zkClient zkClient
      * @param key key
      * @return NimbusInfo
-     * @throws Exception
      */
     public static Set<NimbusInfo> getNimbodesWithLatestSequenceNumberOfBlob(CuratorFramework zkClient, String key) throws Exception {
         List<String> stateInfoList;
@@ -146,7 +145,6 @@ public class BlobStoreUtils {
      * @param key key
      * @param nimbusInfos nimbusInfos
      * @return downloadMissingBlob
-     * @throws TTransportException
      */
     public static boolean downloadMissingBlob(Map<String, Object> conf, BlobStore blobStore, String key, Set<NimbusInfo> nimbusInfos)
         throws TTransportException {
@@ -203,7 +201,6 @@ public class BlobStoreUtils {
      * @param key key
      * @param nimbusInfos nimbusInfos
      * @return downloadUpdatedBlob
-     * @throws TTransportException
      */
     public static boolean downloadUpdatedBlob(Map<String, Object> conf, BlobStore blobStore, String key, Set<NimbusInfo> nimbusInfos)
         throws TTransportException {

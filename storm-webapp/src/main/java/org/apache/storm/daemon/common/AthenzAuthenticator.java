@@ -196,7 +196,7 @@ public class AthenzAuthenticator {
             extends SigningKeyResolverAdapter {
         private KeysService keyService;
 
-        public AthenzJwtsSigningKeyResolver(FilterConfig filterConfig) {
+        AthenzJwtsSigningKeyResolver(FilterConfig filterConfig) {
             keyService = new KeysService(null);
             if (filterConfig.getInitParameter(ATHENZ_URI) != null) {
                 keyService.setAthenzConfig(
@@ -226,7 +226,7 @@ public class AthenzAuthenticator {
     }
 
     @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
-    private final void setX509CAIssuers(final String issuersFileName,
+    private void setX509CAIssuers(final String issuersFileName,
                                         final String trustStorePassword) {
         if (issuersFileName == null || issuersFileName.isEmpty()) {
             return;

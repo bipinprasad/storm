@@ -841,7 +841,7 @@ public class Slot extends Thread implements AutoCloseable, BlobChangingCallback 
      */
     private static long getHbTimeoutMs(StaticState staticState, DynamicState dynamicState) {
         long hbTimeoutMs = staticState.hbTimeoutMs;
-        Map<String, Object> topoConf = dynamicState.container._topoConf;
+        Map<String, Object> topoConf = dynamicState.container.topoConf;
 
         if (topoConf != null && topoConf.containsKey(Config.TOPOLOGY_WORKER_TIMEOUT_SECS)) {
             long topoHbTimeoutMs = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_WORKER_TIMEOUT_SECS)) * 1000;

@@ -473,7 +473,6 @@ public class LocalCluster implements ILocalClusterTrackedTopologyAware, Iface {
      * @param topology     the topology itself.
      * @param submitOpts   options for topology
      * @return LocalTopology localTopology.
-     * @throws TException
      */
     @Override
     public LocalTopology submitTopology(String topologyName, Map<String, Object> conf, TrackedTopology topology)
@@ -510,7 +509,6 @@ public class LocalCluster implements ILocalClusterTrackedTopologyAware, Iface {
      * @param conf         the config for the topology
      * @param topology     the topology itself.
      * @return LocalTopology localTopology.
-     * @throws TException
      */
     @Override
     public LocalTopology submitTopologyWithOpts(String topologyName, Map<String, Object> conf, TrackedTopology topology,

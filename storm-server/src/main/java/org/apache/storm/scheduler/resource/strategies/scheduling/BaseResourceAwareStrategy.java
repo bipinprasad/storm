@@ -93,10 +93,6 @@ public abstract class BaseResourceAwareStrategy implements IStrategy {
         //NOOP
     }
 
-    protected void setOneExecutorPerWorker(boolean oneExecutorPerWorker) {
-        this.oneExecutorPerWorker = oneExecutorPerWorker;
-    }
-
     protected SchedulingResult mkNotEnoughResources(TopologyDetails td) {
         return  SchedulingResult.failure(
             SchedulingStatus.FAIL_NOT_ENOUGH_RESOURCES,
@@ -506,7 +502,8 @@ public abstract class BaseResourceAwareStrategy implements IStrategy {
      * If this config is set to true, the arrangement will be made by network proximity needs.
      * This is experimental. Will clean up the code if the new executor ordering is doing better than the original one.
      */
-    public static final String EXPERIMENTAL_TOPOLOGY_RAS_ORDER_EXECUTORS_BY_PROXIMITY_NEEDS = "experimental.topology.ras.order.executors.by.proximity.needs";
+    public static final String EXPERIMENTAL_TOPOLOGY_RAS_ORDER_EXECUTORS_BY_PROXIMITY_NEEDS
+        = "experimental.topology.ras.order.executors.by.proximity.needs";
 
     protected List<ExecutorDetails> orderExecutors(
         TopologyDetails td, Collection<ExecutorDetails> unassignedExecutors) {

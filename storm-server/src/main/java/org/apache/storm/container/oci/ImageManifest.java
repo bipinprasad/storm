@@ -81,11 +81,11 @@ public class ImageManifest {
         private final ArrayList<String> urls;
         private final Map<String, String> annotations;
 
-        public Blob() {
+        Blob() {
             this(null, null, 0, null, null);
         }
 
-        public Blob(String mediaType, String digest, long size,
+        Blob(String mediaType, String digest, long size,
                     ArrayList<String> urls, Map<String, String> annotations) {
             this.mediaType = mediaType;
             this.digest = digest;

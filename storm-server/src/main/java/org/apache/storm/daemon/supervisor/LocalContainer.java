@@ -62,8 +62,8 @@ public class LocalContainer extends Container {
         }
         Worker worker = new Worker(conf, sharedContext, topologyId, supervisorId, supervisorPort, port, workerId,
             () -> {
-            return () -> localSupervisor;
-        });
+                return () -> localSupervisor;
+            });
         try {
             worker.start();
         } catch (Exception e) {
