@@ -67,7 +67,7 @@ public abstract class OciContainerManager implements ResourceIsolationInterface 
     protected MemoryCore memoryCoreAtRoot;
 
     protected Map<String, Integer> workerToCpu = new ConcurrentHashMap<>();
-    protected Map<String, Integer> workerToMemoryMB = new ConcurrentHashMap<>();
+    protected Map<String, Integer> workerToMemoryMb = new ConcurrentHashMap<>();
     protected Map<String, Object> validatedNumaMap = new ConcurrentHashMap();
     protected Map<String, List<String>> workerToCores = new ConcurrentHashMap<>();
     protected Map<String, String> workerToMemoryZone = new ConcurrentHashMap<>();
@@ -128,7 +128,7 @@ public abstract class OciContainerManager implements ResourceIsolationInterface 
     }
 
     @Override
-    public void reserveResourcesForWorker(String workerId, Integer workerMemoryMB, Integer workerCpu, String numaId) {
+    public void reserveResourcesForWorker(String workerId, Integer workerMemoryMb, Integer workerCpu, String numaId) {
         // The manually set STORM_WORKER_CGROUP_CPU_LIMIT config on supervisor will overwrite resources assigned by
         // RAS (Resource Aware Scheduler)
         if (conf.get(DaemonConfig.STORM_WORKER_CGROUP_CPU_LIMIT) != null) {
@@ -137,14 +137,13 @@ public abstract class OciContainerManager implements ResourceIsolationInterface 
         workerToCpu.put(workerId, workerCpu);
 
         if ((boolean) this.conf.get(DaemonConfig.STORM_CGROUP_MEMORY_ENFORCEMENT_ENABLE)) {
-            workerToMemoryMB.put(workerId, workerMemoryMB);
+            workerToMemoryMb.put(workerId, workerMemoryMb);
         }
 
         if (numaId != null) {
             Map<String, Object> numaIdEntry = (Map<String, Object>) validatedNumaMap.get(numaId);
-            List<String> rawCores = ((List<Integer>) numaIdEntry.get(Utils.NUMA_CORES)).stream().map(
-                    rawCore -> String.valueOf(rawCore)
-            ).collect(Collectors.toList());
+            List<String> rawCores = ((List<Integer>) numaIdEntry.get(Utils.NUMA_CORES)).stream()
+                .map(rawCore -> String.valueOf(rawCore)).collect(Collectors.toList());
             workerToCores.put(workerId, rawCores);
             workerToMemoryZone.put(workerId, numaId);
         }
@@ -153,7 +152,7 @@ public abstract class OciContainerManager implements ResourceIsolationInterface 
     @Override
     public void releaseResourcesForWorker(String workerId) {
         workerToCpu.remove(workerId);
-        workerToMemoryMB.remove(workerId);
+        workerToMemoryMb.remove(workerId);
     }
 
     @Override

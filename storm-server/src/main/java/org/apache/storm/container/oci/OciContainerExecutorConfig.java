@@ -192,12 +192,12 @@ public class OciContainerExecutorConfig {
             private final String path;
             private final boolean readonly;
 
-            public OciRootConfig(String path, boolean readonly) {
+            OciRootConfig(String path, boolean readonly) {
                 this.path = path;
                 this.readonly = readonly;
             }
 
-            public OciRootConfig() {
+            OciRootConfig() {
                 this(null, false);
             }
 
@@ -217,21 +217,21 @@ public class OciContainerExecutorConfig {
             private final String source;
             private final List<String> options;
 
-            public OciMount(String destination, String type, String source, List<String> options) {
+            OciMount(String destination, String type, String source, List<String> options) {
                 this.destination = destination;
                 this.type = type;
                 this.source = source;
                 this.options = options;
             }
 
-            public OciMount(String destination, String source, List<String> options) {
+            OciMount(String destination, String source, List<String> options) {
                 this.destination = destination;
                 this.type = null;
                 this.source = source;
                 this.options = options;
             }
 
-            public OciMount() {
+            OciMount() {
                 this(null, null, null, null);
             }
 
@@ -277,7 +277,7 @@ public class OciContainerExecutorConfig {
             private final String selinuxLabel;
             private final User user;
 
-            public OciProcessConfig(boolean terminal, ConsoleSize consoleSize, String cwd,
+            OciProcessConfig(boolean terminal, ConsoleSize consoleSize, String cwd,
                                     List<String> env, List<String> args, RLimits rlimits,
                                     String apparmorProfile, Capabilities capabilities, boolean noNewPrivileges,
                                     int oomScoreAdj, String selinuxLabel, User user) {
@@ -295,7 +295,7 @@ public class OciContainerExecutorConfig {
                 this.user = user;
             }
 
-            public OciProcessConfig() {
+            OciProcessConfig() {
                 this(false, null, null, null, null, null, null, null, true, 0, null, null);
             }
 
@@ -352,12 +352,12 @@ public class OciContainerExecutorConfig {
                 private final int height;
                 private final int width;
 
-                public ConsoleSize(int height, int width) {
+                ConsoleSize(int height, int width) {
                     this.height = height;
                     this.width = width;
                 }
 
-                public ConsoleSize() {
+                ConsoleSize() {
                     this(0, 0);
                 }
 
@@ -376,13 +376,13 @@ public class OciContainerExecutorConfig {
                 private final long soft;
                 private final long hard;
 
-                public RLimits(String type, long soft, long hard) {
+                RLimits(String type, long soft, long hard) {
                     this.type = type;
                     this.soft = soft;
                     this.hard = hard;
                 }
 
-                public RLimits() {
+                RLimits() {
                     this(null, 0, 0);
                 }
 
@@ -407,7 +407,7 @@ public class OciContainerExecutorConfig {
                 private final List<String> permitted;
                 private final List<String> ambient;
 
-                public Capabilities(List<String> effective, List<String> bounding,
+                Capabilities(List<String> effective, List<String> bounding,
                                     List<String> inheritable, List<String> permitted,
                                     List<String> ambient) {
                     this.effective = effective;
@@ -417,7 +417,7 @@ public class OciContainerExecutorConfig {
                     this.ambient = ambient;
                 }
 
-                public Capabilities() {
+                Capabilities() {
                     this(null, null, null, null, null);
                 }
 
@@ -448,13 +448,13 @@ public class OciContainerExecutorConfig {
                 private final int gid;
                 private final int[] additionalGids;
 
-                public User(int uid, int gid, int[] additionalGids) {
+                User(int uid, int gid, int[] additionalGids) {
                     this.uid = uid;
                     this.gid = gid;
                     this.additionalGids = additionalGids;
                 }
 
-                public User() {
+                User() {
                     this(0, 0, null);
                 }
             }
@@ -466,13 +466,13 @@ public class OciContainerExecutorConfig {
             private final List<HookType> poststart;
             private final List<HookType> poststop;
 
-            public OciHooksConfig(List<HookType> prestart, List<HookType> poststart, List<HookType> poststop) {
+            OciHooksConfig(List<HookType> prestart, List<HookType> poststart, List<HookType> poststop) {
                 this.prestart = prestart;
                 this.poststart = poststart;
                 this.poststop = poststop;
             }
 
-            public OciHooksConfig() {
+            OciHooksConfig() {
                 this(null, null, null);
             }
 
@@ -495,14 +495,14 @@ public class OciContainerExecutorConfig {
                 private final List<String> env;
                 private final int timeout;
 
-                public HookType(String path, List<String> args, List<String> env, int timeout) {
+                HookType(String path, List<String> args, List<String> env, int timeout) {
                     this.path = path;
                     this.args = args;
                     this.env = env;
                     this.timeout = timeout;
                 }
 
-                public HookType() {
+                HookType() {
                     this(null, null, null, 0);
                 }
 
@@ -528,11 +528,11 @@ public class OciContainerExecutorConfig {
         static class OciAnnotationsConfig {
             Map<String, String> annotations;
 
-            public OciAnnotationsConfig(Map<String, String> annotations) {
+            OciAnnotationsConfig(Map<String, String> annotations) {
                 this.annotations = annotations;
             }
 
-            public OciAnnotationsConfig() {
+            OciAnnotationsConfig() {
                 this(null);
             }
 
@@ -555,7 +555,7 @@ public class OciContainerExecutorConfig {
             private final List<String> readonlyPaths;
             private final String mountLabel;
 
-            public OciLinuxConfig(List<Namespace> namespaces, List<IdMapping> uidMappings,
+            OciLinuxConfig(List<Namespace> namespaces, List<IdMapping> uidMappings,
                                   List<IdMapping> gidMappings, List<Device> devices,
                                   String cgroupsPath, Resources resources, IntelRdt intelRdt,
                                   Sysctl sysctl, String seccomp, String rootfsPropagation,
@@ -576,7 +576,7 @@ public class OciContainerExecutorConfig {
                 this.mountLabel = mountLabel;
             }
 
-            public OciLinuxConfig() {
+            OciLinuxConfig() {
                 this(null, null, null, null, null, null, null, null, null, null, null, null, null);
             }
 
@@ -636,12 +636,12 @@ public class OciContainerExecutorConfig {
                 private final String type;
                 private final String path;
 
-                public Namespace(String type, String path) {
+                Namespace(String type, String path) {
                     this.type = type;
                     this.path = path;
                 }
 
-                public Namespace() {
+                Namespace() {
                     this(null, null);
                 }
             }
@@ -652,13 +652,13 @@ public class OciContainerExecutorConfig {
                 private final int hostId;
                 private final int size;
 
-                public IdMapping(int containerId, int hostId, int size) {
+                IdMapping(int containerId, int hostId, int size) {
                     this.containerId = containerId;
                     this.hostId = hostId;
                     this.size = size;
                 }
 
-                public IdMapping() {
+                IdMapping() {
                     this(0, 0, 0);
                 }
 
@@ -686,7 +686,7 @@ public class OciContainerExecutorConfig {
                 private final int uid;
                 private final int gid;
 
-                public Device(String type, String path, long major, long minor,
+                Device(String type, String path, long major, long minor,
                               int fileMode, int uid, int gid) {
                     this.type = type;
                     this.path = path;
@@ -697,7 +697,7 @@ public class OciContainerExecutorConfig {
                     this.gid = gid;
                 }
 
-                public Device() {
+                Device() {
                     this(null, null, 0, 0, 0, 0, 0);
                 }
 
@@ -742,7 +742,7 @@ public class OciContainerExecutorConfig {
                 private final Pid pid;
                 private final Rdma rdma;
 
-                public Resources(List<Device> device,
+                Resources(List<Device> device,
                                  Memory memory, Cpu cpu,
                                  BlockIo blockIo, List<HugePageLimits> hugePageLimits,
                                  Network network, Pid pid,
@@ -757,7 +757,7 @@ public class OciContainerExecutorConfig {
                     this.rdma = rdma;
                 }
 
-                public Resources() {
+                Resources() {
                     this(null, null, null, null, null, null, null, null);
                 }
 
@@ -801,7 +801,7 @@ public class OciContainerExecutorConfig {
                     private final long minor;
                     private final String access;
 
-                    public Device(boolean allow, String type, long major, long minor, String access) {
+                    Device(boolean allow, String type, long major, long minor, String access) {
                         this.allow = allow;
                         this.type = type;
                         this.major = major;
@@ -809,7 +809,7 @@ public class OciContainerExecutorConfig {
                         this.access = access;
                     }
 
-                    public Device() {
+                    Device() {
                         this(false, null, 0, 0, null);
                     }
 
@@ -844,7 +844,7 @@ public class OciContainerExecutorConfig {
                     private final long swappiness;
                     private final boolean disableOomKiller;
 
-                    public Memory(long limit, long reservation, long swap,
+                    Memory(long limit, long reservation, long swap,
                                   long kernel, long kernelTcp, long swappiness,
                                   boolean disableOomKiller) {
                         this.limit = limit;
@@ -856,7 +856,7 @@ public class OciContainerExecutorConfig {
                         this.disableOomKiller = disableOomKiller;
                     }
 
-                    public Memory() {
+                    Memory() {
                         this(0, 0, 0, 0, 0, 0, false);
                     }
 
@@ -899,7 +899,7 @@ public class OciContainerExecutorConfig {
                     private String mems;
                     private final long shares;
 
-                    public Cpu(long shares, long quota, long period,
+                    Cpu(long shares, long quota, long period,
                                long realtimeRuntime, long realtimePeriod,
                                String cpus, String mems) {
                         this.shares = shares;
@@ -911,7 +911,7 @@ public class OciContainerExecutorConfig {
                         this.mems = mems;
                     }
 
-                    public Cpu() {
+                    Cpu() {
                         this(0, 0, 0, 0, 0, null, null);
                     }
 
@@ -962,7 +962,7 @@ public class OciContainerExecutorConfig {
                     private final List<ThrottleDevice> throttleReadIopsDevice;
                     private final List<ThrottleDevice> throttleWriteIopsDevice;
 
-                    public BlockIo(int weight, int leafWeight, List<WeightDevice> weightDevices,
+                    BlockIo(int weight, int leafWeight, List<WeightDevice> weightDevices,
                                    List<ThrottleDevice> throttleReadBpsDevice,
                                    List<ThrottleDevice> throttleWriteBpsDevice,
                                    List<ThrottleDevice> throttleReadIopsDevice,
@@ -976,7 +976,7 @@ public class OciContainerExecutorConfig {
                         this.throttleWriteIopsDevice = throttleWriteIopsDevice;
                     }
 
-                    public BlockIo() {
+                    BlockIo() {
                         this(0, 0, null, null, null, null, null);
                     }
 
@@ -1015,14 +1015,14 @@ public class OciContainerExecutorConfig {
                         private final int weight;
                         private final int leafWeight;
 
-                        public WeightDevice(long major, long minor, int weight, int leafWeight) {
+                        WeightDevice(long major, long minor, int weight, int leafWeight) {
                             this.major = major;
                             this.minor = minor;
                             this.weight = weight;
                             this.leafWeight = leafWeight;
                         }
 
-                        public WeightDevice() {
+                        WeightDevice() {
                             this(0, 0, 0, 0);
                         }
 
@@ -1049,13 +1049,13 @@ public class OciContainerExecutorConfig {
                         private final long minor;
                         private final long rate;
 
-                        public ThrottleDevice(long major, long minor, long rate) {
+                        ThrottleDevice(long major, long minor, long rate) {
                             this.major = major;
                             this.minor = minor;
                             this.rate = rate;
                         }
 
-                        public ThrottleDevice() {
+                        ThrottleDevice() {
                             this(0, 0, 0);
                         }
 
@@ -1078,12 +1078,12 @@ public class OciContainerExecutorConfig {
                     private final String pageSize;
                     private final long limit;
 
-                    public HugePageLimits(String pageSize, long limit) {
+                    HugePageLimits(String pageSize, long limit) {
                         this.pageSize = pageSize;
                         this.limit = limit;
                     }
 
-                    public HugePageLimits() {
+                    HugePageLimits() {
                         this(null, 0);
                     }
 
@@ -1101,12 +1101,12 @@ public class OciContainerExecutorConfig {
                     private final int classId;
                     private final List<NetworkPriority> priorities;
 
-                    public Network(int classId, List<NetworkPriority> priorities) {
+                    Network(int classId, List<NetworkPriority> priorities) {
                         this.classId = classId;
                         this.priorities = priorities;
                     }
 
-                    public Network() {
+                    Network() {
                         this(0, null);
                     }
 
@@ -1123,12 +1123,12 @@ public class OciContainerExecutorConfig {
                         private final String name;
                         private final int priority;
 
-                        public NetworkPriority(String name, int priority) {
+                        NetworkPriority(String name, int priority) {
                             this.name = name;
                             this.priority = priority;
                         }
 
-                        public NetworkPriority() {
+                        NetworkPriority() {
                             this(null, 0);
                         }
 
@@ -1146,11 +1146,11 @@ public class OciContainerExecutorConfig {
                 static class Pid {
                     private final long limit;
 
-                    public Pid(long limit) {
+                    Pid(long limit) {
                         this.limit = limit;
                     }
 
-                    public Pid() {
+                    Pid() {
                         this(0);
                     }
 
@@ -1164,12 +1164,12 @@ public class OciContainerExecutorConfig {
                     private final int hcaHandles;
                     private final int hcaObjects;
 
-                    public Rdma(int hcaHandles, int hcaObjects) {
+                    Rdma(int hcaHandles, int hcaObjects) {
                         this.hcaHandles = hcaHandles;
                         this.hcaObjects = hcaObjects;
                     }
 
-                    public Rdma() {
+                    Rdma() {
                         this(0, 0);
                     }
 
@@ -1189,13 +1189,13 @@ public class OciContainerExecutorConfig {
                 private final String l3CacheSchema;
                 private final String memBwSchema;
 
-                public IntelRdt(String closId, String l3CacheSchema, String memBwSchema) {
+                IntelRdt(String closId, String l3CacheSchema, String memBwSchema) {
                     this.closId = closId;
                     this.l3CacheSchema = l3CacheSchema;
                     this.memBwSchema = memBwSchema;
                 }
 
-                public IntelRdt() {
+                IntelRdt() {
                     this(null, null, null);
                 }
 
@@ -1223,13 +1223,13 @@ public class OciContainerExecutorConfig {
                 private final List<String> architectures;
                 private final List<Syscall> syscalls;
 
-                public Seccomp(String defaultAction, List<String> architectures, List<Syscall> syscalls) {
+                Seccomp(String defaultAction, List<String> architectures, List<Syscall> syscalls) {
                     this.defaultAction = defaultAction;
                     this.architectures = architectures;
                     this.syscalls = syscalls;
                 }
 
-                public Seccomp() {
+                Seccomp() {
                     this(null, null, null);
                 }
 
@@ -1251,13 +1251,13 @@ public class OciContainerExecutorConfig {
                     private final String action;
                     private final List<SeccompArg> args;
 
-                    public Syscall(List<String> names, String action, List<SeccompArg> args) {
+                    Syscall(List<String> names, String action, List<SeccompArg> args) {
                         this.names = names;
                         this.action = action;
                         this.args = args;
                     }
 
-                    public Syscall() {
+                    Syscall() {
                         this(null, null, null);
                     }
 
@@ -1280,14 +1280,14 @@ public class OciContainerExecutorConfig {
                         private final long valueTwo;
                         private final String op;
 
-                        public SeccompArg(int index, long value, long valueTwo, String op) {
+                        SeccompArg(int index, long value, long valueTwo, String op) {
                             this.index = index;
                             this.value = value;
                             this.valueTwo = valueTwo;
                             this.op = op;
                         }
 
-                        public SeccompArg() {
+                        SeccompArg() {
                             this(0, 0, 0, null);
                         }
 

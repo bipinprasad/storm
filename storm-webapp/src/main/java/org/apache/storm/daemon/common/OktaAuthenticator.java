@@ -178,7 +178,7 @@ public class OktaAuthenticator {
         private KeysService keyService;
         private boolean reloadKeyStore = true;
 
-        public OktaJwtsSigningKeyResolver(FilterConfig filterConfig) {
+        OktaJwtsSigningKeyResolver(FilterConfig filterConfig) {
             keyStoreFile = new File(filterConfig.getInitParameter(OKTA_HTTPS_KEYSTORE_PATH));
             keyStorePassword = filterConfig.getInitParameter(OKTA_HTTPS_KEYSTORE_KEY);
             keyService = new KeysService(

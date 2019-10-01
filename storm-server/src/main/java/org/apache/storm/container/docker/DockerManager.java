@@ -149,8 +149,8 @@ public class DockerManager extends OciContainerManager {
             dockerRunCommand.setCpus(workerToCpu.get(workerId) / 100.0);
         }
 
-        if (workerToMemoryMB.containsKey(workerId)) {
-            dockerRunCommand.setMemoryMB(workerToMemoryMB.get(workerId));
+        if (workerToMemoryMb.containsKey(workerId)) {
+            dockerRunCommand.setMemoryMb(workerToMemoryMb.get(workerId));
         }
 
         dockerRunCommand.setOverrideCommandWithArgs(Arrays.asList("bash", ServerUtils.writeScript(workerDir, command, env, "0027")));
@@ -185,7 +185,7 @@ public class DockerManager extends OciContainerManager {
     }
 
     //Get the container ID of the worker
-    private String getCID(String workerId) throws IOException {
+    private String getContainerId(String workerId) throws IOException {
         String cid = workerToCid.get(workerId);
         if (cid == null) {
             File cidFile = new File(dockerCidFilePath(workerId));
@@ -212,7 +212,7 @@ public class DockerManager extends OciContainerManager {
 
     @Override
     public long getMemoryUsage(String user, String workerId, int port) throws IOException {
-        String memoryCgroupPath = memoryCgroupRootPath + File.separator + getCID(workerId);
+        String memoryCgroupPath = memoryCgroupRootPath + File.separator + getContainerId(workerId);
         MemoryCore memoryCore = new MemoryCore(memoryCgroupPath);
         return memoryCore.getPhysicalUsage();
     }
@@ -288,7 +288,7 @@ public class DockerManager extends OciContainerManager {
         }
 
         try {
-            String containerId = getCID(workerId);
+            String containerId = getContainerId(workerId);
             return !containerId.startsWith(lastLine);
         } catch (IOException e) {
             LOG.error("Failed to find Container ID for {}, assuming dead", workerId, e);

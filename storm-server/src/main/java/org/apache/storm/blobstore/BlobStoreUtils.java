@@ -49,12 +49,7 @@ public class BlobStoreUtils {
         return BLOBSTORE_SUBTREE;
     }
 
-    /**
-     * createZKClient.
-     * @param conf conf
-     * @param type type
-     * @return zkClient
-     */
+    @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
     public static CuratorFramework createZKClient(Map<String, Object> conf, DaemonType type) {
         @SuppressWarnings("unchecked")
         List<String> zkServers = (List<String>) conf.get(Config.STORM_ZOOKEEPER_SERVERS);
@@ -98,7 +93,6 @@ public class BlobStoreUtils {
      * @param zkClient zkClient
      * @param key key
      * @return NimbusInfo
-     * @throws Exception
      */
     public static Set<NimbusInfo> getNimbodesWithLatestSequenceNumberOfBlob(CuratorFramework zkClient, String key) throws Exception {
         List<String> stateInfoList;
@@ -151,7 +145,6 @@ public class BlobStoreUtils {
      * @param key key
      * @param nimbusInfos nimbusInfos
      * @return downloadMissingBlob
-     * @throws TTransportException
      */
     public static boolean downloadMissingBlob(Map<String, Object> conf, BlobStore blobStore, String key, Set<NimbusInfo> nimbusInfos)
         throws TTransportException {
@@ -208,7 +201,6 @@ public class BlobStoreUtils {
      * @param key key
      * @param nimbusInfos nimbusInfos
      * @return downloadUpdatedBlob
-     * @throws TTransportException
      */
     public static boolean downloadUpdatedBlob(Map<String, Object> conf, BlobStore blobStore, String key, Set<NimbusInfo> nimbusInfos)
         throws TTransportException {
@@ -234,7 +226,7 @@ public class BlobStoreUtils {
                     out = null;
                 }
                 isSuccess = true;
-            } catch(FileNotFoundException fnf) {
+            } catch (FileNotFoundException fnf) {
                 LOG.warn("Blobstore file for key '{}' does not exist or got deleted before it could be downloaded.", key, fnf);
             } catch (IOException | AuthorizationException exception) {
                 throw new RuntimeException(exception);

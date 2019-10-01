@@ -77,16 +77,13 @@ public class SupervisorHeartbeat implements Runnable {
                 supervisorInfo.set_time_secs(Time.currentTimeSecs());
                 supervisorInfo.set_hostname(supervisor.getHostName());
                 supervisorInfo.set_assignment_id(
-                        supervisor.getAssignmentId()+ Constants.NUMA_ID_SEPARATOR + numaMapEntry.getKey()
+                        supervisor.getAssignmentId() + Constants.NUMA_ID_SEPARATOR + numaMapEntry.getKey()
                 );
                 supervisorInfo.set_server_port(supervisor.getThriftServerPort());
 
                 Map<String, Object> numaMap = (Map<String, Object>) numaMapEntry.getValue();
-                List numaPortList =
-                        ((List<Integer>) numaMap.get(Utils.NUMA_PORTS)).stream().map(
-                                e -> e.longValue()
-                        ).collect(Collectors.toList());
-
+                List numaPortList = ((List<Integer>) numaMap.get(Utils.NUMA_PORTS)).stream()
+                    .map(e -> e.longValue()).collect(Collectors.toList());
 
                 List<Long> usedNumaPorts = ListUtils.intersection(numaPortList, allUsedPorts);
                 supervisorInfo.set_used_ports(usedNumaPorts);
@@ -106,7 +103,8 @@ public class SupervisorHeartbeat implements Runnable {
             }
         }
 
-        if (totalSupervisorNormalizedResources.getTotalCpu() > 0 && totalSupervisorNormalizedResources.getTotalMemoryMb() > 0 && !allPortList.isEmpty()) {
+        if (totalSupervisorNormalizedResources.getTotalCpu() > 0
+            && totalSupervisorNormalizedResources.getTotalMemoryMb() > 0 && !allPortList.isEmpty()) {
             SupervisorInfo supervisorInfo = new SupervisorInfo();
             supervisorInfo.set_time_secs(Time.currentTimeSecs());
             supervisorInfo.set_hostname(supervisor.getHostName());

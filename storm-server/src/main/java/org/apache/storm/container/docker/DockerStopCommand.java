@@ -34,7 +34,7 @@ public class DockerStopCommand extends DockerCommand {
     }
 
     /**
-     * Get the full command
+     * Get the full command.
      * @return the full command
      */
     @Override
