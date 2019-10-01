@@ -854,7 +854,6 @@ public class BasicContainer extends Container {
         ProcessExitCallback processExitCallback = new ProcessExitCallback(logPrefix);
         resourceIsolationManager.launchWorkerProcess(getWorkerUser(), topologyId, port, workerId,
             commandList, topEnvironment, logPrefix, processExitCallback, new File(workerDir));
-
     }
 
     private static class TopologyMetaData {

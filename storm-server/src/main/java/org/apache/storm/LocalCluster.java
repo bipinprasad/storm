@@ -471,7 +471,6 @@ public class LocalCluster implements ILocalClusterTrackedTopologyAware, Iface {
      * @param topologyName the name of the topology to use
      * @param conf         the config for the topology
      * @param topology     the topology itself.
-     * @param submitOpts   options for topology
      * @return LocalTopology localTopology.
      */
     @Override

@@ -54,6 +54,7 @@ import org.apache.storm.validation.ConfigValidationAnnotations.IsStringOrStringL
 import org.apache.storm.validation.ConfigValidationAnnotations.IsType;
 import org.apache.storm.validation.ConfigValidationAnnotations.NotNull;
 import org.apache.storm.validation.ConfigValidationAnnotations.Password;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
