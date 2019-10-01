@@ -3,7 +3,7 @@ This module contains example topologies demonstrating storm-kafka-client spout a
 
 The module is built by running `mvn clean package -Dstorm.kafka.client.version=<kafka_broker_version>`, where the property should match the Kafka version you want to use. For example, for Kafka 0.11.0.0 the `<kafka_broker_version>` would be `0.11.0.0`. This will generate the `target/storm-kafka-client-examples-VERSION.jar` file. The jar contains all dependencies and can be submitted to Storm via the Storm CLI, e.g.
 ```
-storm jar storm-kafka-client-examples-2.0.1.y.jar org.apache.storm.kafka.spout.KafkaSpoutTopologyMainNamedTopics
+storm jar storm-kafka-client-examples-2.2.0.y.jar org.apache.storm.kafka.spout.KafkaSpoutTopologyMainNamedTopics
 ```
 will submit the topologies set up by KafkaSpoutTopologyMainNamedTopics to Storm.
 

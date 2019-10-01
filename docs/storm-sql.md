@@ -115,7 +115,7 @@ To run this example, users need to include the data sources (`storm-sql-kafka` i
 class path. The Storm SQL core dependencies are automatically handled when users run `storm sql`. Users can include data sources at the submission step like below:
 
 ```
-$ bin/storm sql order_filtering.sql order_filtering --artifacts "org.apache.storm:storm-sql-kafka:2.0.1.y,org.apache.storm:storm-kafka-client:2.0.1.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12"
+$ bin/storm sql order_filtering.sql order_filtering --artifacts "org.apache.storm:storm-sql-kafka:2.2.0.y,org.apache.storm:storm-kafka-client:2.2.0.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12"
 ```
 
 Above command submits the SQL statements to StormSQL. Users need to modify each artifacts' version if users are using different version of Storm or Kafka. 
@@ -131,7 +131,7 @@ In order to run `explain mode`, you need to provide topology name as `--explain`
 For example, when you run the example seen above with explain mode:
  
 ```
-$ bin/storm sql order_filtering.sql --explain --artifacts "org.apache.storm:storm-sql-kafka:2.0.1.y,org.apache.storm:storm-kafka-client:2.0.1.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12"
+$ bin/storm sql order_filtering.sql --explain --artifacts "org.apache.storm:storm-sql-kafka:2.2.0.y,org.apache.storm:storm-kafka-client:2.2.0.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12"
 ```
 
 StormSQL prints out like below:
