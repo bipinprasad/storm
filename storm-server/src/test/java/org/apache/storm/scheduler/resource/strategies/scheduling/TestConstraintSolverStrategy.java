@@ -37,7 +37,9 @@ import org.apache.storm.scheduler.resource.strategies.priority.DefaultScheduling
 import org.apache.storm.utils.Time;
 import org.apache.storm.utils.Utils;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,8 +97,8 @@ public class TestConstraintSolverStrategy {
         if (supMap == null) {
             supMap = genSupervisors(4, 2, 120, 1200);
         }
-        Map<String, Object> daemonConfig = Utils.readDefaultConfig();
-        return new Cluster(new INimbusTest(), new ResourceMetrics(new StormMetricsRegistry()), supMap, new HashMap<>(), topologies, daemonConfig);
+        Map<String, Object> config = Utils.readDefaultConfig();
+        return new Cluster(new INimbusTest(), new ResourceMetrics(new StormMetricsRegistry()), supMap, new HashMap<>(), topologies, config);
     }
 
     public void basicUnitTestWithKillAndRecover(ConstraintSolverStrategy cs, int boltParallel) {
@@ -202,22 +204,15 @@ public class TestConstraintSolverStrategy {
         }
     }
 
-    @Test
-    public void testScheduleLargeExecutorCount() {
-        // All tests have sufficient cluster resources to succeed.
-        // Failure to schedule can be caused by (1) StackOverflow or (2) scheduling time timeout
-        Assert.assertTrue(testScheduleLargeExecutorCount(1));
-        Assert.assertTrue(testScheduleLargeExecutorCount(5));
-
-        // For default JVM, scheduling currently fails due to StackOverflow.
-        // For now just log the results of the test. Change to assert when StackOverflow issue is fixed.
-        boolean success = testScheduleLargeExecutorCount(20);
-        LOG.info("testScheduleLargeExecutorCount scheduling {} with multiplier 20", success ? "succeeds" : "fails");
-    }
-
-    private boolean testScheduleLargeExecutorCount(int executorMultiplier)
-    {
-        // Add 1 topology with large number of executors. Too many executors causes a java.lang.StackOverflowError
+    /*
+     * Test scheduling large number of executors and constraints.
+     *
+     * Cluster has sufficient resources for scheduling to succeed but can fail due to StackOverflowError.
+     */
+    @ParameterizedTest
+    @ValueSource(ints = {1, 20})
+    public void testScheduleLargeExecutorConstraintCount(int parallelismMultiplier) {
+        // Add 1 topology with large number of executors and constraints. Too many can cause a java.lang.StackOverflowError
         Config config = createCSSClusterConfig(10, 10, 0, null);
         config.put(Config.TOPOLOGY_RAS_CONSTRAINT_MAX_STATE_SEARCH, 50000);
 
@@ -231,22 +226,30 @@ public class TestConstraintSolverStrategy {
         addContraints("bolt-1", "spout-0", constraints);
 
         config.put(Config.TOPOLOGY_RAS_CONSTRAINTS, constraints);
-        TopologyDetails topo = genTopology("testTopo-" + executorMultiplier, config, 10, 10, 30 * executorMultiplier, 30 * executorMultiplier, 31414, 0, "user");
+        TopologyDetails topo = genTopology("testTopo-" + parallelismMultiplier, config, 10, 10, 30 * parallelismMultiplier, 30 * parallelismMultiplier, 31414, 0, "user");
         Topologies topologies = new Topologies(topo);
-        Map<String, SupervisorDetails> supMap = genSupervisors(30 * executorMultiplier, 30, 3500, 35000);
+
+        Map<String, SupervisorDetails> supMap = genSupervisors(30 * parallelismMultiplier, 30, 3500, 35000);
         Cluster cluster = makeCluster(topologies, supMap);
 
         ResourceAwareScheduler scheduler = new ResourceAwareScheduler();
         scheduler.prepare(config);
         scheduler.schedule(topologies, cluster);
 
-        return isStatusSuccess(cluster.getStatus(topo.getId()));
+        boolean scheduleSuccess = isStatusSuccess(cluster.getStatus(topo.getId()));
+
+        if (parallelismMultiplier == 1) {
+            Assert.assertTrue(scheduleSuccess);
+        } else if (parallelismMultiplier == 20) {
+            // For default JVM, scheduling currently fails due to StackOverflow.
+            // For now just log the results of the test. Change to assert when StackOverflow issue is fixed.
+            LOG.info("testScheduleLargeExecutorCount scheduling {} with {}x executor multiplier", scheduleSuccess ? "succeeds" : "fails",
+                    parallelismMultiplier);
+        }
     }
 
     @Test
     public void testIntegrationWithRAS() {
-        Map<String, SupervisorDetails> supMap = genSupervisors(30, 16, 400, 1024 * 4);
-
         List<List<String>> constraints = new LinkedList<>();
         addContraints("spout-0", "bolt-0", constraints);
         addContraints("bolt-1", "bolt-1", constraints);
@@ -255,8 +258,6 @@ public class TestConstraintSolverStrategy {
         spread.add("spout-0");
 
         Map<String, Object> config = Utils.readDefaultConfig();
-        config.put(DaemonConfig.RESOURCE_AWARE_SCHEDULER_PRIORITY_STRATEGY, DefaultSchedulingPriorityStrategy.class.getName());
-        config.put(DaemonConfig.RESOURCE_AWARE_SCHEDULER_MAX_STATE_SEARCH, MAX_TRAVERSAL_DEPTH);
         config.put(Config.TOPOLOGY_SCHEDULER_STRATEGY, ConstraintSolverStrategy.class.getName());
         config.put(Config.TOPOLOGY_SPREAD_COMPONENTS, spread);
         config.put(Config.TOPOLOGY_RAS_CONSTRAINTS, constraints);
@@ -271,7 +272,8 @@ public class TestConstraintSolverStrategy {
         Map<String, TopologyDetails> topoMap = new HashMap<>();
         topoMap.put(topo.getId(), topo);
         Topologies topologies = new Topologies(topoMap);
-        Cluster cluster = new Cluster(new INimbusTest(), new ResourceMetrics(new StormMetricsRegistry()), supMap, new HashMap<>(), topologies, config);
+        Map<String, SupervisorDetails> supMap = genSupervisors(30, 16, 400, 1024 * 4);
+        Cluster cluster = makeCluster(topologies, supMap);
         ResourceAwareScheduler rs = new ResourceAwareScheduler();
         rs.prepare(config);
         try {

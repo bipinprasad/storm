@@ -424,6 +424,11 @@
           Version
         </span>
       </th>
+      <th>
+        <span data-toggle="tooltip" data-placement="top" title="Whether this supervisor is blacklisted or not">
+          Blacklisted
+        </span>
+      </th>
     </tr>
   </thead>
   <tbody>
@@ -446,6 +451,7 @@
       <td>{{availCpu}}</td>
       {{/schedulerDisplayResource}}
       <td>{{version}}</td>
+      <td>{{blacklisted}}</td>
     </tr>
     {{/supervisors}}
   </tbody>
