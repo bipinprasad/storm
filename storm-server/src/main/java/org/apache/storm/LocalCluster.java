@@ -493,6 +493,24 @@ public class LocalCluster implements ILocalClusterTrackedTopologyAware, Iface {
     }
 
     @Override
+    public LocalTopology submitTopology(String topologyName, Map<String, Object> conf, TrackedTopology topology)
+            throws TException {
+        return submitTopology(topologyName, conf, topology.getTopology());
+    }
+
+    @Override
+    public void submitTopology(String name, String uploadedJarLocation, String jsonConf, StormTopology topology)
+            throws AlreadyAliveException, InvalidTopologyException, AuthorizationException, TException {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> conf = (Map<String, Object>) JSONValue.parseWithException(jsonConf);
+            submitTopology(name, conf, topology);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public LocalTopology submitTopologyWithOpts(String topologyName, Map<String, Object> conf, StormTopology topology,
                                                 SubmitOptions submitOpts)
         throws TException {

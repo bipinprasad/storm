@@ -1145,7 +1145,6 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
                     topoId, workerTimeoutSecs, workerMaxTimeoutSecs);
             }
         }
-
         return ret;
     }
 

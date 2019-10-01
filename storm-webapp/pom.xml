@@ -30,9 +30,6 @@
     <name>Storm Webapp</name>
     <description>Webapp Servers for Apache Storm</description>
     <properties>
-        <jersey.version>2.27</jersey.version>
-        <grizzly.version>2.4.3</grizzly.version>
-        <jersey-grizzly2.version>1.19.4</jersey-grizzly2.version>
         <io-jsonwebtoken.version>0.10.6</io-jsonwebtoken.version>
         <okta-jwt.version>0.4.0</okta-jwt.version>
         <dep.oath.okta.java_sso.version>3.1.1</dep.oath.okta.java_sso.version>
