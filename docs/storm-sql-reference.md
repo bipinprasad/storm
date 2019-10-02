@@ -1262,7 +1262,7 @@ Kafka data source requires below properties only when its used for output data s
 Please note that `storm-sql-kafka` requires users to provide `storm-kafka-client`, and `storm-kafka-client` requires users to provide `kafka-clients`.
 You can use below as working reference for `--artifacts` option, and change dependencies version, and see it works:
 
-`org.apache.storm:storm-sql-kafka:2.0.1.y,org.apache.storm:storm-kafka-client:2.0.1.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12`
+`org.apache.storm:storm-sql-kafka:2.2.0.y,org.apache.storm:storm-kafka-client:2.2.0.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12`
 
 #### Redis
 
@@ -1276,7 +1276,7 @@ Redis data source requires below properties to be set:
 Please note that `storm-sql-redis` requires users to provide `storm-redis`.
 You can use below as working reference for `--artifacts` option, and change dependencies version if really needed:
 
-`org.apache.storm:storm-sql-redis:2.0.1.y,org.apache.storm:storm-redis:2.0.1.y`
+`org.apache.storm:storm-sql-redis:2.2.0.y,org.apache.storm:storm-redis:2.2.0.y`
 
 #### MongoDB
 
@@ -1290,7 +1290,7 @@ MongoDB data source requires below properties to be set:
 Please note that `storm-sql-mongodb` requires users to provide `storm-mongodb`.
 You can use below as working reference for `--artifacts` option, and change dependencies version if really needed:
 
-`org.apache.storm:storm-sql-mongodb:2.0.1.y,org.apache.storm:storm-mongodb:2.0.1.y`
+`org.apache.storm:storm-sql-mongodb:2.2.0.y,org.apache.storm:storm-mongodb:2.2.0.y`
 
 Storing record with preserving fields are not supported for now.
 
@@ -1308,7 +1308,7 @@ Please note that `hdfs.rotation.size.kb` and `hdfs.rotation.time.seconds` only o
 And note that `storm-sql-hdfs` requires users to provide `storm-hdfs`.
 You can use below as working reference for `--artifacts` option, and change dependencies version if really needed:
 
-`org.apache.storm:storm-sql-hdfs:2.0.1.y,org.apache.storm:storm-hdfs:2.0.1.y`
+`org.apache.storm:storm-sql-hdfs:2.2.0.y,org.apache.storm:storm-hdfs:2.2.0.y`
 
 Also, hdfs configuration files should be provided.
 You can put the `core-site.xml` and `hdfs-site.xml` into the `conf` directory which is in Storm installation directory.

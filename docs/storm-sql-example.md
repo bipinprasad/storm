@@ -177,7 +177,7 @@ class path. The Storm SQL core dependencies are automatically handled when users
 Users can include data sources at the submission step like below:
 
 ```
-$ $STORM_DIR/bin/storm sql apache_log_error_filtering.sql apache_log_error_filtering --artifacts "org.apache.storm:storm-sql-kafka:2.0.1.y,org.apache.storm:storm-kafka-client:2.0.1.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12"
+$ $STORM_DIR/bin/storm sql apache_log_error_filtering.sql apache_log_error_filtering --artifacts "org.apache.storm:storm-sql-kafka:2.2.0.y,org.apache.storm:storm-kafka-client:2.2.0.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12"
 ```
 
 Above command submits the SQL statements to StormSQL. The command line syntax of Storm SQL is `storm sql [script file] [topology name]`. 
@@ -202,7 +202,7 @@ and the output will be similar to:
 You can also run Storm SQL runner to see the logical plan via placing `--explain` to topology name:
 
 ```
-$ $STORM_DIR/bin/storm sql apache_log_error_filtering.sql --explain --artifacts "org.apache.storm:storm-sql-kafka:2.0.1.y,org.apache.storm:storm-kafka-client:2.0.1.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12"
+$ $STORM_DIR/bin/storm sql apache_log_error_filtering.sql --explain --artifacts "org.apache.storm:storm-sql-kafka:2.2.0.y,org.apache.storm:storm-kafka-client:2.2.0.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12"
 ```
 
 and the output will be similar to:
@@ -270,7 +270,7 @@ The last statement is very similar to filtering error logs. The only new thing i
 Let's execute it.
 
 ```
-$ $STORM_DIR/bin/storm sql apache_log_slow_filtering.sql apache_log_slow_filtering --artifacts "org.apache.storm:storm-sql-kafka:2.0.1.y,org.apache.storm:storm-kafka-client:2.0.1.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12"
+$ $STORM_DIR/bin/storm sql apache_log_slow_filtering.sql apache_log_slow_filtering --artifacts "org.apache.storm:storm-sql-kafka:2.2.0.y,org.apache.storm:storm-kafka-client:2.2.0.y,org.apache.kafka:kafka-clients:1.1.0^org.slf4j:slf4j-log4j12"
 ```
 
 You can see the output via console:
