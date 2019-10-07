@@ -444,17 +444,4 @@ public class NormalizedResources {
     public boolean anyNonCpuOverZero() {
         return areAnyOverZero(true);
     }
-
-    /**
-     * Are any of the resources zero or less.
-     * @return true if any of the resources are zero or less.  False if they are all > 0.
-     */
-    public boolean areAnyZeroOrLess() {
-        for (int i = 0; i < otherResources.length; i++) {
-            if (otherResources[i] <= 0) {
-                return true;
-            }
-        }
-        return cpu <= 0;
-    }
 }

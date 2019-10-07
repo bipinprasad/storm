@@ -194,11 +194,6 @@ public class NormalizedResourceOffer implements NormalizedResourcesWithMemory {
         return totalMemoryMb > 0 || normalizedResources.areAnyOverZero();
     }
 
-    @Override
-    public boolean areAnyZeroOrLess() {
-        return totalMemoryMb <= 0 || normalizedResources.areAnyZeroOrLess();
-    }
-
     /**
      * Is there any possibility that a resource request could ever fit on this.
      * @param minWorkerCpu the configured minimum worker CPU
