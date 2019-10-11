@@ -21,9 +21,12 @@ package org.apache.storm.container.oci;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
+import org.apache.commons.io.FileDeleteStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.storm.DaemonConfig;
 import org.apache.storm.utils.ConfigUtils;
@@ -35,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 public class HdfsOciResourcesLocalizer implements OciResourcesLocalizerInterface {
     private static final Logger LOG = LoggerFactory.getLogger(HdfsOciResourcesLocalizer.class);
+    private static final int LOCALIZE_MAX_RETRY = 5;
     private String layersLocalDir;
     private String configLocalDir;
     private FileSystem fs;
@@ -83,8 +87,9 @@ public class HdfsOciResourcesLocalizer implements OciResourcesLocalizerInterface
             LOG.info("{} already exists. Skip", dst);
         } else {
             LOG.info("Starting to copy {} from hdfs to {}", ociResource.getPath(), dst.toString());
-            fs.copyToLocalFile(new Path(ociResource.getPath()), new Path(dst.toString()));
-            LOG.info("Finished copying {} from hdfs to {}", ociResource.getPath(), dst.toString());
+            copyFileLocallyWithRetry(ociResource, dst);
+            LOG.info("Successfully finished copying {} from hdfs to {}", ociResource.getPath(), dst.toString());
+
             //set to readable by anyone
             boolean setReadable = dst.setReadable(true, false);
             if (!setReadable) {
@@ -92,5 +97,32 @@ public class HdfsOciResourcesLocalizer implements OciResourcesLocalizerInterface
             }
         }
         return dst.toString();
+    }
+
+    private synchronized void copyFileLocallyWithRetry(OciResource ociResource, File dst) throws IOException {
+        IOException lastIoException = null;
+
+        for (int retryCount = 0; retryCount < LOCALIZE_MAX_RETRY; retryCount++) {
+            try {
+                Thread.sleep(1500);
+                fs.copyToLocalFile(new Path(ociResource.getPath()), new Path(dst.toString()));
+                lastIoException = null;
+                break;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            } catch (IOException e) {
+                if (dst.exists()) {
+                    FileDeleteStrategy.FORCE.delete(dst);
+                }
+                LOG.warn("{} occurs at {} attempt, deleted corrupt file {} if present", e.toString(), retryCount, dst);
+                lastIoException = e;
+            }
+        }
+        if (lastIoException != null) {
+            LOG.debug("Resource localization failed after {} retries", LOCALIZE_MAX_RETRY);
+            throw lastIoException;
+        }
+
     }
 }
