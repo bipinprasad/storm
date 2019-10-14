@@ -22,8 +22,10 @@ package org.apache.storm.container.oci;
 import static org.apache.storm.utils.ConfigUtils.FILE_SEPARATOR;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -54,6 +56,9 @@ import org.apache.storm.utils.Utils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
@@ -72,6 +77,7 @@ public class RuncLibContainerManager extends OciContainerManager {
     private static final String RESOLV_CONF = "/etc/resolv.conf";
     private static final String HOSTNAME = "/etc/hostname";
     private static final String HOSTS = "/etc/hosts";
+    private static final String OCI_CONFIG_JSON = "oci-config.json";
 
     private static final String SQUASHFS_MEDIA_TYPE = "application/vnd.squashfs";
 
@@ -280,8 +286,24 @@ public class RuncLibContainerManager extends OciContainerManager {
             }, "CheckContainerAlive_SLOT_" + port, null);
     }
 
-    private String getContainerId(String workerId, int port) {
+    private String getContainerId(String workerId, int port) throws IOException {
+        if (port <= 0) { // when killing workers, we will have the workerId and a port of -1
+            return getContainerIdFromOciJson(workerId);
+        }
         return port + "-" + workerId;
+    }
+
+    private String getContainerIdFromOciJson(String workerId) throws IOException {
+        String ociJson = ConfigUtils.workerRoot(conf, workerId) + FILE_SEPARATOR + OCI_CONFIG_JSON;
+        LOG.info("port unknown for workerId {}, looking up from {}", workerId, ociJson);
+        JSONParser parser = new JSONParser();
+
+        try (Reader reader = new FileReader(ociJson)) {
+            JSONObject jsonObject = (JSONObject)parser.parse(reader);
+            return (String)jsonObject.get("containerId");
+        } catch (ParseException e) {
+            throw new IOException("Unable to parse {}", e);
+        }
     }
 
     // save runc.yaml in artifacts dir so we can track which image the worker was launched with
@@ -311,7 +333,7 @@ public class RuncLibContainerManager extends OciContainerManager {
             throw new IOException(workerDir + " doesn't exist");
         }
 
-        File commandFile = new File(cmdDir + "/oci-config.json");
+        File commandFile = new File(cmdDir + FILE_SEPARATOR + OCI_CONFIG_JSON);
         mapper.writeValue(commandFile, ociContainerExecutorConfig);
 
         return commandFile.getAbsolutePath();
