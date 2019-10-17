@@ -740,8 +740,8 @@ static void exec_runc(const char* container_id, const char* runc_config_path,
   //The calling process will hang until the runc container terminates if it reads runc container's stdout
   //We redirect the stdout and stderr to files as a workaround.
   //There maybe a better way to solve this problem.
-  char* runc_out_file = concatenate("%s/%s", "runc out file", 2, bundle_path, "runc.out");
-  char* runc_err_file = concatenate("%s/%s", "runc err file", 2, bundle_path, "runc.err");
+  char* runc_out_file = concatenate("%s/runc-%s.out", "runc out file", 2, bundle_path, container_id);
+  char* runc_err_file = concatenate("%s/runc-%s.err", "runc err file", 2, bundle_path, container_id);
 
   int fd_out = open(runc_out_file, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
   int fd_err = open(runc_err_file, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
