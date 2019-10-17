@@ -285,6 +285,11 @@ public class ConfigUtils {
         return (workerRoot(conf) + FILE_SEPARATOR + id);
     }
 
+    public static String workerArtifactsSymlink(Map<String, Object> conf, String id) {
+        return workerRoot(conf, id) + FILE_SEPARATOR + "artifacts";
+
+    }
+
     public static String workerPidsRoot(Map<String, Object> conf, String id) {
         return (workerRoot(conf, id) + FILE_SEPARATOR + "pids");
     }

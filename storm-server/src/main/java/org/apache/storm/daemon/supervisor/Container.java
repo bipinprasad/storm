@@ -362,7 +362,7 @@ public abstract class Container implements Killable {
             File topoDir = new File(ConfigUtils.workerArtifactsRoot(conf, topologyId, port));
             if (ops.fileExists(workerDir)) {
                 LOG.debug("Creating symlinks for worker-id: {} topology-id: {} to its port artifacts directory", workerId, topologyId);
-                ops.createSymlink(new File(workerDir, "artifacts"), topoDir);
+                ops.createSymlink(new File(ConfigUtils.workerArtifactsSymlink(conf, workerId)), topoDir);
             }
         }
     }

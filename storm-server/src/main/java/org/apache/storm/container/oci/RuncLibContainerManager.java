@@ -141,7 +141,7 @@ public class RuncLibContainerManager extends OciContainerManager {
 
     //the container process ID in the process namespace of the host.
     private String containerPidFile(String workerId) {
-        return ConfigUtils.workerRoot(conf, workerId) + FILE_SEPARATOR + "container.pid";
+        return ConfigUtils.workerArtifactsSymlink(conf, workerId) + FILE_SEPARATOR + "container.pid";
     }
 
     @Override
