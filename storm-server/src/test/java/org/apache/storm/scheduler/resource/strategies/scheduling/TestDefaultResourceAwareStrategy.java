@@ -797,7 +797,7 @@ public class TestDefaultResourceAwareStrategy {
         assertEquals("Rack-5 should be ordered sixth", "rack-5", it.next().id);
 
         SchedulingResult schedulingResult = rs.schedule(cluster, topo1);
-        assert(schedulingResult.isSuccess());
+        assertTrue("Scheduling failed", schedulingResult.isSuccess());
         SchedulerAssignment assignment = cluster.getAssignmentById(topo1.getId());
         for (WorkerSlot ws : assignment.getSlotToExecutors().keySet()) {
             //make sure all workers on scheduled in rack-0
@@ -821,7 +821,7 @@ public class TestDefaultResourceAwareStrategy {
         rs = new DefaultResourceAwareStrategyOld();
         // schedule topo2
         schedulingResult = rs.schedule(cluster, topo2);
-        assert(schedulingResult.isSuccess());
+        assertTrue("Scheduling failed", schedulingResult.isSuccess());
         assignment = cluster.getAssignmentById(topo2.getId());
         for (WorkerSlot ws : assignment.getSlotToExecutors().keySet()) {
             //make sure all workers on scheduled in rack-1
@@ -921,7 +921,7 @@ public class TestDefaultResourceAwareStrategy {
         Assert.assertEquals("rack-2 should be ordered fifth", "rack-2", it.next().id);
 
         SchedulingResult schedulingResult = rs.schedule(cluster, topo1);
-        assert(schedulingResult.isSuccess());
+        assertTrue("Scheduling failed", schedulingResult.isSuccess());
         SchedulerAssignment assignment = cluster.getAssignmentById(topo1.getId());
         for (WorkerSlot ws : assignment.getSlotToExecutors().keySet()) {
             String hostName = rs.idToNode(ws.getNodeId()).getHostname();
@@ -948,7 +948,7 @@ public class TestDefaultResourceAwareStrategy {
         rs = new DefaultResourceAwareStrategyOld();
         // schedule topo2
         schedulingResult = rs.schedule(cluster, topo2);
-        assert(schedulingResult.isSuccess());
+        assertTrue("Scheduling failed", schedulingResult.isSuccess());
         assignment = cluster.getAssignmentById(topo2.getId());
         for (WorkerSlot ws : assignment.getSlotToExecutors().keySet()) {
             //make sure all workers on scheduled in rack-1

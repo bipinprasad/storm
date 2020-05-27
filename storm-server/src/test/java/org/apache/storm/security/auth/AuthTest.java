@@ -167,7 +167,9 @@ public class AuthTest {
             fail("An exception should have been thrown trying to connect.");
         } catch (Exception e) {
             LOG.info("Got Exception...", e);
-            assert (Utils.exceptionCauseIsInstanceOf(expectedException, e));
+            if (!Utils.exceptionCauseIsInstanceOf(expectedException, e)) {
+                throw new AssertionError("Expecting " + expectedException.getClass().getName() + " but got " + e.getClass().getName(), e);
+            }
         }
     }
 
@@ -241,9 +243,11 @@ public class AuthTest {
                        try (NimbusClient client = new NimbusClient(badConf, "localhost", server.getPort(), NIMBUS_TIMEOUT)) {
                            client.getClient().activate("bad_security_auth_test_topology");
                            fail("An exception should have been thrown trying to connect.");
-                       } catch (Exception te) {
-                           LOG.info("Got Exception...", te);
-                           assert (Utils.exceptionCauseIsInstanceOf(TTransportException.class, te));
+                       } catch (Exception e) {
+                           LOG.info("Got Exception...", e);
+                           if (!Utils.exceptionCauseIsInstanceOf(TTransportException.class, e)) {
+                               throw new AssertionError("Expecting TTransportException but got " + e.getClass().getName(), e);
+                           }
                        }
                    });
         verify(impl).activate("security_auth_test_topology");
@@ -275,9 +279,11 @@ public class AuthTest {
                        try (NimbusClient client = new NimbusClient(badTransport, "localhost", server.getPort(), NIMBUS_TIMEOUT)) {
                            client.getClient().activate("bad_security_auth_test_topology");
                            fail("An exception should have been thrown trying to connect.");
-                       } catch (Exception te) {
-                           LOG.info("Got Exception...", te);
-                           assert (Utils.exceptionCauseIsInstanceOf(TTransportException.class, te));
+                       } catch (Exception e) {
+                           LOG.info("Got Exception...", e);
+                           if (!Utils.exceptionCauseIsInstanceOf(TTransportException.class, e)) {
+                               throw new AssertionError("Expecting TTransportException but got " + e.getClass().getName(), e);
+                           }
                        }
                        //The user here from the jaas conf is bob.  No impersonation is done, so verify that
                        ReqContext found = user.get();
@@ -323,7 +329,9 @@ public class AuthTest {
                                    client.getClient().activate("bad_auth_test_topology");
                                    fail("We should not be able to connect without a token...");
                                } catch (Exception e) {
-                                   assert (Utils.exceptionCauseIsInstanceOf(IOException.class, e));
+                                   if (!Utils.exceptionCauseIsInstanceOf(IOException.class, e)) {
+                                       throw new AssertionError("Expecting IOException but got " + e.getClass().getName(), e);
+                                   }
                                }
 
                                //Now lets create a token and verify that we can connect...
@@ -346,7 +354,9 @@ public class AuthTest {
                                    tryConnectAs(conf, server, bob, "bad_auth_test_topology");
                                    fail("We should not be able to connect with bad auth");
                                } catch (Exception e) {
-                                   assert (Utils.exceptionCauseIsInstanceOf(TTransportException.class, e));
+                                   if (!Utils.exceptionCauseIsInstanceOf(TTransportException.class, e)) {
+                                       throw new AssertionError("Expecting TTransportException but got " + e.getClass().getName(), e);
+                                   }
                                }
                                tryConnectAs(conf, server, alice, "topo-alice");
                                verifyUserIs(user, "alice");
