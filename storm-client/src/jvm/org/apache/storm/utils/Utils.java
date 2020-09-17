@@ -1243,7 +1243,7 @@ public class Utils {
                     client.getBlobMeta(key);
                 } catch (KeyNotFoundException keyNotFound) {
                     // wrap KeyNotFoundException in an InvalidTopologyException
-                    throw new WrappedInvalidTopologyException("Key not found: " + keyNotFound.get_msg());
+                    throw new WrappedInvalidTopologyException("Key not found: " + keyNotFound.getMessage());
                 }
             }
         }
@@ -1262,7 +1262,7 @@ public class Utils {
                     blobStore.getBlobMeta(key, subject);
                 } catch (KeyNotFoundException keyNotFound) {
                     // wrap KeyNotFoundException in an InvalidTopologyException
-                    throw new WrappedInvalidTopologyException("Key not found: " + keyNotFound.get_msg());
+                    throw new WrappedInvalidTopologyException("Key not found: " + keyNotFound.getMessage());
                 }
             }
         }
